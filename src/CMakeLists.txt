@@ -250,7 +250,7 @@ add_custom_target(deploy
 )
 
 find_program(SKY_ISCC ISCC PATHS "C:/Program Files (x86)/Inno Setup 6" "$ENV{LOCALAPPDATA}/Programs/Inno Setup 6")
-set(SKY_ZIP ${SKY_DEPLOY_ROOT}/SkyAutoPiano-${PROJECT_VERSION}-win64.zip)
+set(SKY_ZIP ${SKY_DEPLOY_ROOT}/SkyAutoPiano-${PROJECT_VERSION}-portable.zip)
 if(SKY_ISCC)
     set(SKY_INSTALLER_COMMAND ${SKY_ISCC} /Q /DAppVersion=${PROJECT_VERSION} /DStagingDir=${SKY_STAGING}
         /DIconFile=${SKY_ICON_PATH} /DOutputDir=${SKY_DEPLOY_ROOT} ${CMAKE_SOURCE_DIR}/packaging/installer.iss)

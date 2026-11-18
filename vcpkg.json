@@ -1,0 +1,10 @@
+{
+  "name": "sky-auto-piano",
+  "version-semver": "2.0.0",
+  "dependencies": [
+    "nlohmann-json",
+    "miniz",
+    "catch2"
+  ],
+  "builtin-baseline": "8f363bdc11359ede4bc51e5eb32a2617538049c8"
+}

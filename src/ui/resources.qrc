@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/styles">
+        <file alias="app.qss">styles/app.qss</file>
+    </qresource>
+    <qresource prefix="/fonts">
+        <file alias="Roboto-Light.ttf">../../assets/fonts/Roboto-Light.ttf</file>
+        <file alias="Roboto-Regular.ttf">../../assets/fonts/Roboto-Regular.ttf</file>
+        <file alias="Roboto-Medium.ttf">../../assets/fonts/Roboto-Medium.ttf</file>
+        <file alias="Roboto-Bold.ttf">../../assets/fonts/Roboto-Bold.ttf</file>
+    </qresource>
+    <qresource prefix="/icon">
+        <file alias="Icon9.ico">../../assets/icon/Icon9.ico</file>
+    </qresource>
+</RCC>

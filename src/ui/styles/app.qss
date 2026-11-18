@@ -1,0 +1,694 @@
+QWidget {
+    color: @fontColor;
+}
+
+QWidget#MainWindow {
+    background: @windowMain;
+}
+
+QWidget#LibraryArea, QListView#LibraryList, QListView#LibraryList > QWidget {
+    background: @transparent;
+    border: none;
+}
+
+QLineEdit#SearchField {
+    min-width: 400px;
+    max-width: 400px;
+    padding: 15px 35px 15px 15px;
+    border: none;
+    border-radius: 10px;
+    background: @searchBg;
+    color: @searchText;
+    font-size: 14px;
+}
+
+QLabel#LibraryHeading {
+    font-size: 20px;
+    font-weight: 700;
+    color: @fontColor;
+}
+
+QPushButton#NeutralButton {
+    min-height: 24px;
+    padding: 5px 10px;
+    border: 1px solid @neutralBorder;
+    border-radius: 10px;
+    background: @background;
+    color: @fontColor;
+    font-size: 13px;
+}
+
+QPushButton#NeutralButton:hover, QPushButton#NeutralButton:checked {
+    border-color: @hoverColor;
+    color: @hoverColor;
+}
+
+QPushButton#NeutralButton:disabled {
+    border-color: @neutralBorderDisabled;
+    background: @neutralFillDisabled;
+}
+
+QPushButton#PrimaryButton {
+    min-height: 24px;
+    padding: 5px 10px;
+    border: 1px solid @primaryFill;
+    border-radius: 10px;
+    background: @primaryFill;
+    color: @white;
+    font-size: 13px;
+}
+
+QPushButton#DestructiveButton {
+    min-height: 24px;
+    padding: 5px 10px;
+    border: 1px solid @destructiveFill;
+    border-radius: 10px;
+    background: @destructiveFill;
+    color: @white;
+    font-size: 13px;
+}
+
+QPushButton#TransportSkip, QPushButton#TransportPlay {
+    min-height: 32px;
+    max-height: 32px;
+    min-width: 136px;
+    padding: 0px 9px;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 16px;
+    background: @transportFill;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+QPushButton#TransportSkip {
+    border-color: @transportSkip;
+    color: @transportSkip;
+}
+
+QPushButton#TransportSkip:hover {
+    border-color: @transportSkipHover;
+    color: @transportSkipHover;
+}
+
+QPushButton#TransportPlay {
+    border-color: @transportPlay;
+    color: @transportPlay;
+}
+
+QPushButton#TransportPlay:hover {
+    border-color: @transportPlayHover;
+    color: @transportPlayHover;
+}
+
+QPushButton#TransportSkip:pressed, QPushButton#TransportPlay:pressed {
+    border-color: @footerText;
+    color: @footerText;
+}
+
+QWidget#PlayerFooter QLabel {
+    color: @footerText;
+}
+
+QLabel#NowPlaying {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+QLabel#TimeLabel {
+    font-size: 16px;
+}
+
+QLabel#SpeedLabel {
+    font-size: 14px;
+}
+
+QLabel#DelayCaption {
+    font-size: 10px;
+}
+
+QSlider#ProgressSlider {
+    min-height: 21px;
+}
+
+QSlider#ProgressSlider::groove:horizontal {
+    height: 3px;
+    border-radius: 1px;
+    background: @progressGroove;
+}
+
+QSlider#ProgressSlider::sub-page:horizontal {
+    height: 3px;
+    border-radius: 1px;
+    background: @progressPlayed;
+}
+
+QSlider#ProgressSlider::handle:horizontal {
+    width: 15px;
+    height: 15px;
+    margin: -6px 0px;
+    border-radius: 7px;
+    background: @progressHandle;
+}
+
+QSlider#LoopSlider {
+    min-width: 50px;
+    max-width: 50px;
+    min-height: 8px;
+}
+
+QSlider#LoopSlider::groove:horizontal {
+    height: 2px;
+    border-radius: 1px;
+    background: @progressGroove;
+}
+
+QSlider#LoopSlider::handle:horizontal {
+    width: 8px;
+    height: 8px;
+    margin: -3px 0px;
+    border-radius: 4px;
+    background: @progressHandle;
+}
+
+QLineEdit#SpeedField {
+    padding: 0px 5px;
+    border: none;
+    border-radius: 6px;
+    background: @speedFieldBg;
+    color: @speedFieldText;
+    font-size: 14px;
+}
+
+QScrollBar:vertical {
+    width: 8px;
+    margin: 0px;
+    border: none;
+    background: @scrollGroove;
+}
+
+QScrollBar::handle:vertical {
+    min-height: 24px;
+    border-radius: 4px;
+    background: @scrollHandle;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: @scrollHandleHover;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: @transparent;
+}
+
+QPushButton#PrimaryButton:disabled, QPushButton#DestructiveButton:disabled {
+    border-color: @neutralBorderDisabled;
+    background: @neutralFillDisabled;
+    color: @fontColor75;
+}
+
+QComboBox#BulkPlaylistSelect {
+    min-height: 34px;
+    padding: 0px 10px;
+    border: 1px solid @neutralBorder;
+    border-radius: 10px;
+    background: @background;
+    color: @fontColor;
+    font-size: 13px;
+}
+
+QComboBox#BulkPlaylistSelect:disabled {
+    border-color: @neutralBorderDisabled;
+    background: @neutralFillDisabled;
+}
+
+QComboBox#BulkPlaylistSelect::drop-down {
+    border: none;
+    width: 20px;
+}
+
+QComboBox#BulkPlaylistSelect QAbstractItemView {
+    background: @popoverFill;
+    color: @fontColor;
+    selection-background-color: @hoverColor;
+    border: 1px solid @neutralBorder;
+}
+
+QLabel#BulkSummary {
+    font-size: 13px;
+}
+
+QLabel#StoreSubtitle, QLabel#PlaylistSubtitle {
+    font-size: 13px;
+    color: @fontColor75;
+}
+
+QLabel#PickerTitle {
+    font-size: 18px;
+}
+
+QLabel#PickerEmpty {
+    font-size: 13px;
+    color: @fontColor75;
+}
+
+QLineEdit#PickerNameField {
+    min-height: 38px;
+    padding: 0px 12px;
+    border: 1px solid @pickerFieldBorder;
+    border-radius: 8px;
+    background: @transparent;
+    color: @fontColor;
+    font-size: 14px;
+}
+
+QLineEdit#PickerNameField:focus {
+    border-color: @pickerFieldFocus;
+}
+
+QScrollArea#PickerList, QWidget#PickerRows {
+    background: @transparent;
+    border: none;
+}
+
+QWidget#PickerRow {
+    background: @transparent;
+    border-bottom: 1px solid @pickerRowRule;
+}
+
+QLabel#ConfirmMessage {
+    padding: 20px;
+    color: @confirmText;
+    font-size: 16px;
+    background: @transparent;
+}
+
+QPushButton#ConfirmOk, QPushButton#ConfirmCancel {
+    padding: 15px;
+    border: none;
+    border-radius: 0px;
+    background: @transparent;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+QPushButton#ConfirmOk {
+    color: @confirmOk;
+}
+
+QPushButton#ConfirmCancel {
+    color: @confirmCancel;
+}
+
+QPushButton#ConfirmOk:hover, QPushButton#ConfirmCancel:hover {
+    background: @confirmButtonHover;
+}
+
+QPushButton#PageButton, QPushButton#PageButtonActive {
+    min-width: 16px;
+    min-height: 34px;
+    padding: 0px 10px;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+QPushButton#PageButton {
+    border: 1px solid @neutralBorder;
+    background: @background;
+    color: @fontColor;
+}
+
+QPushButton#PageButton:hover {
+    border-color: @hoverColor;
+    color: @hoverColor;
+}
+
+QPushButton#PageButton:disabled {
+    border-color: @neutralBorderDisabled;
+    background: @neutralFillDisabled;
+    color: @fontColor75;
+}
+
+QPushButton#PageButtonActive, QPushButton#PageButtonActive:disabled {
+    border: 1px solid @primaryFill;
+    background: @primaryFill;
+    color: @white;
+}
+
+QWidget#SettingsWindow {
+    background: @settingsWindowFill;
+}
+
+QScrollArea#SettingsContent, QWidget#SettingsContentViewport {
+    background: @settingsContentFill;
+    border: none;
+}
+
+QWidget#SettingsPageHost {
+    background: @transparent;
+}
+
+QLabel#SettingsHeading {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+QLabel#SettingsHeaderDescription {
+    font-size: 16px;
+    color: @settingsHeaderDesc;
+}
+
+QLabel#SettingTitle {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+QLabel#SettingDescription {
+    font-size: 14px;
+    color: @settingsCardDesc;
+}
+
+QWidget#SidebarDivider {
+    background: @settingsDivider;
+}
+
+QLabel#SettingsRowTitle {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+QLabel#SettingsRowDescription {
+    font-size: 13px;
+    color: @settingsCardDesc;
+}
+
+QLabel#OverviewTitle {
+    font-size: 19px;
+    font-weight: 600;
+}
+
+QLabel#OverviewVersion {
+    font-size: 12px;
+    color: @settingsCardDesc;
+}
+
+QLabel#SettingWarning {
+    font-size: 12px;
+    font-weight: 500;
+    color: @settingsWarnText;
+}
+
+QLabel#ShortcutLabel {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+QLabel#KeyboardTip {
+    font-size: 13px;
+    color: @settingsTipText;
+}
+
+QLineEdit#ShortcutField {
+    padding: 7px 10px;
+    border: 1px solid @settingsShortcutBorder;
+    border-radius: 8px;
+    background: @settingsShortcutFill;
+    color: @settingsShortcutText;
+    font-family: "Courier New";
+    font-size: 13px;
+}
+
+QLineEdit#ShortcutField:focus {
+    border-color: @settingsShortcutFocusBorder;
+    background: @settingsShortcutFocusFill;
+}
+
+QLabel#QuickStartTitle {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+QLabel#QuickStartBody {
+    font-size: 14px;
+    color: @settingsCardDesc;
+}
+
+QLabel#QuickStartPoint {
+    font-size: 14px;
+}
+
+QLabel#QuickStartKeys {
+    padding: 5px 10px;
+    border: 1px solid @settingsShortcutBorder;
+    border-radius: 8px;
+    background: @settingsShortcutFill;
+    color: @settingsShortcutText;
+    font-family: "Courier New";
+    font-size: 13px;
+}
+
+QLabel#ThemeGroupTitle {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+QLabel#ThemeBuilderTitle {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+QLabel#ThemeSectionTitle {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+QLabel#ColorPickerTitle {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+QLabel#ColorPickerCaption {
+    font-size: 12px;
+    font-weight: 500;
+    color: @settingsCardDesc;
+}
+
+QLineEdit#ThemeNameField, QLineEdit#ThemeHexField {
+    min-height: 22px;
+    padding: 8px 12px;
+    border: 1px solid @settingsShortcutBorder;
+    border-radius: 10px;
+    background: @settingsShortcutFill;
+    color: @settingsShortcutText;
+    font-size: 14px;
+}
+
+QLineEdit#ThemeHexField {
+    font-family: "Courier New";
+}
+
+QLineEdit#ThemeNameField:focus, QLineEdit#ThemeHexField:focus {
+    border-color: @hoverColor;
+    background: @settingsShortcutFocusFill;
+}
+
+QLabel#BlockTitle {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+QLabel#BlockBody {
+    font-size: 15px;
+    color: @settingsCardDesc;
+}
+
+QWidget#EditorWindow {
+    background: @windowEditor;
+}
+
+QScrollArea#EditorGrid, QWidget#EditorGridViewport, QWidget#EditorGridCanvas {
+    background: @transparent;
+    border: none;
+}
+
+QWidget#EditorBottomBar {
+    background: @background;
+}
+
+QLabel#EditorFieldText {
+    font-size: 12px;
+    background: @transparent;
+}
+
+QLineEdit#EditorFieldEdit {
+    padding: 2px 4px;
+    border: 1px solid @borderColor;
+    border-radius: 3px;
+    background: @editBg;
+    color: @fontColor;
+    font-size: 12px;
+}
+
+QLabel#EditorHoldBanner {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: @editorHoldFill;
+    font-size: 12px;
+}
+
+QPushButton#EditorSave, QPushButton#EditorCancel {
+    min-height: 22px;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 4px;
+    color: @editorActionText;
+    font-size: 13px;
+}
+
+QPushButton#EditorSave {
+    background: @successColor;
+}
+
+QPushButton#EditorSave:hover {
+    background: @successHover;
+}
+
+QPushButton#EditorSave:disabled {
+    background: @successDisabled;
+    color: @editorActionDisabledText;
+}
+
+QPushButton#EditorCancel {
+    background: @errorColor;
+}
+
+QPushButton#EditorCancel:hover {
+    background: @errorHover;
+}
+
+QPushButton#EditorCancel:disabled {
+    background: @errorDisabled;
+    color: @editorActionDisabledText;
+}
+
+QPushButton#EditorExport {
+    min-height: 22px;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    background: @editorExportFill;
+    color: @editorExportText;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+QPushButton#EditorExport:hover, QPushButton#EditorExport:focus {
+    background: @editorExportHover;
+}
+
+QTextBrowser[markdown="true"], QTextBrowser[markdown="true"] > QWidget {
+    background: @transparent;
+    border: none;
+}
+
+QLabel#ChangelogTitle {
+    font-size: 22px;
+    font-weight: 600;
+}
+
+QLabel#ChangelogPill {
+    padding: 10px 20px;
+    background: @transparent;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+QPushButton#ChangelogButton {
+    min-width: 100px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    background: @fontColor;
+    color: @background;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+QLabel#UpdatePromptHeading {
+    font-size: 22px;
+    font-weight: 600;
+    color: @updatePromptHeading;
+}
+
+QLabel#UpdatePromptVersion {
+    font-size: 18px;
+    font-weight: 600;
+    color: @updatePromptVersion;
+}
+
+QLabel#UpdateVersionOld {
+    font-size: 15px;
+    font-weight: 600;
+    color: @updateVersionOld;
+}
+
+QLabel#UpdateVersionNew {
+    font-size: 15px;
+    font-weight: 700;
+    color: @updateVersionNew;
+}
+
+QScrollBar#UpdateNotesScrollBar:vertical {
+    background: @transparent;
+    width: 8px;
+    margin: 0;
+}
+
+QScrollBar#UpdateNotesScrollBar::handle:vertical {
+    background: @updateVersionOld;
+    border-radius: 4px;
+    min-height: 32px;
+}
+
+QScrollBar#UpdateNotesScrollBar::add-line:vertical, QScrollBar#UpdateNotesScrollBar::sub-line:vertical,
+QScrollBar#UpdateNotesScrollBar::add-page:vertical, QScrollBar#UpdateNotesScrollBar::sub-page:vertical {
+    background: @transparent;
+    height: 0;
+}
+
+QLabel#UpdatePromptStatus {
+    font-size: 13px;
+    color: @updateStatusText;
+}
+
+QLabel#UpdatePromptStatus[error="true"] {
+    color: @updateStatusError;
+}
+
+QPushButton#UpdatePromptLink {
+    border: none;
+    background: @transparent;
+    padding: 0px;
+    font-size: 13px;
+    color: @updateStatusText;
+}
+
+QPushButton#UpdatePromptLink:hover {
+    color: @updatePromptHeading;
+    text-decoration: underline;
+}
+
+QToolButton#FlatIconButton {
+    border: none;
+    background: @transparent;
+}
+
+QToolTip {
+    background: @background;
+    color: @fontColor;
+    border: 1px solid @neutralBorder;
+}

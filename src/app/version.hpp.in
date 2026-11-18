@@ -1,0 +1,7 @@
+#pragma once
+
+namespace sky {
+
+inline constexpr const char *kAppVersion = "@PROJECT_VERSION@";
+
+}  // namespace sky

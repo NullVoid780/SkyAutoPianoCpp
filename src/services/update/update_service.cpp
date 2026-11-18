@@ -156,6 +156,7 @@ UpdateService::UpdateService(std::string currentVersion, std::filesystem::path a
     : QObject(parent),
       m_currentVersion(std::move(currentVersion)),
       m_appDirectory(std::move(appDirectory)),
+      m_installKind(detectInstallKind(m_appDirectory)),
       m_configDirectory(std::move(configDirectory)),
       m_http(new HttpClient(allowedHosts(), this)),
       m_downloader(new Downloader(allowedHosts(), this))
@@ -163,13 +164,22 @@ UpdateService::UpdateService(std::string currentVersion, std::filesystem::path a
     loadReleaseCache();
 }
 
-Result<VersionCheck> UpdateService::evaluateReleases(const Json &releases, std::string_view currentVersion)
+InstallKind UpdateService::detectInstallKind(const std::filesystem::path &appDirectory)
+{
+    std::error_code error;
+    return std::filesystem::exists(appDirectory / "unins000.exe", error) ? InstallKind::Installed
+                                                                         : InstallKind::Portable;
+}
+
+Result<VersionCheck> UpdateService::evaluateReleases(const Json &releases, std::string_view currentVersion,
+                                                     InstallKind kind)
 {
     const std::vector<ReleaseInfo> parsed = parseReleases(releases);
-    const auto latest =
-        std::find_if(parsed.begin(), parsed.end(), [](const ReleaseInfo &release) { return release.package.has_value(); });
+    const auto latest = std::find_if(parsed.begin(), parsed.end(),
+                                     [kind](const ReleaseInfo &release) { return release.packageFor(kind).has_value(); });
     if (latest == parsed.end()) {
-        return Error{"UPDATE_NOT_PUBLISHED", kNotPublished, "no release has an installer"};
+        return Error{"UPDATE_NOT_PUBLISHED", kNotPublished,
+                     kind == InstallKind::Portable ? "no release has a portable zip" : "no release has an installer"};
     }
     VersionCheck check;
     check.currentVersion = std::string(currentVersion);
@@ -183,14 +193,14 @@ Result<VersionCheck> UpdateService::evaluateReleases(const Json &releases, std::
         }
     }
     if (compareVersions(latest->version, currentVersion) > 0) {
-        check.package = latest->package;
+        check.package = latest->packageFor(kind);
         check.available = true;
     }
     return check;
 }
 
 VersionCheck UpdateService::evaluateLatestTag(std::string_view latestVersion, std::string_view currentVersion,
-                                              std::vector<VersionNotes> changelog)
+                                              std::vector<VersionNotes> changelog, InstallKind kind)
 {
     VersionCheck check;
     check.currentVersion = std::string(currentVersion);
@@ -201,8 +211,11 @@ VersionCheck UpdateService::evaluateLatestTag(std::string_view latestVersion, st
     }
     check.history = std::move(changelog);
     if (compareVersions(latestVersion, currentVersion) > 0) {
-        check.package = UpdatePackage{releaseTagUrl(latestVersion, installerFileName(latestVersion)),
-                                      PackageKind::Installer, 0, {}};
+        check.package = kind == InstallKind::Portable
+                            ? UpdatePackage{releaseTagUrl(latestVersion, portableFileName(latestVersion)),
+                                            PackageKind::Zip, 0, {}}
+                            : UpdatePackage{releaseTagUrl(latestVersion, installerFileName(latestVersion)),
+                                            PackageKind::Installer, 0, {}};
         check.available = true;
     }
     return check;
@@ -214,7 +227,7 @@ Result<VersionCheck> UpdateService::evaluateBody(const QByteArray &body) const
     if (!parsed || !parsed.value().is_array()) {
         return Error{"UPDATE_CHECK_FAILED", kGithubFailed, "invalid release list"};
     }
-    return evaluateReleases(parsed.value(), m_currentVersion);
+    return evaluateReleases(parsed.value(), m_currentVersion, m_installKind);
 }
 
 bool UpdateService::apiPaused() const
@@ -333,7 +346,8 @@ void UpdateService::checkWithoutApi(std::function<void(Result<VersionCheck>)> do
                 return;
             }
             done(evaluateLatestTag(version, self->m_currentVersion,
-                                   changelog ? std::move(changelog.value()) : std::vector<VersionNotes>{}));
+                                   changelog ? std::move(changelog.value()) : std::vector<VersionNotes>{},
+                                   self->m_installKind));
         });
     });
 }

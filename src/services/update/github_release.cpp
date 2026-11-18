@@ -45,12 +45,12 @@ std::string trimmed(std::string_view text)
     return std::string(text.substr(first, last - first + 1));
 }
 
-std::optional<UpdatePackage> packageFrom(const Json &assets)
+void readPackages(const Json &assets, ReleaseInfo &info)
 {
     if (!assets.is_array()) {
-        return std::nullopt;
+        return;
     }
-    std::optional<UpdatePackage> zip;
+    bool namedPortable = false;
     for (const Json &asset : assets) {
         if (!asset.is_object()) {
             continue;
@@ -74,11 +74,17 @@ std::optional<UpdatePackage> packageFrom(const Json &assets)
             package.sha256 = digest.substr(kDigestPrefix.size());
         }
         if (installer) {
-            return package;
+            if (!info.installer) {
+                info.installer = package;
+            }
+            continue;
         }
-        zip = package;
+        const bool portable = endsWith(name, "-portable.zip");
+        if (!info.portable || (portable && !namedPortable)) {
+            info.portable = package;
+            namedPortable = namedPortable || portable;
+        }
     }
-    return zip;
 }
 
 }  // namespace
@@ -86,6 +92,19 @@ std::optional<UpdatePackage> packageFrom(const Json &assets)
 std::string installerFileName(std::string_view version)
 {
     return "SkyAutoPiano-" + std::string(version) + "-setup.exe";
+}
+
+std::string portableFileName(std::string_view version)
+{
+    return "SkyAutoPiano-" + std::string(version) + "-portable.zip";
+}
+
+std::optional<UpdatePackage> ReleaseInfo::packageFor(InstallKind kind) const
+{
+    if (kind == InstallKind::Portable) {
+        return portable;
+    }
+    return installer ? installer : portable;
 }
 
 std::string cleanReleaseNotes(std::string_view body, bool *critical)
@@ -148,7 +167,7 @@ std::optional<ReleaseInfo> parseRelease(const Json &release)
     info.notes = cleanReleaseNotes(stringMember(release, "body"), &info.critical);
     info.page = stringMember(release, "html_url");
     if (const auto assets = release.find("assets"); assets != release.end()) {
-        info.package = packageFrom(*assets);
+        readPackages(*assets, info);
     }
     return info;
 }

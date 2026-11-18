@@ -63,9 +63,13 @@ public:
     std::optional<UpdateInfo> pendingChangelog() const;
     void markChangelogShown();
 
-    static Result<VersionCheck> evaluateReleases(const Json &releases, std::string_view currentVersion);
+    static Result<VersionCheck> evaluateReleases(const Json &releases, std::string_view currentVersion,
+                                                 InstallKind kind = InstallKind::Installed);
+    static InstallKind detectInstallKind(const std::filesystem::path &appDirectory);
+    InstallKind installKind() const { return m_installKind; }
     static VersionCheck evaluateLatestTag(std::string_view latestVersion, std::string_view currentVersion,
-                                          std::vector<VersionNotes> changelog);
+                                          std::vector<VersionNotes> changelog,
+                                          InstallKind kind = InstallKind::Installed);
     static Result<std::vector<std::filesystem::path>> applyStagedFiles(const std::filesystem::path &staging,
                                                                        const std::filesystem::path &appDirectory,
                                                                        const std::filesystem::path &cleanupList);
@@ -87,6 +91,7 @@ private:
 
     std::string m_currentVersion;
     std::filesystem::path m_appDirectory;
+    InstallKind m_installKind = InstallKind::Installed;
     std::filesystem::path m_configDirectory;
     HttpClient *m_http;
     Downloader *m_downloader;

@@ -17,12 +17,8 @@ Plays music sheets for you in <b>Sky: Children of the Light</b>.
 </p>
 
 <div align="center">
-  <a href="https://github.com/NullVoid780/SkyAutoPianoCpp/releases">
-    <img src="https://img.shields.io/github/v/release/NullVoid780/SkyAutoPianoCpp?style=flat-square&color=blue" alt="Latest release" />
-  </a>
-  <a href="https://github.com/NullVoid780/SkyAutoPianoCpp/releases">
-    <img src="https://img.shields.io/github/downloads/NullVoid780/SkyAutoPianoCpp/total?style=flat-square&color=blue" alt="Downloads" />
-  </a>
+  <a href="https://github.com/NullVoid780/SkyAutoPianoCpp/releases"><img src="https://img.shields.io/github/v/release/NullVoid780/SkyAutoPianoCpp?style=flat-square&color=blue" alt="Latest release" /></a>
+  <a href="https://github.com/NullVoid780/SkyAutoPianoCpp/releases"><img src="https://img.shields.io/github/downloads/NullVoid780/SkyAutoPianoCpp/total?style=flat-square&color=blue" alt="Downloads" /></a>
   <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-blue?style=flat-square" alt="Windows 10 and 11" />
 </div>
 

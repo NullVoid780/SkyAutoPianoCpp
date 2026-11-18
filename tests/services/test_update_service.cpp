@@ -218,3 +218,48 @@ TEST_CASE("zip extraction writes files and rejects paths that escape the destina
     CHECK_FALSE(std::filesystem::exists(root / "escaped.txt"));
     std::filesystem::remove_all(root);
 }
+
+TEST_CASE("a portable copy updates from the portable zip, an installed copy from the installer")
+{
+    Json releases = Json::parse(R"([
+        {"tag_name": "v2.2.0", "body": "- Installer only",
+         "assets": [{"name": "SkyAutoPiano-2.2.0-setup.exe", "browser_download_url": "https://github.com/x/2.2.0.exe"}]},
+        {"tag_name": "v2.1.0", "body": "- Both",
+         "assets": [
+            {"name": "SkyAutoPiano-2.1.0-other.zip", "browser_download_url": "https://github.com/x/other.zip"},
+            {"name": "SkyAutoPiano-2.1.0-portable.zip", "browser_download_url": "https://github.com/x/portable.zip"},
+            {"name": "SkyAutoPiano-2.1.0-setup.exe", "browser_download_url": "https://github.com/x/2.1.0.exe"}]}])");
+
+    auto installed = UpdateService::evaluateReleases(releases, "2.0.0", InstallKind::Installed);
+    REQUIRE(installed.ok());
+    CHECK(installed.value().latestVersion == "2.2.0");
+    REQUIRE(installed.value().package);
+    CHECK(installed.value().package->kind == PackageKind::Installer);
+
+    auto portable = UpdateService::evaluateReleases(releases, "2.0.0", InstallKind::Portable);
+    REQUIRE(portable.ok());
+    CHECK(portable.value().latestVersion == "2.1.0");
+    REQUIRE(portable.value().package);
+    CHECK(portable.value().package->kind == PackageKind::Zip);
+    CHECK(portable.value().package->url == "https://github.com/x/portable.zip");
+
+    Json installerOnly = Json::array({releases[0]});
+    CHECK(UpdateService::evaluateReleases(installerOnly, "2.0.0", InstallKind::Portable).error().code ==
+          "UPDATE_NOT_PUBLISHED");
+
+    const VersionCheck fallback = UpdateService::evaluateLatestTag("2.0.2", "2.0.0", {}, InstallKind::Portable);
+    REQUIRE(fallback.package);
+    CHECK(fallback.package->kind == PackageKind::Zip);
+    CHECK(fallback.package->url.ends_with("/releases/download/v2.0.2/SkyAutoPiano-2.0.2-portable.zip"));
+}
+
+TEST_CASE("a copy with the uninstaller next to it counts as installed")
+{
+    const auto folder = std::filesystem::temp_directory_path() / "sky-install-kind-test";
+    std::filesystem::remove_all(folder);
+    std::filesystem::create_directories(folder);
+    CHECK(UpdateService::detectInstallKind(folder) == InstallKind::Portable);
+    std::ofstream(folder / "unins000.exe") << "x";
+    CHECK(UpdateService::detectInstallKind(folder) == InstallKind::Installed);
+    std::filesystem::remove_all(folder);
+}

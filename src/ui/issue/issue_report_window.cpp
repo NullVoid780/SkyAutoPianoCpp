@@ -1,6 +1,7 @@
 #include "ui/issue/issue_report_window.hpp"
 
 #include <QCloseEvent>
+#include <QDialogButtonBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPlainTextEdit>
@@ -16,8 +17,9 @@ namespace sky {
 
 namespace {
 
-constexpr int kPadding = 28;
-constexpr int kRowGap = 10;
+constexpr int kPadding = 16;
+constexpr int kRowGap = 8;
+constexpr int kSectionGap = 12;
 
 QLabel *label(const QString &text, const char *objectName, QWidget *parent)
 {
@@ -49,8 +51,8 @@ IssueReportWindow::IssueReportWindow(QWidget *owner)
     setAttribute(Qt::WA_DeleteOnClose);
     setWindowTitle(QStringLiteral("Report an Issue"));
     setWindowIcon(QIcon(QStringLiteral(":/icon/Icon9.ico")));
-    resize(620, 720);
-    setMinimumSize(520, 560);
+    resize(560, 560);
+    setMinimumSize(480, 460);
 
     m_description->setObjectName(QStringLiteral("IssueDescription"));
     m_description->setPlaceholderText(
@@ -68,34 +70,32 @@ IssueReportWindow::IssueReportWindow(QWidget *owner)
                                       "and share it yourself."),
                        "SettingsRowDescription", this);
 
-    auto *discard = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("trash3"), QStringLiteral("Discard"), this);
-    auto *save = new ActionButton(ActionButton::Kind::Primary, QStringLiteral("floppy"), QStringLiteral("Save report"), this);
-    auto *buttons = new QHBoxLayout();
-    buttons->addWidget(discard);
-    buttons->addStretch();
-    buttons->addWidget(save);
+    auto *discard = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("trash3"), QStringLiteral("Discard"));
+    auto *save = new ActionButton(ActionButton::Kind::Primary, QStringLiteral("floppy"), QStringLiteral("Save report"));
+    auto *buttons = new QDialogButtonBox(this);
+    buttons->addButton(save, QDialogButtonBox::AcceptRole);
+    buttons->addButton(discard, QDialogButtonBox::RejectRole);
 
     auto *column = new QVBoxLayout(this);
     column->setContentsMargins(kPadding, kPadding, kPadding, kPadding);
     column->setSpacing(0);
-    column->addWidget(label(QStringLiteral("Report an Issue"), "QuickStartTitle", this));
+    column->addWidget(label(QStringLiteral("Report an Issue"), "ReportWindowTitle", this));
     column->addSpacing(4);
     column->addWidget(m_summary);
-    column->addSpacing(18);
+    column->addSpacing(kSectionGap);
     column->addWidget(label(QStringLiteral("Describe the problem"), "ColorPickerCaption", this));
-    column->addSpacing(6);
+    column->addSpacing(4);
     column->addWidget(m_description, 1);
-    column->addSpacing(18);
+    column->addSpacing(kSectionGap);
     column->addWidget(label(QStringLiteral("Include"), "ColorPickerCaption", this));
-    column->addSpacing(6);
+    column->addSpacing(4);
     for (SettingsRow *row : {library, m_failedRow}) {
         column->addWidget(row);
         column->addSpacing(kRowGap);
     }
-    column->addSpacing(4);
     column->addWidget(note);
-    column->addSpacing(18);
-    column->addLayout(buttons);
+    column->addSpacing(kSectionGap);
+    column->addWidget(buttons);
 
     connect(save, &QAbstractButton::clicked, this, [this] {
         Choices choices;

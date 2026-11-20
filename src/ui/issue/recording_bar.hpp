@@ -3,11 +3,11 @@
 #include <QPoint>
 #include <QWidget>
 
-class QVariantAnimation;
+class QLabel;
 
 namespace sky {
 
-class HudButton;
+class ActionButton;
 
 class RecordingBar final : public QWidget {
     Q_OBJECT
@@ -25,22 +25,15 @@ signals:
 
 protected:
     void paintEvent(QPaintEvent *event) override;
-    void showEvent(QShowEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
 
 private:
-    void layoutButtons();
-
-    HudButton *m_finish;
-    HudButton *m_discard;
-    QVariantAnimation *m_pulse;
-    QVariantAnimation *m_appear;
-    qint64 m_elapsed = 0;
-    int m_steps = 0;
-    qreal m_pulseValue = 0;
-    qreal m_appearValue = 1;
+    QLabel *m_time;
+    QLabel *m_steps;
+    ActionButton *m_stop;
+    ActionButton *m_discard;
     QPoint m_dragOffset;
     bool m_dragging = false;
 };

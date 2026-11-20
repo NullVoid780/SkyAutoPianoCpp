@@ -38,7 +38,7 @@ QLabel *sectionNote(const QString &text, QWidget *parent)
 ReportsTab::ReportsTab(QWidget *parent)
     : QWidget(parent), m_crashHost(new QWidget(this)), m_crashList(new QVBoxLayout(m_crashHost)), m_crashCount(nullptr)
 {
-    auto *header = new TabHeader(QStringLiteral("bug"), [] { return currentTheme().errorColor; },
+    auto *header = new TabHeader(QStringLiteral("bug"), [] { return currentTheme().hoverColor; },
                                  QStringLiteral("Reports"),
                                  QStringLiteral("Found a problem? Send the developer everything needed to fix it."), this);
 
@@ -48,8 +48,6 @@ ReportsTab::ReportsTab(QWidget *parent)
                                    QStringLiteral("A button does nothing, something looks wrong or a song won't import? "
                                                   "Start recording, show the problem, then save the report."),
                                    recordButton, this);
-    record->setIconTile([] { return withAlpha(currentTheme().errorColor, 0.16); },
-                        [] { return currentTheme().errorColor; });
 
     auto *crashTitleRow = new QHBoxLayout();
     crashTitleRow->setContentsMargins(0, 0, 0, 0);
@@ -94,23 +92,19 @@ void ReportsTab::setCrashes(const std::vector<CrashListEntry> &crashes)
         }
         delete item;
     }
-    m_crashCount->setText(crashes.empty() ? QString() : QStringLiteral("· %1").arg(crashes.size()));
+    m_crashCount->setText(crashes.empty() ? QString()
+                          : crashes.size() == 1 ? QStringLiteral("1 saved")
+                                                : QStringLiteral("%1 saved").arg(crashes.size()));
     if (crashes.empty()) {
-        auto *empty = new SettingsRow(QStringLiteral("check-circle-fill"), QStringLiteral("No crashes"),
-                                      QStringLiteral("Sky Auto Piano hasn't crashed. If it ever does, the report shows "
-                                                     "up here so you can save it for the developer."),
-                                      nullptr, m_crashHost);
-        empty->setIconTile([] { return withAlpha(currentTheme().successColor, 0.16); },
-                           [] { return currentTheme().successColor; });
-        m_crashList->addWidget(empty);
+        m_crashList->addWidget(sectionNote(QStringLiteral("No crash reports. If Sky Auto Piano ever crashes, the report "
+                                                          "appears here so you can save it for the developer."),
+                                           m_crashHost));
         return;
     }
     for (const CrashListEntry &crash : crashes) {
         auto *button =
             new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("download"), QStringLiteral("Save report"));
         auto *row = new SettingsRow(QStringLiteral("exclamation-triangle"), crash.title, crash.details, button, m_crashHost);
-        row->setIconTile([] { return withAlpha(currentTheme().toastWarning, 0.16); },
-                         [] { return currentTheme().toastWarning; });
         const QString id = crash.id;
         connect(button, &QAbstractButton::clicked, this, [this, id] { emit saveCrashReportRequested(id); });
         m_crashList->addWidget(row);

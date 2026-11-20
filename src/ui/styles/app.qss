@@ -432,13 +432,13 @@ QWidget#IssueReportWindow {
 }
 
 QPlainTextEdit#IssueDescription {
-    min-height: 90px;
-    padding: 8px 10px;
+    min-height: 80px;
+    padding: 4px 8px;
     border: 1px solid @settingsShortcutBorder;
-    border-radius: 10px;
+    border-radius: 4px;
     background: @settingsShortcutFill;
     color: @settingsShortcutText;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 QPlainTextEdit#IssueDescription:focus {
@@ -467,6 +467,23 @@ QLabel#QuickStartKeys {
     color: @settingsShortcutText;
     font-family: "Courier New";
     font-size: 13px;
+}
+
+QLabel#ReportWindowTitle {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+QLabel#RecordingTitle {
+    font-size: 13px;
+    font-weight: 600;
+    color: @fontColor;
+}
+
+QLabel#RecordingTime {
+    font-family: Consolas, "JetBrains Mono", monospace;
+    font-size: 13px;
+    color: @fontColor;
 }
 
 QLabel#ThemeGroupTitle {

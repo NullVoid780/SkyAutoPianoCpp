@@ -8,6 +8,7 @@
 #include <string>
 
 #include "crash/breadcrumbs.hpp"
+#include "crash/crash_archive.hpp"
 #include "crash/crash_channel.hpp"
 #include "crash/crash_dialog.hpp"
 #include "crash/crash_report.hpp"
@@ -110,6 +111,18 @@ int handleCrash(HANDLE process, DWORD processId, sky::CrashChannel &channel, con
     writeReport(reportFile, report);
     SetEvent(channel.dumpComplete());
 
+    const std::filesystem::path archiveFile = directory / (id + sky::kCrashArchiveExtension);
+    sky::CrashArchiveInput archive{id, report, std::nullopt, sky::crashAppHome(executable)};
+    if (dumped) {
+        archive.dump = dumpFile;
+    }
+    std::filesystem::path shownFile = reportFile;
+    if (sky::writeCrashArchive(archiveFile, archive)) {
+        std::filesystem::remove(reportFile, error);
+        std::filesystem::remove(dumpFile, error);
+        shownFile = archiveFile;
+    }
+
     sky::pruneCrashReports(directory);
     if (GetEnvironmentVariableW(L"SKY_CRASH_NO_DIALOG", nullptr, 0) > 0) {
         return 0;
@@ -117,27 +130,11 @@ int handleCrash(HANDLE process, DWORD processId, sky::CrashChannel &channel, con
     const std::wstring reason =
         widen(sky::exceptionCodeName(input.code)) + L" (" + widen(sky::hex(input.code, 8)) + L")";
     const sky::CrashDialogChoice choice =
-        sky::showCrashDialog({reason, reportFile.filename().wstring(), directory, widen(report.dump(2))});
+        sky::showCrashDialog({reason, shownFile.filename().wstring(), directory, widen(report.dump(2))});
     if (choice == sky::CrashDialogChoice::Restart) {
         WaitForSingleObject(process, 5000);
         restart(executable, id);
     }
-    return 0;
-}
-
-int handleUnexpectedExit(sky::CrashChannel &channel)
-{
-    const sky::CrashContext &context = *channel.context();
-    const std::filesystem::path directory = sky::crashDirectory();
-    std::error_code error;
-    std::filesystem::create_directories(directory, error);
-    sky::CrashReportInput input = baseInput(context);
-    input.unexpectedExit = true;
-    sky::CrashContext snapshot = context;
-    snapshot.crashTick = GetTickCount64();
-    input.process.uptimeMs = snapshot.crashTick - snapshot.startTick;
-    writeReport(directory / (sky::newReportId() + ".json"), sky::buildCrashReport(input));
-    sky::pruneCrashReports(directory);
     return 0;
 }
 
@@ -180,8 +177,6 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
     int result = 0;
     if (signaled == WAIT_OBJECT_0) {
         result = handleCrash(process, processId, channel, executable);
-    } else if (!channel.context()->cleanExit && !channel.context()->crashed) {
-        result = handleUnexpectedExit(channel);
     }
     CloseHandle(process);
     return result;

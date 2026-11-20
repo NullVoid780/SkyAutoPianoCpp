@@ -33,6 +33,7 @@
 #include "ui/settings_window/themes_tab.hpp"
 #include "ui/settings_window/updates_tab.hpp"
 #include "ui/settings_window/about_tab.hpp"
+#include "ui/settings_window/reports_tab.hpp"
 #include "ui/theme_manager.hpp"
 #include "ui/widgets/toast_host.hpp"
 
@@ -90,6 +91,7 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
       m_shortcuts(new ShortcutsTab(m_pageHost)),
       m_themes(new ThemesTab(services.themes, m_pageHost)),
       m_updates(new UpdatesTab(QLatin1String(kAppVersion), m_pageHost)),
+      m_reports(new ReportsTab(m_pageHost)),
       m_about(new AboutTab(QLatin1String(kAppVersion), m_pageHost)),
       m_save(new SaveButton(this)),
       m_shadows(new ElevationLayer(this)),
@@ -109,7 +111,7 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
     m_pageHost->setObjectName(QStringLiteral("SettingsPageHost"));
     applyPageMargins(0);
     m_pageLayout->setSpacing(0);
-    m_pages = {m_general, m_keyboard, m_shortcuts, m_themes, m_updates, m_about};
+    m_pages = {m_general, m_keyboard, m_shortcuts, m_themes, m_updates, m_reports, m_about};
     for (QWidget *page : m_pages) {
         m_pageLayout->addWidget(page);
         page->hide();
@@ -134,6 +136,7 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
     m_sidebar->addItem(QStringLiteral("lightning"), QStringLiteral("Shortcuts"));
     m_sidebar->addItem(QStringLiteral("palette"), QStringLiteral("Themes"));
     m_updatesNav = m_sidebar->addItem(QStringLiteral("update"), QStringLiteral("Updates"));
+    m_sidebar->addItem(QStringLiteral("bug"), QStringLiteral("Reports"));
     m_sidebar->addSeparator();
     m_sidebar->addItem(QStringLiteral("info-circle"), QStringLiteral("About"));
 
@@ -163,6 +166,9 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
     connect(m_general, &GeneralTab::importRequested, this, &SettingsWindow::importSettings);
     connect(m_general, &GeneralTab::importPreviousRequested, this, &SettingsWindow::importPreviousRequested);
     connect(m_general, &GeneralTab::quickStartRequested, this, &SettingsWindow::quickStartRequested);
+    connect(m_reports, &ReportsTab::recordIssueRequested, this, &SettingsWindow::recordIssueRequested);
+    connect(m_reports, &ReportsTab::saveCrashReportRequested, this, &SettingsWindow::saveCrashReportRequested);
+    connect(m_reports, &ReportsTab::crashFolderRequested, this, &SettingsWindow::crashFolderRequested);
     connect(m_themes, &ThemesTab::toastRequested, this, &SettingsWindow::showToast);
     connect(m_themes, &ThemesTab::editingChanged, this, [this] {
         m_smoothScroll->stop();
@@ -214,7 +220,8 @@ void SettingsWindow::showPage(int index)
         }
         page->setVisible(active);
     }
-    m_save->setVisible(m_pages[static_cast<std::size_t>(index)] != m_themes);
+    QWidget *shown = m_pages[static_cast<std::size_t>(index)];
+    m_save->setVisible(shown != m_themes && shown != m_reports);
     m_smoothScroll->stop();
     m_scroll->verticalScrollBar()->setValue(0);
     m_pageFade->stop();
@@ -254,6 +261,7 @@ OrderedJson SettingsWindow::mergedJson(const Config &form) const
     }
     next["panel"]["autoSave"] = form.panel.autoSave;
     next["panel"]["minimizeOnPlay"] = form.panel.minimizeOnPlay;
+    next["panel"]["pauseWhenUnfocused"] = form.panel.pauseWhenUnfocused;
     next["panel"]["playbackMode"] = playbackModeName(form.panel.playbackMode);
     OrderedJson keys = OrderedJson::array();
     for (const std::string &key : form.keyboard.keys) {
@@ -268,6 +276,21 @@ OrderedJson SettingsWindow::mergedJson(const Config &form) const
     next["shortcut"]["decreaseSpeed"] = form.shortcut.decreaseSpeed;
     next["update"]["blockUpdate"] = form.update.blockUpdate;
     return next;
+}
+
+void SettingsWindow::setCrashReports(const std::vector<CrashListEntry> &crashes)
+{
+    m_reports->setCrashes(crashes);
+}
+
+int SettingsWindow::currentPage() const
+{
+    return m_sidebar->current();
+}
+
+void SettingsWindow::openPage(int index)
+{
+    m_sidebar->setCurrent(index);
 }
 
 void SettingsWindow::reloadForm()

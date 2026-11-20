@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include <vector>
 
 #include <QObject>
@@ -21,6 +23,8 @@ public:
 
     void show(const Toast &toast);
     void relayout();
+
+    static void setObserver(std::function<void(const Toast &)> observer);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;

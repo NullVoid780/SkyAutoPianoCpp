@@ -303,6 +303,10 @@ void MainWindow::wireFooter()
     connect(m_footer, &PlayerFooter::previousRequested, &player, &PlayerController::previous);
     connect(m_footer, &PlayerFooter::playRequested, &player, &PlayerController::togglePlay);
     connect(m_footer, &PlayerFooter::nextRequested, &player, &PlayerController::next);
+    connect(m_footer, &PlayerFooter::practiceModeChosen, &player,
+            [&player](bool practice) { player.setPlayMode(practice ? PlayMode::Practice : PlayMode::Auto); });
+    connect(&player, &PlayerController::playModeChanged, m_footer,
+            [this](PlayMode mode) { m_footer->setPracticeMode(mode == PlayMode::Practice); });
     connect(m_footer, &PlayerFooter::seekRequested, &player, &PlayerController::seek);
     connect(m_footer, &PlayerFooter::loopCycleRequested, &player, &PlayerController::cycleLoopMode);
     connect(m_footer, &PlayerFooter::longPressToggled, this, [this](bool enabled) {
@@ -504,6 +508,11 @@ void MainWindow::deleteSelection()
     });
 }
 
+void MainWindow::setSkyStatus(const QString &text, int tone, const QString &tip)
+{
+    m_footer->setSkyStatus(text, tone, tip);
+}
+
 void MainWindow::openSheetMenu(int libraryIndex, const QRect &anchor)
 {
     const SheetEntry *entry = m_services.library.entry(libraryIndex);
@@ -517,6 +526,7 @@ void MainWindow::openSheetMenu(int libraryIndex, const QRect &anchor)
         {SheetAction::Favorite, favorite ? QStringLiteral("Unfavorite") : QStringLiteral("Favorite"), QStringLiteral("heart"),
          true, false, favorite},
         {SheetAction::Edit, QStringLiteral("Edit"), QStringLiteral("sheet-editor")},
+        {SheetAction::Practice, QStringLiteral("Play yourself"), QStringLiteral("music-note-beamed")},
         {SheetAction::AddToPlaylist, QStringLiteral("Add to playlist"), QStringLiteral("collection-plus")},
     };
     if (m_tab == LibraryTab::Playlists && !m_activePlaylistId.empty()) {
@@ -577,6 +587,9 @@ void MainWindow::handleMenuAction(int rawAction)
         break;
     case SheetAction::Edit:
         emit editorRequested(m_menuLibraryIndex);
+        break;
+    case SheetAction::Practice:
+        emit practiceRequested(m_menuLibraryIndex);
         break;
     case SheetAction::AddToPlaylist:
         m_picker->openForSheet(m_menuLibraryIndex);

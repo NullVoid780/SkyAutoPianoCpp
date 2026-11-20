@@ -7,7 +7,7 @@
 
 namespace sky {
 
-enum class SheetAction { Favorite, Edit, AddToPlaylist, MoveUp, MoveDown, RemoveFromPlaylist, Delete, Rename };
+enum class SheetAction { Favorite, Edit, AddToPlaylist, MoveUp, MoveDown, RemoveFromPlaylist, Delete, Rename, Practice };
 
 struct SheetActionEntry {
     SheetAction action;

@@ -27,6 +27,7 @@ signals:
 private:
     ToggleSwitch *m_autoSave;
     ToggleSwitch *m_minimizeOnPlay;
+    ToggleSwitch *m_pauseWhenUnfocused;
     SelectBox *m_playbackMode;
 };
 

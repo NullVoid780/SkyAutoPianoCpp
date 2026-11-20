@@ -21,6 +21,7 @@ class RecentService;
 class ToastService;
 
 enum class LoopMode { Off, All, One };
+enum class PlayMode { Auto, Practice };
 
 struct PlaybackTarget {
     enum class Kind { None, Local, Remote };
@@ -57,6 +58,10 @@ public:
 
     const PlaybackTarget &target() const { return m_target; }
     bool isPlaying() const { return m_playing; }
+    PlayMode playMode() const { return m_playMode; }
+    void setPlayMode(PlayMode mode);
+    bool isPracticeActive() const { return m_practiceActive; }
+    void setPracticeActive(bool active);
     int position() const { return m_position; }
     LoopMode loopMode() const { return m_loopMode; }
 
@@ -65,6 +70,8 @@ signals:
     void playingChanged(bool playing);
     void positionChanged(int seconds);
     void loopModeChanged(sky::LoopMode mode);
+    void playModeChanged(sky::PlayMode mode);
+    void practiceToggleRequested();
 
 private:
     void onStopped(bool manual);
@@ -87,6 +94,8 @@ private:
     bool m_playing = false;
     bool m_manualStop = false;
     int m_position = 0;
+    PlayMode m_playMode = PlayMode::Auto;
+    bool m_practiceActive = false;
     LoopMode m_loopMode = LoopMode::Off;
     quint64 m_selectionToken = 0;
 };

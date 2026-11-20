@@ -13,6 +13,8 @@ class Badge;
 class IconButton;
 class InlineSwitch;
 class LoopControl;
+class ModeSwitch;
+class SkyStatusChip;
 class SpeedControl;
 class ThemeToggle;
 class TransportButton;
@@ -36,6 +38,8 @@ public:
     void setLoopMode(LoopMode mode);
     void setDelaySeconds(int seconds);
     bool isEditingSpeed() const;
+    void setSkyStatus(const QString &text, int tone, const QString &tip);
+    void setPracticeMode(bool practice);
 
 signals:
     void settingsRequested();
@@ -48,6 +52,7 @@ signals:
     void speedCommitted(double speed);
     void loopCycleRequested();
     void delayChanged(int seconds);
+    void practiceModeChosen(bool practice);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -70,6 +75,9 @@ private:
     TransportButton *m_play;
     TransportButton *m_next;
     SpeedControl *m_speed;
+    SkyStatusChip *m_sky;
+    ModeSwitch *m_mode;
+    bool m_practice = false;
     QString m_previousShortcut;
     QString m_playShortcut;
     QString m_nextShortcut;

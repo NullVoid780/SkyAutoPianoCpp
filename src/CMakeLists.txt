@@ -60,6 +60,8 @@ add_library(sky_services STATIC
     services/settings/shortcut_parser.cpp
     services/settings/shortcut_service.cpp
     services/settings/theme_library_service.cpp
+    services/report/report_writer.cpp
+    services/practice/practice_session.cpp
     services/settings/ui_state_service.cpp
     services/store/store_mapping.cpp
     services/store/store_service.cpp
@@ -68,11 +70,12 @@ add_library(sky_services STATIC
     services/update/update_service.cpp
     services/update/version.cpp
 )
-target_link_libraries(sky_services PUBLIC sky_codec sky_net sky_model sky_core skyinput)
+target_link_libraries(sky_services PUBLIC sky_codec sky_net sky_model sky_core skyinput PRIVATE miniz::miniz)
 target_compile_definitions(sky_services PRIVATE SKY_UPDATE_REPOSITORY="${SKY_UPDATE_REPOSITORY}")
 
 add_library(sky_crash STATIC
     crash/breadcrumbs.cpp
+    crash/crash_archive.cpp
     crash/crash_channel.cpp
     crash/crash_dialog.cpp
     crash/crash_handler.cpp
@@ -85,7 +88,7 @@ add_library(sky_crash STATIC
 target_include_directories(sky_crash PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(sky_crash
     PUBLIC nlohmann_json::nlohmann_json
-    PRIVATE dbghelp psapi version bcrypt comctl32 shell32 ole32 advapi32
+    PRIVATE dbghelp psapi version bcrypt comctl32 shell32 ole32 advapi32 miniz::miniz
 )
 
 add_executable(crashreport WIN32 crash/reporter_main.cpp)
@@ -150,6 +153,7 @@ add_library(sky_ui STATIC
     ui/settings_window/settings_panel.cpp
     ui/settings_window/settings_row.cpp
     ui/settings_window/settings_sidebar.cpp
+    ui/settings_window/reports_tab.cpp
     ui/settings_window/settings_window.cpp
     ui/settings_window/shortcut_edit.cpp
     ui/settings_window/shortcut_row.cpp
@@ -163,12 +167,22 @@ add_library(sky_ui STATIC
     ui/settings_window/theme_preview.cpp
     ui/settings_window/themes_tab.cpp
     app/theme_controller.cpp
+    app/issue_recorder.cpp
+    app/sky_window_watcher.cpp
+    ui/issue/issue_report_window.cpp
+    ui/issue/recording_bar.cpp
     ui/theme_catalog.cpp
     ui/main_window/library_model.cpp
     ui/main_window/library_view.cpp
     ui/main_window/loop_control.cpp
     ui/main_window/main_window.cpp
     ui/main_window/player_footer.cpp
+    ui/main_window/sky_status_chip.cpp
+    ui/main_window/mode_switch.cpp
+    ui/practice/sky_guide_stage.cpp
+    ui/practice/sky_calibrator.cpp
+    ui/practice/play_along.cpp
+    ui/practice/play_along_overlay.cpp
     ui/main_window/scroll_top_button.cpp
     ui/main_window/sheet_actions_menu.cpp
     ui/main_window/sheet_card_delegate.cpp

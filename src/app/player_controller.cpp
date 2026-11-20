@@ -137,9 +137,34 @@ void PlayerController::clearTarget()
     emit targetChanged();
 }
 
+void PlayerController::setPlayMode(PlayMode mode)
+{
+    if (mode == m_playMode) {
+        return;
+    }
+    if (mode == PlayMode::Practice && m_playing) {
+        togglePlay();
+    }
+    m_playMode = mode;
+    emit playModeChanged(mode);
+}
+
+void PlayerController::setPracticeActive(bool active)
+{
+    if (active == m_practiceActive) {
+        return;
+    }
+    m_practiceActive = active;
+    emit playingChanged(m_playing || m_practiceActive);
+}
+
 void PlayerController::togglePlay()
 {
     if (m_target.kind == PlaybackTarget::Kind::None) {
+        return;
+    }
+    if (m_playMode == PlayMode::Practice) {
+        emit practiceToggleRequested();
         return;
     }
     if (m_playing) {

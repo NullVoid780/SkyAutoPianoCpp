@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+
+#include "crash/breadcrumbs.hpp"
 #include "crash/crash_context.hpp"
 
 namespace sky {
@@ -17,6 +20,7 @@ public:
     static void startReporter() noexcept;
     static void breadcrumb(const char *category, const char *message) noexcept;
     static CrashState *state() noexcept;
+    static std::vector<BreadcrumbEntry> recentBreadcrumbs();
     static void markCleanExit() noexcept;
 };
 

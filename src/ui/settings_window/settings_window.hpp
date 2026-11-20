@@ -5,6 +5,7 @@
 #include <QWidget>
 
 #include "core/json.hpp"
+#include "ui/settings_window/reports_tab.hpp"
 #include "model/config.hpp"
 #include "services/notifications/toast_service.hpp"
 #include "services/update/update_service.hpp"
@@ -46,11 +47,17 @@ public:
 
     void showToast(const Toast &toast);
     void reloadForm();
+    int currentPage() const;
+    void openPage(int index);
+    void setCrashReports(const std::vector<CrashListEntry> &crashes);
 
 signals:
     void themeImported(sky::AppTheme theme);
     void importPreviousRequested();
     void quickStartRequested();
+    void recordIssueRequested();
+    void saveCrashReportRequested(const QString &id);
+    void crashFolderRequested();
     void updateAvailable(const sky::VersionCheck &check);
 
 protected:
@@ -85,6 +92,7 @@ private:
     ShortcutsTab *m_shortcuts;
     ThemesTab *m_themes;
     UpdatesTab *m_updates;
+    ReportsTab *m_reports;
     AboutTab *m_about;
     int m_updatesNav = -1;
     std::vector<QWidget *> m_pages;

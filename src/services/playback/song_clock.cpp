@@ -35,12 +35,25 @@ void SongClock::advance(double speed)
     }
 }
 
-bool SongClock::waitUntil(double targetSongTime, const SpeedSource &speed, const ActiveCheck &active)
+bool SongClock::waitUntil(double targetSongTime, const SpeedSource &speed, const ActiveCheck &active,
+                          const HoldCheck &hold, const HoldStarted &onHold)
 {
     while (m_songTime < targetSongTime) {
         if (!active()) {
             return false;
         }
+        if (hold && hold()) {
+            if (!m_holding) {
+                m_holding = true;
+                if (onHold) {
+                    onHold();
+                }
+            }
+            m_sleep(kHoldSliceMs);
+            m_lastRealTime = m_now();
+            continue;
+        }
+        m_holding = false;
         advance(speed());
         const double remaining = targetSongTime - m_songTime;
         if (remaining <= 0) {

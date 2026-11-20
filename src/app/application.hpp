@@ -15,6 +15,11 @@
 namespace sky {
 
 class ChangelogPanel;
+class IssueRecorder;
+class SkyWindowWatcher;
+class PlayAlong;
+class IssueReportWindow;
+class RecordingBar;
 class ConfigService;
 class EditorWindow;
 class FavoritesService;
@@ -58,6 +63,9 @@ private:
     void openSettings();
     void openEditor(int libraryIndex);
     void updateCrashState();
+    void updateSkyStatus();
+    void openPractice(int libraryIndex);
+    void startPracticeForTarget(bool focusSky);
     void showPendingChangelog();
     void requestRelaunch();
     void detectLegacyLibrary(bool manual);
@@ -66,6 +74,13 @@ private:
     void importLegacy(const LegacyImportPlan &plan, bool manual);
     void notifyLegacy(bool manual, const Toast &toast);
     void showQuickStart();
+    void startIssueRecording();
+    void finishIssueRecording();
+    void saveCrashReport(const QString &id);
+    void refreshCrashList();
+    OrderedJson diagnostics() const;
+    void applyStartupLayout();
+    void tell(const Toast &toast);
     std::string applyLegacyExtras(const LegacyImportPlan &plan, const LegacyImportSummary &summary);
 
     std::unique_ptr<ConfigService> m_config;
@@ -91,6 +106,12 @@ private:
     bool m_relaunch = false;
     bool m_legacyBusy = false;
     QPointer<QuickStart> m_quickStart;
+    IssueRecorder *m_recorder = nullptr;
+    SkyWindowWatcher *m_skyWatcher = nullptr;
+    PlayAlong *m_playAlong = nullptr;
+    bool m_skyHeld = false;
+    QPointer<RecordingBar> m_recordingBar;
+    QPointer<IssueReportWindow> m_reportWindow;
     std::optional<LegacyImportPlan> m_quickStartLegacy;
     bool m_legacyForQuickStart = false;
 };

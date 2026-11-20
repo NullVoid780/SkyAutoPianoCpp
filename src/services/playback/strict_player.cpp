@@ -51,10 +51,12 @@ void StrictPlayer::playback(const PlayRequest &request, quint64 session)
     };
     const SongClock::SpeedSource speed = [this] { return config().speed(); };
     const SongClock::ActiveCheck active = [this, session] { return isActive(session); };
+    const SongClock::HoldCheck held = [this] { return isHeld(); };
+    const SongClock::HoldStarted releaseOnHold = [this] { releaseHeldKeys(); };
 
     SongClock clock(options.startMs * kSyncCalibration);
     for (const TimelineEvent &event : timeline) {
-        if (!clock.waitUntil(event.songTime, speed, active)) {
+        if (!clock.waitUntil(event.songTime, speed, active, held, releaseOnHold)) {
             releaseHeldKeys();
             return;
         }
@@ -75,13 +77,15 @@ void StrictPlayer::trackProgress(const PlayRequest &request, quint64 session)
     const SongClock::SpeedSource speed = [this] { return config().speed(); };
     const SongClock::ActiveCheck active = [this, session] { return isActive(session); };
 
+    const SongClock::HoldCheck held = [this] { return isHeld(); };
+
     SongClock clock(startSecond * 1000.0);
     for (int i = startSecond; i <= maxSecond; ++i) {
         if (!isActive(session)) {
             return;
         }
         emitProgress(session, i);
-        if (i < maxSecond && !clock.waitUntil((i + 1) * 1000.0, speed, active)) {
+        if (i < maxSecond && !clock.waitUntil((i + 1) * 1000.0, speed, active, held)) {
             return;
         }
     }

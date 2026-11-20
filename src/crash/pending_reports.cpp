@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <cstdlib>
 #include <map>
 #include <system_error>
 #include <vector>
@@ -15,6 +16,14 @@ namespace sky {
 
 std::filesystem::path crashDirectory()
 {
+    wchar_t *home = nullptr;
+    std::size_t length = 0;
+    if (_wdupenv_s(&home, &length, L"SKYAUTOPIANO_HOME") == 0 && home && *home) {
+        std::filesystem::path sandboxed = std::filesystem::path(home) / L"crashes";
+        std::free(home);
+        return sandboxed;
+    }
+    std::free(home);
     PWSTR base = nullptr;
     std::filesystem::path result;
     if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &base))) {
@@ -49,7 +58,7 @@ void pruneCrashReports(const std::filesystem::path &directory, std::size_t keep,
         }
         const std::filesystem::path path = entry.path();
         const std::wstring extension = path.extension().wstring();
-        if (extension != L".json" && extension != L".dmp") {
+        if (extension != L".json" && extension != L".dmp" && extension != L".sapcr") {
             continue;
         }
         if (extension == L".dmp" && entry.file_size(error) > maxDumpBytes) {

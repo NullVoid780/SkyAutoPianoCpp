@@ -32,8 +32,26 @@ bool ToastHost::eventFilter(QObject *watched, QEvent *event)
     return false;
 }
 
+namespace {
+
+std::function<void(const Toast &)> &toastObserver()
+{
+    static std::function<void(const Toast &)> observer;
+    return observer;
+}
+
+}  // namespace
+
+void ToastHost::setObserver(std::function<void(const Toast &)> observer)
+{
+    toastObserver() = std::move(observer);
+}
+
 void ToastHost::show(const Toast &toast)
 {
+    if (const auto &observer = toastObserver()) {
+        observer(toast);
+    }
     if (toast.message.empty() && toast.title.empty()) {
         return;
     }

@@ -28,6 +28,8 @@ public:
     void stop();
     void shutdown();
     bool isPlaying() const;
+    void setHeld(bool held);
+    bool isHeld() const { return m_held; }
     PlaybackMode activeMode() const { return m_activeMode; }
 
 signals:
@@ -46,6 +48,7 @@ private:
     std::unique_ptr<StrictPlayer> m_strict;
     std::unique_ptr<LitePlayer> m_lite;
     PlaybackMode m_activeMode;
+    bool m_held = false;
 };
 
 }  // namespace sky

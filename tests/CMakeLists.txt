@@ -17,6 +17,9 @@ add_executable(skyautopiano_tests
     services/test_library_service.cpp
     services/test_playback_service.cpp
     services/test_playlist_service.cpp
+    services/test_report_writer.cpp
+    services/test_practice_session.cpp
+    ui/test_sky_calibrator.cpp
     services/test_shortcut_parser.cpp
     services/test_song_clock.cpp
     services/test_store_mapping.cpp

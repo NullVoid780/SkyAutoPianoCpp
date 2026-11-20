@@ -59,11 +59,13 @@ public:
     void handleShortcut(ShortcutAction action);
     void applyConfig();
     void bringToFront();
+    void setSkyStatus(const QString &text, int tone, const QString &tip);
 
 signals:
     void settingsRequested();
     void themeToggleRequested();
     void editorRequested(int libraryIndex);
+    void practiceRequested(int libraryIndex);
     void shortcutsSuspended(bool suspended);
 
 protected:

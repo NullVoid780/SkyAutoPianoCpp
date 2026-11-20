@@ -1,6 +1,7 @@
 #include "platform/file_dialog.hpp"
 
 #include <QFileDialog>
+#include <QStandardPaths>
 #include <QStringList>
 
 namespace sky {
@@ -40,6 +41,20 @@ std::optional<std::filesystem::path> chooseThemeExportPath(QWidget *parent, cons
 {
     const QString chosen = QFileDialog::getSaveFileName(parent, QStringLiteral("Export Theme"), defaultName,
                                                         QStringLiteral("Sky Auto Piano Theme (*.json)"));
+    if (chosen.isEmpty()) {
+        return std::nullopt;
+    }
+    return std::filesystem::path(chosen.toStdWString());
+}
+
+std::optional<std::filesystem::path> chooseReportSavePath(QWidget *parent, const QString &defaultName, bool crashReport)
+{
+    const QString folder = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+    const QString filter = crashReport ? QStringLiteral("Sky Auto Piano Crash Report (*.sapcr)")
+                                       : QStringLiteral("Sky Auto Piano Report (*.sapr)");
+    const QString chosen = QFileDialog::getSaveFileName(
+        parent, crashReport ? QStringLiteral("Save crash report") : QStringLiteral("Save report"),
+        folder + QLatin1Char('/') + defaultName, filter);
     if (chosen.isEmpty()) {
         return std::nullopt;
     }

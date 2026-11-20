@@ -216,6 +216,11 @@ CrashState *CrashHandler::state() noexcept
     return g_context ? &g_context->state : nullptr;
 }
 
+std::vector<BreadcrumbEntry> CrashHandler::recentBreadcrumbs()
+{
+    return g_context ? readBreadcrumbs(*g_context) : std::vector<BreadcrumbEntry>{};
+}
+
 
 void CrashHandler::markCleanExit() noexcept
 {

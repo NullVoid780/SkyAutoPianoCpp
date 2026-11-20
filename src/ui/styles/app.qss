@@ -427,6 +427,24 @@ QLineEdit#ShortcutField:focus {
     background: @settingsShortcutFocusFill;
 }
 
+QWidget#IssueReportWindow {
+    background: @settingsWindowFill;
+}
+
+QPlainTextEdit#IssueDescription {
+    min-height: 90px;
+    padding: 8px 10px;
+    border: 1px solid @settingsShortcutBorder;
+    border-radius: 10px;
+    background: @settingsShortcutFill;
+    color: @settingsShortcutText;
+    font-size: 14px;
+}
+
+QPlainTextEdit#IssueDescription:focus {
+    border-color: @hoverColor;
+}
+
 QLabel#QuickStartTitle {
     font-size: 24px;
     font-weight: 600;
@@ -691,4 +709,9 @@ QToolTip {
     background: @background;
     color: @fontColor;
     border: 1px solid @neutralBorder;
+}
+
+QLabel#PracticeLabel {
+    font-size: 13px;
+    color: @fontColor;
 }

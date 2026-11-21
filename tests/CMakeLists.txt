@@ -11,6 +11,7 @@ add_executable(skyautopiano_tests
     core/test_core_utils.cpp
     core/test_crash_report.cpp
     core/test_runtime_setup.cpp
+    repo/test_repository.cpp
     services/test_chromium_local_storage.cpp
     services/test_config_service.cpp
     services/test_legacy_import.cpp
@@ -33,7 +34,8 @@ add_executable(skyautopiano_tests
     ui/test_theme_tokens.cpp
 )
 target_include_directories(skyautopiano_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/support)
-target_compile_definitions(skyautopiano_tests PRIVATE SKY_QSS_PATH="${CMAKE_SOURCE_DIR}/src/ui/styles/app.qss")
+target_compile_definitions(skyautopiano_tests PRIVATE SKY_QSS_PATH="${CMAKE_SOURCE_DIR}/src/ui/styles/app.qss"
+    SKY_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 target_link_libraries(skyautopiano_tests PRIVATE sky_ui sky_services sky_codec sky_core sky_crash skyinput miniz::miniz Catch2::Catch2WithMain)
 
 add_custom_command(TARGET skyautopiano_tests POST_BUILD

@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "feat/**", "fix/**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build and test (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 60
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up the build tools
+        uses: ./.github/actions/setup
+
+      - name: Configure
+        run: cmake --preset win-x64-ci
+
+      - name: Build (warnings count as errors)
+        run: cmake --build --preset win-x64-ci
+
+      - name: Run the tests
+        run: ctest --preset win-x64-ci --output-junit test-results.xml
+
+      - name: Keep the test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: build/win-x64-ci/test-results.xml
+          if-no-files-found: ignore
+
+  secrets:
+    name: No secrets in the code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code with its history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

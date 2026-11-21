@@ -4,7 +4,7 @@ description: Installs Qt, the MSVC compiler, CMake, Ninja and vcpkg for Sky Auto
 inputs:
   qt-version:
     description: Qt version to install
-    default: "6.12.*"
+    default: "6.10.3"
 
 runs:
   using: composite

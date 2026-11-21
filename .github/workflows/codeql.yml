@@ -1,0 +1,42 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Security scan (C++)
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up the build tools
+        uses: ./.github/actions/setup
+
+      - name: Start CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: c-cpp
+          build-mode: manual
+
+      - name: Build the app
+        run: |
+          cmake --preset win-x64-release -DSKY_BUILD_TESTS=OFF
+          cmake --build --preset win-x64-release
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:c-cpp

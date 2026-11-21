@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: Build the release packages
+    runs-on: windows-latest
+    timeout-minutes: 60
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Check the tag matches the app version
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path CMakeLists.txt -Pattern 'set\(SKY_VERSION "([0-9.]+)"').Matches[0].Groups[1].Value
+          if ("v$version" -ne "${{ github.ref_name }}") {
+            Write-Error "The tag ${{ github.ref_name }} does not match SKY_VERSION $version in CMakeLists.txt"
+            exit 1
+          }
+          "SKY_VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Set up the build tools
+        uses: ./.github/actions/setup
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup -y --no-progress
+          }
+
+      - name: Configure
+        run: cmake --preset win-x64-release
+
+      - name: Build
+        run: cmake --build --preset win-x64-release
+
+      - name: Run the tests
+        run: ctest --test-dir build/win-x64-release --output-on-failure
+
+      - name: Make the installer and the portable zip
+        run: cmake --build --preset win-x64-release --target package
+
+      - name: Check both packages exist
+        shell: pwsh
+        run: |
+          foreach ($file in "SkyAutoPiano-$env:SKY_VERSION-setup.exe", "SkyAutoPiano-$env:SKY_VERSION-portable.zip") {
+            if (-not (Test-Path "build/win-x64-release/deploy/$file")) {
+              Write-Error "Missing $file"
+              exit 1
+            }
+          }
+
+      - name: Create a draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: SkyAutoPiano ${{ github.ref_name }}
+          draft: true
+          files: |
+            build/win-x64-release/deploy/SkyAutoPiano-${{ env.SKY_VERSION }}-setup.exe
+            build/win-x64-release/deploy/SkyAutoPiano-${{ env.SKY_VERSION }}-portable.zip

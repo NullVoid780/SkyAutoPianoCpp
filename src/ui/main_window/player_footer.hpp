@@ -13,6 +13,7 @@ class Badge;
 class IconButton;
 class InlineSwitch;
 class LoopControl;
+class SkyStatusChip;
 class SpeedControl;
 class ThemeToggle;
 class TransportButton;
@@ -36,6 +37,7 @@ public:
     void setLoopMode(LoopMode mode);
     void setDelaySeconds(int seconds);
     bool isEditingSpeed() const;
+    void setSkyStatus(const QString &text, int tone, const QString &tip);
 
 signals:
     void settingsRequested();
@@ -70,6 +72,7 @@ private:
     TransportButton *m_play;
     TransportButton *m_next;
     SpeedControl *m_speed;
+    SkyStatusChip *m_sky;
     QString m_previousShortcut;
     QString m_playShortcut;
     QString m_nextShortcut;

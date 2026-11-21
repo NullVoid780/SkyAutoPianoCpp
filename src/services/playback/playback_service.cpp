@@ -75,6 +75,16 @@ void PlaybackService::shutdown()
     }
 }
 
+void PlaybackService::setHeld(bool held)
+{
+    if (m_held && !held) {
+        m_sender->setTarget(skyinput::findWindow(L"Sky"));
+    }
+    m_held = held;
+    m_strict->setHeld(held);
+    m_lite->setHeld(held);
+}
+
 bool PlaybackService::isPlaying() const
 {
     return m_strict->isPlaying() || m_lite->isPlaying();

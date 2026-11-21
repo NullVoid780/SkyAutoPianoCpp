@@ -59,6 +59,7 @@ public:
     void handleShortcut(ShortcutAction action);
     void applyConfig();
     void bringToFront();
+    void setSkyStatus(const QString &text, int tone, const QString &tip);
 
 signals:
     void settingsRequested();

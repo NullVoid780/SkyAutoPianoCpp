@@ -429,6 +429,7 @@ QWidget *QuickStart::buildPlayback()
     copy->addWidget(text(QStringLiteral("Hide this window when a song starts, so you can see Sky."),
                          "SettingsRowDescription", widget, true));
     m_minimize = new ToggleSwitch(widget);
+    m_minimize->setAccessibleName(QStringLiteral("Minimize on Play"));
     row->addLayout(copy, 1);
     row->addWidget(m_minimize, 0, Qt::AlignVCenter);
     column->addLayout(row);

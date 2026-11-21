@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <QObject>
+#include <QStringList>
 #include <QThreadPool>
 
 #include "codec/sheet_codec.hpp"
@@ -98,6 +99,7 @@ signals:
     void changed();
     void payloadChanged(int index);
     void importFinished(const sky::ImportSummary &summary);
+    void importStarted(const QStringList &files);
 
 private:
     struct PreparedImport {

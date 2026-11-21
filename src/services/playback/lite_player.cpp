@@ -7,6 +7,7 @@
 #include "core/precise_sleep.hpp"
 #include "model/key_table.hpp"
 #include "services/settings/config_service.hpp"
+#include "services/playback/song_clock.hpp"
 #include "services/playback/timeline_builder.hpp"
 
 namespace sky {
@@ -28,12 +29,33 @@ void LitePlayer::releaseHeldKeys()
     keyboard().releaseAll();
 }
 
-bool LitePlayer::sleepFor(double milliseconds, quint64 session)
+bool LitePlayer::sleepFor(double milliseconds, quint64 session, bool ownsKeys)
 {
-    if (milliseconds <= 0) {
-        return isActive(session);
+    constexpr double kSliceMs = 25.0;
+    double remaining = milliseconds;
+    while (true) {
+        if (!isActive(session)) {
+            return false;
+        }
+        if (isHeld()) {
+            if (ownsKeys) {
+                releaseHeldKeys();
+            }
+            while (isHeld()) {
+                if (!isActive(session)) {
+                    return false;
+                }
+                preciseSleep(kHoldSliceMs);
+            }
+        }
+        if (remaining <= 0) {
+            return isActive(session);
+        }
+        const double slice = std::min(remaining, kSliceMs);
+        const auto begin = std::chrono::steady_clock::now();
+        preciseSleepWhile(slice, [this, session] { return isActive(session) && !isHeld(); });
+        remaining -= std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - begin).count();
     }
-    return preciseSleepWhile(milliseconds, [this, session] { return isActive(session); }) && isActive(session);
 }
 
 void LitePlayer::sendKey(const std::string &rawKey, std::optional<double> durationMs)
@@ -157,7 +179,7 @@ void LitePlayer::trackProgress(const PlayRequest &request, quint64 session)
     const int lastSecond = static_cast<int>(std::trunc(totalDuration / 1000.0));
     for (int i = request.startSec; i <= lastSecond; ++i) {
         const double speed = config().speed();
-        if (!sleepFor(std::trunc(1000.0 / speed), session)) {
+        if (!sleepFor(std::trunc(1000.0 / speed), session, false)) {
             return;
         }
         emitProgress(session, i);

@@ -56,3 +56,25 @@ TEST_CASE("waitUntil stops when the session is superseded")
     SongClock clock(0.0, [&] { return now; }, [&](double ms) { now += ms; });
     CHECK_FALSE(clock.waitUntil(100.0, [] { return 1.0; }, [&] { return ++calls < 3; }));
 }
+
+TEST_CASE("song time stands still while playback is held and the hold callback runs once")
+{
+    double now = 0.0;
+    int holdChecks = 0;
+    int holdStarts = 0;
+    SongClock clock(0.0, [&] { return now; }, [&](double ms) { now += ms > 0 ? ms : 0.25; });
+    const auto held = [&] { return ++holdChecks <= 50; };
+    REQUIRE(clock.waitUntil(20.0, [] { return 1.0; }, [] { return true; }, held, [&] { ++holdStarts; }));
+    CHECK(holdStarts == 1);
+    CHECK(now >= 50 * kHoldSliceMs + 20.0);
+    CHECK(clock.songTime() >= 20.0);
+    CHECK(clock.songTime() < 26.0);
+}
+
+TEST_CASE("a held clock still stops when the session ends")
+{
+    double now = 0.0;
+    int checks = 0;
+    SongClock clock(0.0, [&] { return now; }, [&](double ms) { now += ms; });
+    CHECK_FALSE(clock.waitUntil(100.0, [] { return 1.0; }, [&] { return ++checks < 5; }, [] { return true; }));
+}

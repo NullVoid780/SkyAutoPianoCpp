@@ -27,6 +27,8 @@ public:
     void start(const PlayRequest &request) final;
     void stop(bool emitStopEvent, bool manual) final;
     bool isPlaying() const final;
+    void setHeld(bool held) { m_held = held; }
+    bool isHeld() const { return m_held; }
 
 signals:
     void progress(int second);
@@ -55,6 +57,7 @@ private:
     std::mutex m_stateMutex;
     std::atomic<quint64> m_session{0};
     std::atomic<bool> m_playing{false};
+    std::atomic<bool> m_held{false};
     std::thread m_playbackThread;
     std::thread m_progressThread;
 };

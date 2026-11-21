@@ -33,6 +33,9 @@ UpdatesTab::UpdatesTab(const QString &currentVersion, QWidget *parent)
                                       m_automatic, this);
     auto *check = new SettingsRow(QStringLiteral("update"), QStringLiteral("Check for Updates"),
                                   QStringLiteral("Manually check for new updates."), m_check, this);
+    auto *whatsNewButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("list"), QStringLiteral("Show"));
+    auto *whatsNew = new SettingsRow(QStringLiteral("info-circle"), QStringLiteral("What's New"),
+                                     QStringLiteral("See what changed in this version."), whatsNewButton, this);
     auto *join = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("box-arrow-up-right"),
                                   QStringLiteral("Join Discord"));
     auto *community = new SettingsRow(QStringLiteral("discord"), QStringLiteral("Community & Bug Reports"),
@@ -52,6 +55,8 @@ UpdatesTab::UpdatesTab(const QString &currentVersion, QWidget *parent)
     column->addSpacing(kRowGap);
     column->addWidget(check);
     column->addSpacing(kRowGap);
+    column->addWidget(whatsNew);
+    column->addSpacing(kRowGap);
     column->addWidget(community);
     column->addStretch();
 
@@ -61,6 +66,7 @@ UpdatesTab::UpdatesTab(const QString &currentVersion, QWidget *parent)
             emit checkRequested();
         }
     });
+    connect(whatsNewButton, &QAbstractButton::clicked, this, &UpdatesTab::whatsNewRequested);
     connect(join, &QAbstractButton::clicked, this, &UpdatesTab::communityRequested);
 }
 

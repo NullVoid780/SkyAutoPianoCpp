@@ -266,6 +266,11 @@ void LibraryService::importFiles(std::vector<std::filesystem::path> files)
     if (files.empty()) {
         return;
     }
+    QStringList started;
+    for (const std::filesystem::path &file : files) {
+        started << QString::fromStdWString(file.wstring());
+    }
+    emit importStarted(started);
     const std::filesystem::path dataDirectory = m_dataDirectory;
     m_pool->start([this, dataDirectory, files = std::move(files)] {
         std::set<std::string> reserved;

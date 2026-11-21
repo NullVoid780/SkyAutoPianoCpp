@@ -504,6 +504,11 @@ void MainWindow::deleteSelection()
     });
 }
 
+void MainWindow::setSkyStatus(const QString &text, int tone, const QString &tip)
+{
+    m_footer->setSkyStatus(text, tone, tip);
+}
+
 void MainWindow::openSheetMenu(int libraryIndex, const QRect &anchor)
 {
     const SheetEntry *entry = m_services.library.entry(libraryIndex);

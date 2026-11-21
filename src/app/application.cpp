@@ -1,11 +1,15 @@
 #include "app/application.hpp"
 
 #include <QApplication>
+#include <QDateTime>
+#include <QDir>
+#include <QLocale>
 #include <QCloseEvent>
 #include <QPointer>
 #include <QThreadPool>
 
 #include "app/paths.hpp"
+#include "core/text_file.hpp"
 #include "platform/file_dialog.hpp"
 #include "app/player_controller.hpp"
 #include "app/update_controller.hpp"
@@ -31,6 +35,13 @@
 #include "ui/main_window/changelog_panel.hpp"
 #include "ui/settings_window/settings_window.hpp"
 #include "app/theme_controller.hpp"
+#include "app/issue_recorder.hpp"
+#include "app/sky_window_watcher.hpp"
+#include "crash/pending_reports.hpp"
+#include "platform/shell_open.hpp"
+#include "services/report/report_writer.hpp"
+#include "ui/issue/issue_report_window.hpp"
+#include "ui/issue/recording_bar.hpp"
 #include "ui/main_window/quick_start.hpp"
 #include "services/settings/theme_library_service.hpp"
 #include "ui/theme_manager.hpp"
@@ -66,6 +77,8 @@ Application::Application()
     m_themeLibrary->load();
     m_themes->applyStartup();
     m_player = std::make_unique<PlayerController>(*m_library, *m_playback, *m_recent, *m_config, *m_toasts);
+    m_recorder = new IssueRecorder(*m_config, *m_themes, *m_library, *m_playback, this);
+    IssueRecorder::setDiagnosticsProvider([this] { return diagnostics(); });
     m_mainWindow = std::make_unique<MainWindow>(
         MainWindowServices{*m_library, *m_favorites, *m_recent, *m_playlists, *m_store, *m_config, *m_player});
     wire();
@@ -124,11 +137,60 @@ void Application::wire()
         }
     });
     connect(m_playback.get(), &PlaybackService::started, this, &Application::updateCrashState);
+    m_skyWatcher = new SkyWindowWatcher(this);
+    connect(m_skyWatcher, &SkyWindowWatcher::stateChanged, this, &Application::updateSkyStatus);
+    connect(m_player.get(), &PlayerController::playingChanged, this, &Application::updateSkyStatus);
+    connect(m_config.get(), &ConfigService::changed, this, &Application::updateSkyStatus);
+    updateSkyStatus();
     connect(m_playback.get(), &PlaybackService::stopped, this, &Application::updateCrashState);
     connect(m_config.get(), &ConfigService::changed, this, &Application::updateCrashState);
     connect(m_library.get(), &LibraryService::changed, this, &Application::updateCrashState);
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this, &Application::updateCrashState);
     updateCrashState();
+}
+
+void Application::updateSkyStatus()
+{
+    const SkyWindowState state = m_skyWatcher->state();
+    const bool playing = m_player->isPlaying();
+    const bool pauseEnabled = m_config->panel().pauseWhenUnfocused;
+    const bool hold = pauseEnabled && state != SkyWindowState::Foreground;
+    m_playback->setHeld(hold);
+
+    enum Tone { Good = 0, Warning = 1, Idle = 2 };
+    QString text;
+    QString tip;
+    int tone = Idle;
+    switch (state) {
+    case SkyWindowState::Foreground:
+        text = playing ? QStringLiteral("Playing in Sky") : QStringLiteral("Sky ready");
+        tip = QStringLiteral("Sky is open and in front.");
+        tone = Good;
+        break;
+    case SkyWindowState::NotRunning:
+        text = playing && hold ? QStringLiteral("Waiting for Sky") : QStringLiteral("Sky not open");
+        tip = QStringLiteral("Open Sky: Children of the Light. The song starts when the game is in front.");
+        tone = playing && hold ? Warning : Idle;
+        break;
+    case SkyWindowState::Minimized:
+    case SkyWindowState::Background:
+        text = playing && hold ? QStringLiteral("Paused, switch to Sky") : QStringLiteral("Sky in background");
+        tip = pauseEnabled ? QStringLiteral("Playing pauses while another window is in front, so keys never type into it.")
+                           : QStringLiteral("Keys go to whatever window is in front.");
+        tone = playing && hold ? Warning : Idle;
+        break;
+    }
+    m_mainWindow->setSkyStatus(text, tone, tip);
+
+    const bool held = playing && hold;
+    if (held && !m_skyHeld) {
+        m_toasts->show(ToastType::Warning,
+                       state == SkyWindowState::NotRunning
+                           ? "Waiting for Sky. Open the game and the song starts when it's in front."
+                           : "Paused because Sky isn't in front. Switch to the game and it carries on.",
+                       kDefaultToastMs);
+    }
+    m_skyHeld = held;
 }
 
 void Application::updateCrashState()
@@ -150,30 +212,47 @@ void Application::updateCrashState()
 
 void Application::showPendingChangelog()
 {
-    const auto info = m_updates->pendingChangelog();
-    if (!info || info->newVersion.empty()) {
-        return;
-    }
-    if (compareVersions(info->newVersion, m_updates->currentVersion()) != 0) {
-        Logger::warning("update", "v" + info->newVersion + " was downloaded but v" + m_updates->currentVersion() +
-                                      " is running, so the update did not install");
-        m_updates->markChangelogShown();
-        return;
-    }
-    const QString version = toQString(info->newVersion);
-    if (!info->notes.empty()) {
-        m_changelog->present(version, toQString(info->notes));
-        return;
-    }
-    QPointer<ChangelogPanel> panel(m_changelog);
-    m_updates->fetchChangelog([panel, version](Result<std::vector<VersionNotes>> changelog) {
-        if (!panel) {
+    const std::string current = m_updates->currentVersion();
+    if (const auto info = m_updates->pendingChangelog(); info && !info->newVersion.empty()) {
+        if (compareVersions(info->newVersion, current) == 0) {
+            presentReleaseNotes(current, info->notes);
             return;
         }
-        const VersionNotes *notes = changelog ? findVersionNotes(changelog.value(), fromQString(version)) : nullptr;
-        panel->present(version, notes ? toQString(notes->markdown)
-                                      : QStringLiteral("You are now on version %1. The release notes are on GitHub.")
-                                            .arg(version));
+        Logger::warning("update", "v" + info->newVersion + " was downloaded but v" + current +
+                                      " is running, so the update did not install");
+        m_updates->markChangelogShown();
+    }
+    const std::string seen = m_updates->lastSeenVersion();
+    const bool updated = seen.empty() ? m_uiState->quickStartDone() : compareVersions(current, seen) > 0;
+    if (!updated) {
+        m_updates->markVersionSeen();
+        return;
+    }
+    presentReleaseNotes(current, {});
+}
+
+void Application::presentReleaseNotes(const std::string &version, const std::string &knownNotes)
+{
+    if (!knownNotes.empty()) {
+        m_updates->markVersionSeen();
+        m_changelog->present(toQString(version), toQString(knownNotes), toQString(UpdateService::releasePageUrl(version)));
+        return;
+    }
+    QPointer<Application> self(this);
+    m_updates->fetchReleaseNotes(version, [self, version](Result<ReleaseNotes> notes) {
+        if (!self) {
+            return;
+        }
+        if (notes) {
+            self->m_updates->markVersionSeen();
+            self->m_changelog->present(toQString(version), toQString(notes.value().notes), toQString(notes.value().page));
+            return;
+        }
+        Logger::info("update", "no what's new for v" + version + ": " + notes.error().userMessage);
+        if (notes.error().code == "RELEASE_NOT_FOUND") {
+            self->m_updates->markVersionSeen();
+            self->m_updates->markChangelogShown();
+        }
     });
 }
 
@@ -198,6 +277,310 @@ bool Application::eventFilter(QObject *watched, QEvent *event)
         return true;
     }
     return QObject::eventFilter(watched, event);
+}
+
+void Application::tell(const Toast &toast)
+{
+    if (m_settings && m_settings->isVisible()) {
+        m_settings->showToast(toast);
+    } else {
+        m_mainWindow->showToast(toast);
+    }
+}
+
+void Application::startIssueRecording()
+{
+    if (!m_recorder || m_recorder->isRecording()) {
+        return;
+    }
+    if (m_reportWindow) {
+        m_reportWindow->close();
+    }
+    if (!m_recordingBar) {
+        m_recordingBar = new RecordingBar();
+        m_recordingBar->setAttribute(Qt::WA_DeleteOnClose);
+        m_recorder->ignore(m_recordingBar);
+        connect(m_recordingBar, &RecordingBar::stopRequested, this, &Application::finishIssueRecording);
+        connect(m_recordingBar, &RecordingBar::cancelRequested, this, [this] {
+            m_recorder->discard();
+            m_recordingBar->close();
+            tell(Toast{ToastType::Info, {}, "Recording cancelled.", kDefaultToastMs});
+        });
+        connect(m_recorder, &IssueRecorder::tick, m_recordingBar, [this](qint64 elapsed) {
+            m_recordingBar->setElapsed(elapsed);
+            m_recordingBar->setSteps(m_recorder->eventCount());
+        });
+    }
+    m_recorder->start();
+    if (!m_recorder->isRecording()) {
+        m_recordingBar->close();
+        tell(Toast{ToastType::Error, {}, "The recording could not start.", kDefaultToastMs});
+        return;
+    }
+    m_recordingBar->setElapsed(0);
+    m_recordingBar->setSteps(0);
+    m_recordingBar->placeNear(m_settings && m_settings->isVisible() ? static_cast<QWidget *>(m_settings)
+                                                                     : m_mainWindow.get());
+    m_recordingBar->show();
+    tell(Toast{ToastType::Info, {}, "Recording. Show the problem, then press Finish.", kDefaultToastMs});
+}
+
+void Application::finishIssueRecording()
+{
+    m_recorder->stop();
+    if (m_recordingBar) {
+        m_recordingBar->close();
+    }
+    m_reportWindow = new IssueReportWindow(m_mainWindow.get());
+    m_reportWindow->setSummary(m_recorder->durationMs(), m_recorder->eventCount(), m_recorder->frameCount(),
+                               m_recorder->failedImportCount());
+    connect(m_reportWindow, &IssueReportWindow::discardRequested, this, [this] { m_recorder->discard(); });
+    connect(m_reportWindow, &IssueReportWindow::saveRequested, this,
+            [this](const IssueReportWindow::Choices &choices) {
+                const QString name = QStringLiteral("SkyAutoPiano-issue-%1%2")
+                                         .arg(QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss")),
+                                              QLatin1String(kIssueReportExtension));
+                const auto path = chooseReportSavePath(m_reportWindow, name, false);
+                if (!path) {
+                    return;
+                }
+                IssueRecorder::SaveOptions options;
+                options.description = choices.description;
+                options.screenshots = true;
+                options.library = choices.library;
+                options.failedFiles = choices.failedFiles;
+                options.log = true;
+                if (auto saved = m_recorder->save(*path, options); !saved) {
+                    m_mainWindow->showToast(Toast{ToastType::Error, {}, saved.error().userMessage, kDefaultToastMs});
+                    return;
+                }
+                m_recorder->discard();
+                m_reportWindow->close();
+                tell(Toast{ToastType::Success, {}, "Report saved. Send the file to the developer on GitHub or Discord.",
+                           kDefaultToastMs});
+                openLocalFolder(path->parent_path());
+            });
+    m_reportWindow->show();
+    m_reportWindow->raise();
+    m_reportWindow->activateWindow();
+}
+
+namespace {
+
+QString crashTitle(const OrderedJson &report)
+{
+    const OrderedJson crash = report.value("crash", OrderedJson::object());
+    const std::string reason = crash.is_object() ? crash.value("reason", std::string()) : std::string();
+    const OrderedJson state = report.value("state", OrderedJson::object());
+    const bool playing = state.is_object() && state.value("is_playing", false);
+    QString title;
+    if (reason == "unexpected_exit") {
+        title = QStringLiteral("Closed unexpectedly");
+    } else if (reason == "hang") {
+        title = QStringLiteral("Stopped responding");
+    } else if (reason == "out_of_memory") {
+        title = QStringLiteral("Ran out of memory");
+    } else {
+        title = QStringLiteral("Crashed");
+    }
+    return playing ? title + QStringLiteral(" while playing") : title;
+}
+
+QString durationWords(qint64 milliseconds)
+{
+    const qint64 minutes = milliseconds / 60000;
+    if (minutes >= 60) {
+        return QStringLiteral("%1 h %2 min").arg(minutes / 60).arg(minutes % 60);
+    }
+    if (minutes >= 1) {
+        return QStringLiteral("%1 min").arg(minutes);
+    }
+    return QStringLiteral("%1 s").arg(milliseconds / 1000);
+}
+
+bool endedFromOutside(const OrderedJson &report)
+{
+    const OrderedJson crash = report.value("crash", OrderedJson::object());
+    return crash.is_object() && crash.value("reason", std::string()) == "unexpected_exit";
+}
+
+std::vector<std::filesystem::path> crashFiles(const std::filesystem::path &directory)
+{
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    for (const auto &entry : std::filesystem::directory_iterator(directory, error)) {
+        if (entry.is_regular_file(error) && entry.path().extension() == kCrashReportExtension) {
+            files.push_back(entry.path());
+        }
+    }
+    std::sort(files.begin(), files.end(), [](const auto &a, const auto &b) { return a.filename() > b.filename(); });
+    return files;
+}
+
+std::optional<OrderedJson> crashManifest(const std::filesystem::path &file)
+{
+    const auto text = readArchiveEntry(file, "report.json");
+    if (!text) {
+        return std::nullopt;
+    }
+    auto parsed = parseJson<OrderedJson>(*text);
+    if (!parsed || !parsed.value().is_object() || !parsed.value().contains("crash")) {
+        return std::nullopt;
+    }
+    return parsed.value();
+}
+
+}  // namespace
+
+void Application::refreshCrashList()
+{
+    if (!m_settings) {
+        return;
+    }
+    std::vector<CrashListEntry> entries;
+    for (const auto &file : crashFiles(crashDirectory())) {
+        if (entries.size() >= 20) {
+            break;
+        }
+        const auto manifest = crashManifest(file);
+        if (!manifest) {
+            continue;
+        }
+        const OrderedJson report = manifest->value("crash", OrderedJson::object());
+        if (endedFromOutside(report)) {
+            continue;
+        }
+        const QString id = toQString(file.stem().string());
+        QStringList details;
+        const QDateTime when = QDateTime::fromString(id.left(15), QStringLiteral("yyyyMMdd-HHmmss"));
+        if (when.isValid()) {
+            details << QLocale().toString(when, QStringLiteral("d MMM yyyy, HH:mm"));
+        }
+        const OrderedJson app = report.value("app", OrderedJson::object());
+        if (app.is_object() && app.contains("version")) {
+            details << QStringLiteral("version %1").arg(toQString(app.value("version", std::string())));
+        }
+        const OrderedJson process = report.value("process", OrderedJson::object());
+        if (process.is_object() && process.contains("uptime_ms")) {
+            details << QStringLiteral("ran for %1").arg(durationWords(process.value("uptime_ms", 0LL)));
+        }
+        if (manifest->contains("dump")) {
+            details << QStringLiteral("crash dump included");
+        }
+        entries.push_back(CrashListEntry{id, crashTitle(report), details.join(QStringLiteral(" · "))});
+    }
+    m_settings->setCrashReports(entries);
+}
+
+OrderedJson Application::diagnostics() const
+{
+    OrderedJson result = OrderedJson::object();
+    std::size_t customThemes = m_themeLibrary ? m_themeLibrary->themes().size() : 0;
+    result["library"] = OrderedJson{{"songs", m_library ? m_library->size() : 0},
+                                    {"playlists", m_playlists ? m_playlists->playlists().size() : 0},
+                                    {"customThemes", customThemes}};
+    OrderedJson activity = OrderedJson::array();
+    for (const BreadcrumbEntry &entry : CrashHandler::recentBreadcrumbs()) {
+        activity.push_back(OrderedJson{{"t", entry.timeMs}, {"area", entry.category}, {"message", entry.message}});
+    }
+    result["backgroundActivity"] = std::move(activity);
+    OrderedJson crashes = OrderedJson::array();
+    for (const auto &file : crashFiles(crashDirectory())) {
+        if (crashes.size() >= 10) {
+            break;
+        }
+        const auto manifest = crashManifest(file);
+        if (!manifest) {
+            continue;
+        }
+        const OrderedJson report = manifest->value("crash", OrderedJson::object());
+        if (endedFromOutside(report)) {
+            continue;
+        }
+        OrderedJson entry{{"id", file.stem().string()}, {"title", fromQString(crashTitle(report))}};
+        const OrderedJson app = report.value("app", OrderedJson::object());
+        if (app.is_object()) {
+            entry["version"] = app.value("version", std::string());
+        }
+        crashes.push_back(std::move(entry));
+    }
+    result["recentCrashes"] = std::move(crashes);
+    return result;
+}
+
+void Application::saveCrashReport(const QString &requested)
+{
+    std::optional<std::filesystem::path> source;
+    if (requested.isEmpty()) {
+        source = latestCrashReport(crashDirectory());
+    } else {
+        const auto file = crashDirectory() / (safeArchiveName(fromQString(requested)) + kCrashReportExtension);
+        std::error_code error;
+        if (std::filesystem::exists(file, error)) {
+            source = file;
+        }
+    }
+    if (!source) {
+        tell(Toast{ToastType::Info, {}, "That crash report is no longer on this PC.", kDefaultToastMs});
+        refreshCrashList();
+        return;
+    }
+    QWidget *parent = m_settings ? static_cast<QWidget *>(m_settings) : m_mainWindow.get();
+    const std::string id = source->stem().string();
+    const auto path = chooseReportSavePath(
+        parent, QStringLiteral("SkyAutoPiano-crash-%1%2").arg(toQString(id), QLatin1String(kCrashReportExtension)), true);
+    if (!path) {
+        return;
+    }
+    std::error_code error;
+    std::filesystem::copy_file(*source, *path, std::filesystem::copy_options::overwrite_existing, error);
+    if (error) {
+        tell(Toast{ToastType::Error, {}, "The crash report could not be saved.", kDefaultToastMs});
+        return;
+    }
+    tell(Toast{ToastType::Success, {}, "Crash report saved. Send the file to the developer on GitHub or Discord.",
+               kDefaultToastMs});
+    openLocalFolder(path->parent_path());
+}
+
+void Application::applyStartupLayout()
+{
+    const QStringList arguments = QApplication::arguments();
+    const qsizetype at = arguments.indexOf(QStringLiteral("--layout"));
+    if (at < 0 || at + 1 >= arguments.size()) {
+        return;
+    }
+    auto text = readTextFile(std::filesystem::path(arguments[at + 1].toStdWString()));
+    if (!text) {
+        return;
+    }
+    auto parsed = parseJson<OrderedJson>(text.value());
+    if (!parsed || !parsed.value().is_object()) {
+        return;
+    }
+    const OrderedJson &layout = parsed.value();
+    const auto apply = [](QWidget *window, const OrderedJson &entry) {
+        const int width = entry.value("width", 0);
+        const int height = entry.value("height", 0);
+        if (width > 0 && height > 0) {
+            window->resize(width, height);
+        }
+        if (entry.value("state", std::string()) == "maximized") {
+            window->showMaximized();
+        }
+    };
+    if (const auto main = layout.find("main"); main != layout.end() && main->is_object()) {
+        apply(m_mainWindow.get(), *main);
+    }
+    if (const auto settings = layout.find("settings"); settings != layout.end() && settings->is_object()) {
+        openSettings();
+        if (m_settings) {
+            apply(m_settings, *settings);
+            if (const auto page = settings->find("page"); page != settings->end() && page->is_number_integer()) {
+                m_settings->openPage(page->get<int>());
+            }
+        }
+    }
 }
 
 void Application::notifyLegacy(bool manual, const Toast &toast)
@@ -506,6 +889,26 @@ void Application::openSettings()
     connect(m_settings, &QObject::destroyed, this, [this] { m_shortcuts->resume(); });
     connect(m_settings, &SettingsWindow::themeImported, this, &Application::applyTheme);
     connect(m_settings, &SettingsWindow::importPreviousRequested, this, [this] { detectLegacyLibrary(true); });
+    connect(m_settings, &SettingsWindow::recordIssueRequested, this, &Application::startIssueRecording);
+    connect(m_settings, &SettingsWindow::saveCrashReportRequested, this, &Application::saveCrashReport);
+    connect(m_settings, &SettingsWindow::clearCrashReportsRequested, this, [this] {
+        const std::size_t removed = deleteCrashReports(crashDirectory());
+        refreshCrashList();
+        if (m_settings) {
+            m_settings->showToast(Toast{ToastType::Success, {},
+                                        removed == 1 ? std::string("Deleted 1 crash report.")
+                                                     : "Deleted " + std::to_string(removed) + " crash reports.",
+                                        kDefaultToastMs});
+        }
+    });
+    connect(m_settings, &SettingsWindow::crashFolderRequested, this, [this] {
+        std::error_code error;
+        std::filesystem::create_directories(crashDirectory(), error);
+        if (!openLocalFolder(crashDirectory())) {
+            tell(Toast{ToastType::Warning, {}, "The crash folder could not be opened.", kDefaultToastMs});
+        }
+    });
+    refreshCrashList();
     connect(m_settings, &SettingsWindow::quickStartRequested, this, [this] {
         m_mainWindow->bringToFront();
         showQuickStart();
@@ -534,9 +937,12 @@ void Application::start(bool afterCrash)
         detectLegacyLibrary(false);
     }
     if (afterCrash) {
-        m_toasts->show(ToastType::Error, "Sky Auto Piano closed unexpectedly last time. A crash report was saved.",
+        m_toasts->show(ToastType::Error,
+                       "Sky Auto Piano closed unexpectedly last time. Save the crash report in Settings → Reports to send "
+                       "it to the developer.",
                        kDefaultToastMs);
     }
+    applyStartupLayout();
 }
 
 void Application::showQuickStart()

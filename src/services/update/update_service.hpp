@@ -33,6 +33,11 @@ struct VersionCheck {
     std::vector<VersionNotes> history;
 };
 
+struct ReleaseNotes {
+    std::string notes;
+    std::string page;
+};
+
 struct UpdateInfo {
     std::string previousVersion;
     std::string newVersion;
@@ -50,6 +55,7 @@ public:
 
     void checkForUpdates(std::function<void(Result<VersionCheck>)> done);
     void fetchChangelog(std::function<void(Result<std::vector<VersionNotes>>)> done);
+    void fetchReleaseNotes(const std::string &version, std::function<void(Result<ReleaseNotes>)> done);
     void performUpdate(const VersionCheck &check);
     void cleanupPendingFiles();
     bool launchPendingInstaller();
@@ -62,7 +68,11 @@ public:
 
     std::optional<UpdateInfo> pendingChangelog() const;
     void markChangelogShown();
+    std::string lastSeenVersion() const;
+    void markVersionSeen();
 
+    static std::optional<ReleaseNotes> notesFor(const Json &releases, std::string_view version);
+    static std::string releasePageUrl(std::string_view version);
     static Result<VersionCheck> evaluateReleases(const Json &releases, std::string_view currentVersion,
                                                  InstallKind kind = InstallKind::Installed);
     static InstallKind detectInstallKind(const std::filesystem::path &appDirectory);

@@ -27,7 +27,7 @@ private:
     void playNotes(const std::vector<PlaybackNote> &notes, int startSec, quint64 session);
     void playKeyMap(const KeyMap &keyMap, quint64 session);
     void sendKey(const std::string &rawKey, std::optional<double> durationMs);
-    bool sleepFor(double milliseconds, quint64 session);
+    bool sleepFor(double milliseconds, quint64 session, bool ownsKeys = true);
 
     ReleaseScheduler m_scheduler;
 };

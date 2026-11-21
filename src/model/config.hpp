@@ -14,6 +14,7 @@ struct PanelConfig {
     double delayNext = 1.0;
     bool autoSave = true;
     bool minimizeOnPlay = true;
+    bool pauseWhenUnfocused = true;
     PlaybackMode playbackMode = PlaybackMode::Lite;
 };
 

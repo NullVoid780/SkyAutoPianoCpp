@@ -1,5 +1,6 @@
 #include "ui/main_window/changelog_panel.hpp"
 
+#include <QDesktopServices>
 #include <QEvent>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -7,6 +8,7 @@
 #include <QPainter>
 #include <QPushButton>
 #include <QTextDocument>
+#include <QUrl>
 #include <QVBoxLayout>
 
 #include <algorithm>
@@ -47,8 +49,12 @@ ChangelogPanel::ChangelogPanel(QWidget *window)
                                                    [] { return currentTheme().hoverColor; },
                                                    [] { return currentTheme().update.codeFill; }},
                                m_panel)),
+      m_readMore(new QPushButton(QStringLiteral("Read in browser"), m_panel)),
       m_gotIt(new QPushButton(QStringLiteral("Got it!"), m_panel))
 {
+    m_readMore->setObjectName(QStringLiteral("ChangelogSecondaryButton"));
+    m_readMore->setCursor(Qt::PointingHandCursor);
+    m_readMore->hide();
     m_title->setObjectName(QStringLiteral("ChangelogTitle"));
     m_title->setAlignment(Qt::AlignCenter);
     m_pill->setObjectName(QStringLiteral("ChangelogPill"));
@@ -63,7 +69,9 @@ ChangelogPanel::ChangelogPanel(QWidget *window)
     pillRow->addWidget(m_pill);
     pillRow->addStretch();
     auto *buttonRow = new QHBoxLayout();
+    buttonRow->setSpacing(12);
     buttonRow->addStretch();
+    buttonRow->addWidget(m_readMore);
     buttonRow->addWidget(m_gotIt);
     buttonRow->addStretch();
 
@@ -79,11 +87,20 @@ ChangelogPanel::ChangelogPanel(QWidget *window)
     column->addLayout(buttonRow);
 
     connect(m_gotIt, &QPushButton::clicked, this, &Overlay::close);
+    connect(m_readMore, &QPushButton::clicked, this, [this] {
+        const QUrl url(m_pageUrl);
+        if (url.isValid() && url.scheme() == QStringLiteral("https")) {
+            QDesktopServices::openUrl(url);
+        }
+    });
 }
 
-void ChangelogPanel::present(const QString &version, const QString &notes)
+void ChangelogPanel::present(const QString &version, const QString &notes, const QString &pageUrl)
 {
     m_pill->setText(QStringLiteral("V") + version.toUpper());
+    m_pageUrl = pageUrl;
+    m_readMore->setVisible(!pageUrl.isEmpty());
+    m_readMore->setToolTip(pageUrl);
     m_notes->setMarkdownText(notes);
     fitNotes();
     open();

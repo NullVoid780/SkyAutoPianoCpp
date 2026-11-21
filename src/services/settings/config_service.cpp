@@ -98,6 +98,7 @@ OrderedJson ConfigService::defaults()
     config["panel"]["delayNext"] = 1;
     config["panel"]["autoSave"] = true;
     config["panel"]["minimizeOnPlay"] = true;
+    config["panel"]["pauseWhenUnfocused"] = true;
     config["panel"]["playbackMode"] = "lite";
     config["keyboard"] = OrderedJson::object();
     config["keyboard"]["customKeyboard"] = false;
@@ -126,6 +127,7 @@ Config ConfigService::fromJson(const OrderedJson &json)
     config.panel.delayNext = jsMember(panel, "delayNext");
     config.panel.autoSave = truthyMember(panel, "autoSave");
     config.panel.minimizeOnPlay = truthyMember(panel, "minimizeOnPlay");
+    config.panel.pauseWhenUnfocused = !panel.contains("pauseWhenUnfocused") || truthyMember(panel, "pauseWhenUnfocused");
     config.panel.playbackMode = stringMember(panel, "playbackMode") == "lite" ? PlaybackMode::Lite : PlaybackMode::Strict;
 
     const OrderedJson &keyboard = section(json, "keyboard");
@@ -386,6 +388,9 @@ Result<OrderedJson> ConfigService::normalizeImported(const OrderedJson &current,
         }
         if (panel.contains("minimizeOnPlay") && panel["minimizeOnPlay"].is_boolean()) {
             target["minimizeOnPlay"] = panel["minimizeOnPlay"];
+        }
+        if (panel.contains("pauseWhenUnfocused") && panel["pauseWhenUnfocused"].is_boolean()) {
+            target["pauseWhenUnfocused"] = panel["pauseWhenUnfocused"];
         }
         if (panel.contains("playbackMode") && (panel["playbackMode"] == "lite" || panel["playbackMode"] == "strict")) {
             target["playbackMode"] = panel["playbackMode"];

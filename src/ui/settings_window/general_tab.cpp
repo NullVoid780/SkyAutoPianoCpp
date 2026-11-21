@@ -23,6 +23,7 @@ GeneralTab::GeneralTab(QWidget *parent)
     : QWidget(parent),
       m_autoSave(new ToggleSwitch(this)),
       m_minimizeOnPlay(new ToggleSwitch(this)),
+      m_pauseWhenUnfocused(new ToggleSwitch(this)),
       m_playbackMode(new SelectBox(this))
 {
     auto *header = new TabHeader(QStringLiteral("sliders"), [] { return currentTheme().settings.navIconSliders; },
@@ -38,9 +39,13 @@ GeneralTab::GeneralTab(QWidget *parent)
     m_playbackMode->setAccessibleName(QStringLiteral("Playback Mode"));
 
     auto *autoSave = new SettingsRow(QStringLiteral("save"), QStringLiteral("Auto Save Settings"),
-                                     QStringLiteral("Automatically save settings to the control panel."), m_autoSave, this);
+                                     QStringLiteral("Save your changes by itself when you close Settings."), m_autoSave, this);
     auto *minimize = new SettingsRow(QStringLiteral("dash-lg"), QStringLiteral("Minimize on Play"),
                                      QStringLiteral("Minimize the window when playback starts."), m_minimizeOnPlay, this);
+    auto *pause = new SettingsRow(QStringLiteral("pause-fill"), QStringLiteral("Pause When Sky Isn't in Front"),
+                                  QStringLiteral("Wait for the game before playing, and pause if you switch to another "
+                                                 "window so keys never type into it."),
+                                  m_pauseWhenUnfocused, this);
     auto *mode = new SettingsRow(QStringLiteral("music-note-beamed"), QStringLiteral("Playback Mode"),
                                  QStringLiteral("Choose how notes are timed while a song plays."), m_playbackMode, this);
     auto *importPrevious = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("download"), QStringLiteral("Import"));
@@ -58,7 +63,7 @@ GeneralTab::GeneralTab(QWidget *parent)
     column->setSpacing(0);
     column->addWidget(header);
     column->addSpacing(kHeaderGap);
-    for (SettingsRow *row : {autoSave, minimize, mode, previous, quickStart}) {
+    for (SettingsRow *row : {autoSave, minimize, pause, mode, previous, quickStart}) {
         column->addWidget(row);
         if (row != quickStart) {
             column->addSpacing(kRowGap);
@@ -76,6 +81,7 @@ void GeneralTab::load(const Config &config)
 {
     m_autoSave->setCheckedImmediately(config.panel.autoSave);
     m_minimizeOnPlay->setCheckedImmediately(config.panel.minimizeOnPlay);
+    m_pauseWhenUnfocused->setCheckedImmediately(config.panel.pauseWhenUnfocused);
     const QSignalBlocker blocker(m_playbackMode);
     m_playbackMode->setCurrentIndex(config.panel.playbackMode == PlaybackMode::Strict ? 1 : 0);
 }
@@ -84,6 +90,7 @@ void GeneralTab::collect(Config &config) const
 {
     config.panel.autoSave = m_autoSave->isChecked();
     config.panel.minimizeOnPlay = m_minimizeOnPlay->isChecked();
+    config.panel.pauseWhenUnfocused = m_pauseWhenUnfocused->isChecked();
     config.panel.playbackMode = m_playbackMode->currentIndex() == 1 ? PlaybackMode::Strict : PlaybackMode::Lite;
 }
 

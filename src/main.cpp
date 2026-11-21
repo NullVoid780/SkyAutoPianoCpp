@@ -2,6 +2,7 @@
 #include <QGuiApplication>
 #include <QProcess>
 #include <QStyleFactory>
+#include <QTimer>
 
 #include <thread>
 
@@ -29,8 +30,9 @@ int main(int argc, char *argv[])
     QApplication::setApplicationVersion(QString::fromLatin1(sky::kAppVersion));
     sky::Logger::installQtMessageHandler();
 
+    const bool sandbox = QApplication::arguments().contains(QStringLiteral("--sandbox"));
     sky::SingleInstance instance;
-    if (!instance.acquire()) {
+    if (!sandbox && !instance.acquire()) {
         sky::SingleInstance::notifyRunningInstance();
         sky::CrashHandler::markCleanExit();
         return 0;
@@ -49,10 +51,19 @@ int main(int argc, char *argv[])
     bool relaunch = false;
     {
         sky::Application application;
-        instance.listen();
+        if (!sandbox) {
+            instance.listen();
+        }
         QObject::connect(&instance, &sky::SingleInstance::activationRequested, &application,
                          &sky::Application::activate);
         application.start(QApplication::arguments().contains(QStringLiteral("--after-crash")));
+        if (QApplication::arguments().contains(QStringLiteral("--crash-test"))) {
+            QTimer::singleShot(1500, [] {
+                sky::Logger::warning("app", "crashing on purpose because of --crash-test");
+                volatile int *target = nullptr;
+                *target = 1;
+            });
+        }
         code = QApplication::exec();
         const bool installerLaunched = application.launchPendingInstaller();
         relaunch = application.relaunchRequested() && !installerLaunched;

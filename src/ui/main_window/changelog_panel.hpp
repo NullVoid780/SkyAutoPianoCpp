@@ -15,7 +15,7 @@ class ChangelogPanel final : public Overlay {
 public:
     explicit ChangelogPanel(QWidget *window);
 
-    void present(const QString &version, const QString &notes);
+    void present(const QString &version, const QString &notes, const QString &pageUrl = QString());
 
 protected:
     QWidget *panel() const override { return m_panel; }
@@ -35,7 +35,9 @@ private:
     QLabel *m_title;
     QLabel *m_pill;
     MarkdownView *m_notes;
+    QPushButton *m_readMore;
     QPushButton *m_gotIt;
+    QString m_pageUrl;
 };
 
 }  // namespace sky

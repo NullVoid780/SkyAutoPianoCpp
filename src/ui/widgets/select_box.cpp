@@ -84,8 +84,8 @@ protected:
         const QRectF panel = QRectF(rect()).adjusted(kPopupMargin, kPopupMargin, -kPopupMargin, -kPopupMargin);
         ShadowPainter::paint(painter, panel, kPopupRadius, theme.shadowPopover);
         const QPainterPath path = roundedPath(panel.adjusted(0.5, 0.5, -0.5, -0.5), kPopupRadius);
-        painter.fillPath(path, s.selectListFill);
-        painter.setPen(QPen(s.selectBorder, 1));
+        painter.fillPath(path, theme.popoverFill);
+        painter.setPen(QPen(theme.popoverBorder, 1));
         painter.setBrush(Qt::NoBrush);
         painter.drawPath(path);
 
@@ -93,14 +93,14 @@ protected:
             const SelectBox::Option &option = m_options[static_cast<std::size_t>(i)];
             const QRectF row = rowRect(i);
             if (i == m_hover) {
-                painter.fillPath(roundedPath(row, kRowRadius), s.subtleHoverFill);
+                painter.fillPath(roundedPath(row, kRowRadius), theme.menuHoverFill);
             }
             const bool selected = i == m_current;
             const qreal textRight = row.right() - kRowPadX - kCheck - kRowPadX;
             const QFontMetrics labelMetrics(labelFont());
             qreal top = row.top() + kRowPadY;
             painter.setFont(labelFont());
-            painter.setPen(selected ? theme.hoverColor : s.selectListText);
+            painter.setPen(selected ? theme.hoverColor : theme.fontColor);
             painter.drawText(QRectF(row.left() + kRowPadX, top, textRight - row.left() - kRowPadX, labelMetrics.height()),
                              Qt::AlignLeft | Qt::AlignVCenter, option.label);
             if (!option.description.isEmpty()) {

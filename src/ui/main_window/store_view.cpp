@@ -247,6 +247,7 @@ void StoreView::render()
         row->setEditable(false);
         row->setData(toQString(item.title), StoreCardDelegate::TitleRole);
         row->setData(metaLine(item), StoreCardDelegate::MetaRole);
+        row->setData(QStringLiteral("%1. %2").arg(toQString(item.title), metaLine(item)), Qt::AccessibleTextRole);
         row->setData(badgesFor(item), StoreCardDelegate::BadgesRole);
         row->setData(toQString(availability.message), StoreCardDelegate::StatusRole);
         row->setData(availability.canPlay && !playing, StoreCardDelegate::CanPlayRole);

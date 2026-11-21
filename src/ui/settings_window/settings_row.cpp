@@ -1,5 +1,6 @@
 #include "ui/settings_window/settings_row.hpp"
 
+#include <QAbstractButton>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
@@ -51,6 +52,11 @@ SettingsRow::SettingsRow(const QString &iconId, const QString &title, const QStr
     row->addLayout(copy, 1);
     if (control) {
         control->setParent(this);
+        const auto *button = qobject_cast<QAbstractButton *>(control);
+        if (control->accessibleName().isEmpty() && !(button && !button->text().isEmpty())) {
+            control->setAccessibleName(title);
+            control->setAccessibleDescription(description);
+        }
         row->addWidget(control, 0, Qt::AlignVCenter);
     }
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this, [this] { update(); });

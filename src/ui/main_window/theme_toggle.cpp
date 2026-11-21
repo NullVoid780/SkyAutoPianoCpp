@@ -22,6 +22,7 @@ ThemeToggle::ThemeToggle(QWidget *parent)
     setFixedSize(kSize, kSize);
     setCursor(Qt::PointingHandCursor);
     setFocusPolicy(Qt::TabFocus);
+    setAccessibleName(QStringLiteral("Switch light or dark mode"));
     m_fade->setDuration(kHoverSlowMs);
     connect(m_fade, &QVariantAnimation::valueChanged, this, [this](const QVariant &value) {
         m_darkness = value.toReal();

@@ -12,6 +12,8 @@ SearchField::SearchField(QWidget *parent) : QLineEdit(parent), m_icon(new QActio
     setObjectName(QStringLiteral("SearchField"));
     setPlaceholderText(QStringLiteral("Search the music sheet or author name..."));
     setClearButtonEnabled(false);
+    setAccessibleName(QStringLiteral("Search"));
+    m_icon->setText(QStringLiteral("Search"));
     addAction(m_icon, QLineEdit::TrailingPosition);
     applyTheme();
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this, &SearchField::applyTheme);

@@ -1,5 +1,7 @@
 #include "ui/main_window/player_footer.hpp"
 
+#include "ui/main_window/sky_status_chip.hpp"
+
 #include <QLabel>
 #include <QPainter>
 #include <QSignalBlocker>
@@ -59,7 +61,8 @@ PlayerFooter::PlayerFooter(QWidget *parent)
       m_previous(new TransportButton(TransportButton::Kind::Skip, QStringLiteral("skip-start-fill"), this)),
       m_play(new TransportButton(TransportButton::Kind::Play, QStringLiteral("play-fill"), this)),
       m_next(new TransportButton(TransportButton::Kind::Skip, QStringLiteral("skip-end-fill"), this)),
-      m_speed(new SpeedControl(this))
+      m_speed(new SpeedControl(this)),
+      m_sky(new SkyStatusChip(this))
 {
     setObjectName(QStringLiteral("PlayerFooter"));
     m_name->setObjectName(QStringLiteral("NowPlaying"));
@@ -68,6 +71,7 @@ PlayerFooter::PlayerFooter(QWidget *parent)
     m_progress->setObjectName(QStringLiteral("ProgressSlider"));
     m_progress->setRange(0, 0);
     m_hold->hide();
+    m_gear->setAccessibleName(QStringLiteral("Settings"));
 
     connect(m_gear, &QAbstractButton::clicked, this, &PlayerFooter::settingsRequested);
     connect(m_theme, &QAbstractButton::clicked, this, &PlayerFooter::themeToggleRequested);
@@ -91,8 +95,9 @@ PlayerFooter::PlayerFooter(QWidget *parent)
 void PlayerFooter::refreshTransportLabels()
 {
     m_previous->setContent(QStringLiteral("skip-start-fill"), QStringLiteral("Prev (%1)").arg(m_previousShortcut));
+    const QString playLabel = m_playing ? QStringLiteral("Pause") : QStringLiteral("Play");
     m_play->setContent(m_playing ? QStringLiteral("pause-fill") : QStringLiteral("play-fill"),
-                       QStringLiteral("%1 (%2)").arg(m_playing ? QStringLiteral("Pause") : QStringLiteral("Play"), m_playShortcut));
+                       QStringLiteral("%1 (%2)").arg(playLabel, m_playShortcut));
     m_next->setContent(QStringLiteral("skip-end-fill"), QStringLiteral("Next (%1)").arg(m_nextShortcut));
     relayout();
 }
@@ -121,7 +126,7 @@ void PlayerFooter::showTarget(const QString &name, bool hold, int totalSeconds)
 
 void PlayerFooter::showEmpty()
 {
-    m_name->setText(QStringLiteral("* Click on the plus to add sheet"));
+    m_name->setText(QStringLiteral("Pick a song to play, or press + to add one"));
     m_hold->hide();
     {
         const QSignalBlocker blocker(m_progress);
@@ -167,6 +172,12 @@ void PlayerFooter::setDelaySeconds(int seconds)
     m_loop->setDelaySeconds(seconds);
 }
 
+void PlayerFooter::setSkyStatus(const QString &text, int tone, const QString &tip)
+{
+    m_sky->setStatus(text, static_cast<SkyStatusChip::Tone>(tone), tip);
+    relayout();
+}
+
 bool PlayerFooter::isEditingSpeed() const
 {
     return m_speed->isEditing();
@@ -182,6 +193,9 @@ void PlayerFooter::relayout()
     const int w = width();
     m_gear->move(kCorner, kCorner);
     m_theme->move(w - kCorner - m_theme->width(), kCorner);
+    m_sky->resize(m_sky->sizeHint());
+    m_sky->move(m_theme->x() - kCorner - m_sky->width(), kCorner + (m_theme->height() - m_sky->height()) / 2);
+    const int cornerSpace = std::max(m_gear->x() + m_gear->width(), w - m_sky->x()) + kCorner;
 
     m_name->adjustSize();
     const int nameRowHeight = std::max(m_name->height(), m_hold->isVisible() ? m_hold->height() : 0);
@@ -191,7 +205,7 @@ void PlayerFooter::relayout()
     const int columnHeight = nameRowHeight + kNameGap + kSliderMargin * 2 + 3 + timeHeight + kButtonsGap + buttonsHeight;
     int y = (visibleHeight - columnHeight) / 2;
 
-    const int nameWidth = std::min(m_name->width(), w - 120);
+    const int nameWidth = std::max(80, std::min(m_name->width(), w - 2 * cornerSpace));
     const int rowWidth = nameWidth + (m_hold->isVisible() ? kBadgeGap + m_hold->width() : 0);
     int x = (w - rowWidth) / 2;
     m_name->setGeometry(x, y + (nameRowHeight - m_name->height()) / 2, nameWidth, m_name->height());

@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 90
     steps:
       - name: Get the code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up the build tools
         uses: ./.github/actions/setup

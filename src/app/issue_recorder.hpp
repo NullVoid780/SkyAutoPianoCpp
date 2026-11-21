@@ -116,7 +116,8 @@ private:
     OrderedJson m_mouseWindows = OrderedJson::array();
     QHash<QString, int> m_mouseWindowIndex;
     QHash<QWidget *, QString> m_windowIds;
-    QHash<QString, quint64> m_lastFrameHash;
+    QHash<QString, QImage> m_lastFrame;
+    QHash<QString, int> m_patchesSinceKey;
     std::set<QWidget *> m_ignored;
     std::vector<QPointer<QWidget>> m_ignoredGuards;
     std::map<QString, QString> m_importPaths;

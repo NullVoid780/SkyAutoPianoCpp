@@ -65,7 +65,6 @@ signals:
     void settingsRequested();
     void themeToggleRequested();
     void editorRequested(int libraryIndex);
-    void practiceRequested(int libraryIndex);
     void shortcutsSuspended(bool suspended);
 
 protected:

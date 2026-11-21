@@ -40,9 +40,6 @@ public:
     bool legacyImportOffered() const;
     void setLegacyImportOffered();
 
-    OrderedJson value(const std::string &key) const;
-    void setValue(const std::string &key, OrderedJson value);
-
     const std::filesystem::path &filePath() const { return m_path; }
 
 signals:

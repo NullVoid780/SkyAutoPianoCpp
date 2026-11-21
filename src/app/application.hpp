@@ -17,7 +17,6 @@ namespace sky {
 class ChangelogPanel;
 class IssueRecorder;
 class SkyWindowWatcher;
-class PlayAlong;
 class IssueReportWindow;
 class RecordingBar;
 class ConfigService;
@@ -64,8 +63,6 @@ private:
     void openEditor(int libraryIndex);
     void updateCrashState();
     void updateSkyStatus();
-    void openPractice(int libraryIndex);
-    void startPracticeForTarget(bool focusSky);
     void showPendingChangelog();
     void requestRelaunch();
     void detectLegacyLibrary(bool manual);
@@ -108,7 +105,6 @@ private:
     QPointer<QuickStart> m_quickStart;
     IssueRecorder *m_recorder = nullptr;
     SkyWindowWatcher *m_skyWatcher = nullptr;
-    PlayAlong *m_playAlong = nullptr;
     bool m_skyHeld = false;
     QPointer<RecordingBar> m_recordingBar;
     QPointer<IssueReportWindow> m_reportWindow;

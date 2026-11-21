@@ -1,7 +1,5 @@
 #include "app/application.hpp"
 
-#include <windows.h>
-
 #include <QApplication>
 #include <QDateTime>
 #include <QDir>
@@ -39,8 +37,6 @@
 #include "app/theme_controller.hpp"
 #include "app/issue_recorder.hpp"
 #include "app/sky_window_watcher.hpp"
-#include "ui/practice/play_along.hpp"
-#include "skyinput/window_info.hpp"
 #include "crash/pending_reports.hpp"
 #include "platform/shell_open.hpp"
 #include "services/report/report_writer.hpp"
@@ -135,7 +131,6 @@ void Application::wire()
     });
     connect(window, &MainWindow::settingsRequested, this, &Application::openSettings);
     connect(window, &MainWindow::editorRequested, this, &Application::openEditor);
-    connect(window, &MainWindow::practiceRequested, this, &Application::openPractice);
     connect(m_playback.get(), &PlaybackService::started, window, [this, window] {
         if (m_config->panel().minimizeOnPlay) {
             window->showMinimized();
@@ -144,35 +139,6 @@ void Application::wire()
     connect(m_playback.get(), &PlaybackService::started, this, &Application::updateCrashState);
     m_skyWatcher = new SkyWindowWatcher(this);
     connect(m_skyWatcher, &SkyWindowWatcher::stateChanged, this, &Application::updateSkyStatus);
-    m_playAlong = new PlayAlong(*m_config, *m_uiState, this);
-    m_playAlong->setSkyState(m_skyWatcher->state());
-    connect(m_skyWatcher, &SkyWindowWatcher::stateChanged, m_playAlong, &PlayAlong::setSkyState);
-    connect(m_playAlong, &PlayAlong::finished, this, [this] { m_player->setPracticeActive(false); });
-    connect(m_player.get(), &PlayerController::practiceToggleRequested, this, [this] {
-        if (m_playAlong->isActive()) {
-            m_playAlong->stop();
-        } else {
-            startPracticeForTarget(QApplication::activeWindow() != nullptr);
-        }
-    });
-    connect(m_player.get(), &PlayerController::targetChanged, this, [this] {
-        if (m_player->playMode() == PlayMode::Practice && m_playAlong->isActive()) {
-            const PlaybackTarget &target = m_player->target();
-            if (target.kind != PlaybackTarget::Kind::None) {
-                m_playAlong->start(toQString(target.name), target.keyMap);
-            }
-        }
-    });
-    connect(m_player.get(), &PlayerController::playModeChanged, this, [this](PlayMode mode) {
-        m_uiState->setValue("playMode", mode == PlayMode::Practice ? "practice" : "auto");
-        if (mode == PlayMode::Auto && m_playAlong->isActive()) {
-            m_playAlong->stop();
-        }
-        updateSkyStatus();
-    });
-    if (m_uiState->value("playMode") == "practice") {
-        m_player->setPlayMode(PlayMode::Practice);
-    }
     connect(m_player.get(), &PlayerController::playingChanged, this, &Application::updateSkyStatus);
     connect(m_config.get(), &ConfigService::changed, this, &Application::updateSkyStatus);
     updateSkyStatus();
@@ -186,8 +152,7 @@ void Application::wire()
 void Application::updateSkyStatus()
 {
     const SkyWindowState state = m_skyWatcher->state();
-    const bool practicing = m_player->isPracticeActive();
-    const bool playing = m_player->isPlaying() || practicing;
+    const bool playing = m_player->isPlaying();
     const bool pauseEnabled = m_config->panel().pauseWhenUnfocused;
     const bool hold = pauseEnabled && state != SkyWindowState::Foreground;
     m_playback->setHeld(hold);
@@ -198,9 +163,7 @@ void Application::updateSkyStatus()
     int tone = Idle;
     switch (state) {
     case SkyWindowState::Foreground:
-        text = practicing ? QStringLiteral("Practicing in Sky")
-               : playing  ? QStringLiteral("Playing in Sky")
-                          : QStringLiteral("Sky ready");
+        text = playing ? QStringLiteral("Playing in Sky") : QStringLiteral("Sky ready");
         tip = QStringLiteral("Sky is open and in front.");
         tone = Good;
         break;
@@ -878,43 +841,6 @@ void Application::toggleTheme()
 void Application::applyTheme(AppTheme theme)
 {
     m_themes->setKind(theme);
-}
-
-void Application::openPractice(int libraryIndex)
-{
-    if (!m_library->entry(libraryIndex)) {
-        return;
-    }
-    m_player->setPlayMode(PlayMode::Practice);
-    m_player->selectLocal(libraryIndex, true, [this] { startPracticeForTarget(true); });
-}
-
-void Application::startPracticeForTarget(bool focusSky)
-{
-    const PlaybackTarget &target = m_player->target();
-    if (target.kind == PlaybackTarget::Kind::None) {
-        return;
-    }
-    if (m_player->isPlaying()) {
-        m_player->togglePlay();
-    }
-    m_playAlong->start(toQString(target.name), target.keyMap);
-    m_player->setPracticeActive(true);
-    {
-        const auto sky = reinterpret_cast<HWND>(skyinput::findWindow(L"Sky"));
-        if (sky && IsWindow(sky)) {
-            if (focusSky) {
-                if (IsIconic(sky)) {
-                    ShowWindow(sky, SW_RESTORE);
-                }
-                SetForegroundWindow(sky);
-            }
-        } else {
-            m_toasts->show(ToastType::Info,
-                           "Sky isn't open, so the guide floats on your screen. Open Sky and it moves onto the game.",
-                           kDefaultToastMs);
-        }
-    }
 }
 
 void Application::openEditor(int libraryIndex)

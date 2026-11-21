@@ -61,7 +61,6 @@ add_library(sky_services STATIC
     services/settings/shortcut_service.cpp
     services/settings/theme_library_service.cpp
     services/report/report_writer.cpp
-    services/practice/practice_session.cpp
     services/settings/ui_state_service.cpp
     services/store/store_mapping.cpp
     services/store/store_service.cpp
@@ -178,11 +177,6 @@ add_library(sky_ui STATIC
     ui/main_window/main_window.cpp
     ui/main_window/player_footer.cpp
     ui/main_window/sky_status_chip.cpp
-    ui/main_window/mode_switch.cpp
-    ui/practice/sky_guide_stage.cpp
-    ui/practice/sky_calibrator.cpp
-    ui/practice/play_along.cpp
-    ui/practice/play_along_overlay.cpp
     ui/main_window/scroll_top_button.cpp
     ui/main_window/sheet_actions_menu.cpp
     ui/main_window/sheet_card_delegate.cpp
@@ -191,6 +185,7 @@ add_library(sky_ui STATIC
     ui/render/backdrop_blur.cpp
     ui/render/box_blur.cpp
     ui/render/font_loader.cpp
+    ui/render/frame_diff.cpp
     ui/render/icon_cache.cpp
     ui/render/paint_utils.cpp
     ui/render/shadow_painter.cpp

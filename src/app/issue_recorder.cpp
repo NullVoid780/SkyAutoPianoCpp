@@ -35,6 +35,7 @@
 #include "services/playback/playback_service.hpp"
 #include "services/settings/config_service.hpp"
 #include "ui/core/overlay.hpp"
+#include "ui/render/frame_diff.hpp"
 #include "ui/settings_window/settings_window.hpp"
 #include "ui/theme_manager.hpp"
 #include "ui/widgets/toast_host.hpp"
@@ -52,6 +53,7 @@ constexpr std::size_t kMaxFrames = 6000;
 constexpr std::size_t kMaxMouseSamples = 40000;
 constexpr std::size_t kMaxEvents = 30000;
 constexpr int kMaxImageWidth = 1920;
+constexpr int kKeyFrameEvery = 30;
 constexpr qint64 kWheelGapMs = 400;
 constexpr qint64 kResizeGapMs = 250;
 constexpr std::size_t kLogTailBytes = 1024 * 1024;
@@ -457,6 +459,7 @@ void IssueRecorder::stop()
     m_soonTimer->stop();
     m_tickTimer->stop();
     m_mouseTimer->stop();
+    m_lastFrame.clear();
     qApp->removeEventFilter(this);
     ToastHost::setObserver(nullptr);
     emit stopped();
@@ -484,7 +487,8 @@ void IssueRecorder::discard()
     m_windowInfo = OrderedJson::object();
     m_windowIds.clear();
     m_windowCounters.clear();
-    m_lastFrameHash.clear();
+    m_lastFrame.clear();
+    m_patchesSinceKey.clear();
     m_lastResize.clear();
     m_importPaths.clear();
     m_failedFiles.clear();
@@ -565,25 +569,37 @@ void IssueRecorder::captureFrames()
         if (image.width() > kMaxImageWidth) {
             image = image.scaledToWidth(kMaxImageWidth, Qt::SmoothTransformation);
         }
-        const QImage probe =
-            image.scaled(192, 108, Qt::IgnoreAspectRatio, Qt::FastTransformation).convertToFormat(QImage::Format_RGB32);
-        const quint64 hash = qHashBits(probe.constBits(), static_cast<std::size_t>(probe.sizeInBytes()));
+        image = image.convertToFormat(QImage::Format_RGB32);
         const QString id = windowId(window);
-        if (const auto last = m_lastFrameHash.constFind(id); last != m_lastFrameHash.constEnd() && last.value() == hash) {
-            continue;
+        const QImage last = m_lastFrame.value(id);
+        QRect area = image.rect();
+        bool patch = false;
+        if (!last.isNull()) {
+            area = changedArea(last, image);
+            if (area.isEmpty()) {
+                continue;
+            }
+            const qint64 areaPixels = static_cast<qint64>(area.width()) * area.height();
+            const qint64 framePixels = static_cast<qint64>(image.width()) * image.height();
+            patch = area != image.rect() && m_patchesSinceKey.value(id) < kKeyFrameEvery && areaPixels * 2 < framePixels;
         }
-        m_lastFrameHash[id] = hash;
         changed = true;
         const QString name = QStringLiteral("frames/%1.jpg").arg(++m_frameIndex, 6, 10, QLatin1Char('0'));
-        if (!image.save(m_folder->filePath(name), "JPG", 82)) {
+        if (!writeFrameJpeg(patch ? image.copy(area) : image, m_folder->filePath(name))) {
             continue;
         }
-        m_frames.push_back(OrderedJson{{"t", now()},
-                                       {"window", utf8(id)},
-                                       {"file", utf8(name)},
-                                       {"width", window->width()},
-                                       {"height", window->height()},
-                                       {"scale", shot.devicePixelRatio()}});
+        m_lastFrame[id] = image;
+        m_patchesSinceKey[id] = patch ? m_patchesSinceKey.value(id) + 1 : 0;
+        OrderedJson frame{{"t", now()},
+                          {"window", utf8(id)},
+                          {"file", utf8(name)},
+                          {"width", window->width()},
+                          {"height", window->height()},
+                          {"scale", shot.devicePixelRatio()}};
+        if (patch) {
+            frame["patch"] = OrderedJson{{"x", area.x()}, {"y", area.y()}};
+        }
+        m_frames.push_back(std::move(frame));
         if (m_frames.size() >= kMaxFrames) {
             QTimer::singleShot(0, this, &IssueRecorder::stop);
             return;

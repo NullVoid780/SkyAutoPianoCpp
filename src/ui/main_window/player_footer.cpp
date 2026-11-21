@@ -1,6 +1,5 @@
 #include "ui/main_window/player_footer.hpp"
 
-#include "ui/main_window/mode_switch.hpp"
 #include "ui/main_window/sky_status_chip.hpp"
 
 #include <QLabel>
@@ -63,12 +62,8 @@ PlayerFooter::PlayerFooter(QWidget *parent)
       m_play(new TransportButton(TransportButton::Kind::Play, QStringLiteral("play-fill"), this)),
       m_next(new TransportButton(TransportButton::Kind::Skip, QStringLiteral("skip-end-fill"), this)),
       m_speed(new SpeedControl(this)),
-      m_sky(new SkyStatusChip(this)),
-      m_mode(new ModeSwitch({QStringLiteral("Auto"), QStringLiteral("Practice")}, this))
+      m_sky(new SkyStatusChip(this))
 {
-    m_mode->setToolTip(QStringLiteral("Auto plays the song for you. Practice shows a guide over Sky and you play it."));
-    m_mode->setAccessibleName(QStringLiteral("Play mode"));
-    connect(m_mode, &ModeSwitch::chosen, this, [this](int index) { emit practiceModeChosen(index == 1); });
     setObjectName(QStringLiteral("PlayerFooter"));
     m_name->setObjectName(QStringLiteral("NowPlaying"));
     m_elapsed->setObjectName(QStringLiteral("TimeLabel"));
@@ -99,10 +94,7 @@ PlayerFooter::PlayerFooter(QWidget *parent)
 void PlayerFooter::refreshTransportLabels()
 {
     m_previous->setContent(QStringLiteral("skip-start-fill"), QStringLiteral("Prev (%1)").arg(m_previousShortcut));
-    QString playLabel = m_playing ? QStringLiteral("Pause") : QStringLiteral("Play");
-    if (m_practice) {
-        playLabel = m_playing ? QStringLiteral("Stop") : QStringLiteral("Practice");
-    }
+    const QString playLabel = m_playing ? QStringLiteral("Pause") : QStringLiteral("Play");
     m_play->setContent(m_playing ? QStringLiteral("pause-fill") : QStringLiteral("play-fill"),
                        QStringLiteral("%1 (%2)").arg(playLabel, m_playShortcut));
     m_next->setContent(QStringLiteral("skip-end-fill"), QStringLiteral("Next (%1)").arg(m_nextShortcut));
@@ -179,13 +171,6 @@ void PlayerFooter::setDelaySeconds(int seconds)
     m_loop->setDelaySeconds(seconds);
 }
 
-void PlayerFooter::setPracticeMode(bool practice)
-{
-    m_practice = practice;
-    m_mode->setCurrent(practice ? 1 : 0);
-    refreshTransportLabels();
-}
-
 void PlayerFooter::setSkyStatus(const QString &text, int tone, const QString &tip)
 {
     m_sky->setStatus(text, static_cast<SkyStatusChip::Tone>(tone), tip);
@@ -207,11 +192,9 @@ void PlayerFooter::relayout()
     const int w = width();
     m_gear->move(kCorner, kCorner);
     m_theme->move(w - kCorner - m_theme->width(), kCorner);
-    m_mode->resize(m_mode->sizeHint());
-    m_mode->move(kCorner + m_gear->width() + kCorner, kCorner + (m_gear->height() - m_mode->height()) / 2);
     m_sky->resize(m_sky->sizeHint());
     m_sky->move(m_theme->x() - kCorner - m_sky->width(), kCorner + (m_theme->height() - m_sky->height()) / 2);
-    const int cornerSpace = std::max(m_mode->x() + m_mode->width(), w - m_sky->x()) + kCorner;
+    const int cornerSpace = std::max(m_gear->x() + m_gear->width(), w - m_sky->x()) + kCorner;
 
     m_name->adjustSize();
     const int nameRowHeight = std::max(m_name->height(), m_hold->isVisible() ? m_hold->height() : 0);

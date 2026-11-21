@@ -112,21 +112,6 @@ void UiStateService::setThemeId(const std::string &id)
     save();
 }
 
-OrderedJson UiStateService::value(const std::string &key) const
-{
-    const auto found = m_raw.find(key);
-    return found == m_raw.end() ? OrderedJson() : *found;
-}
-
-void UiStateService::setValue(const std::string &key, OrderedJson value)
-{
-    if (m_raw.contains(key) && m_raw[key] == value) {
-        return;
-    }
-    m_raw[key] = std::move(value);
-    save();
-}
-
 bool UiStateService::quickStartDone() const
 {
     const auto found = m_raw.find("quickStartDone");

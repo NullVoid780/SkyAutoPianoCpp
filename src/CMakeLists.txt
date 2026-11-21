@@ -142,7 +142,7 @@ add_library(sky_ui STATIC
     ui/settings_window/about_tab.cpp
     ui/settings_window/action_button.cpp
     ui/settings_window/app_info_card.cpp
-    ui/settings_window/block_updates_dialog.cpp
+    ui/settings_window/confirm_dialog.cpp
     ui/settings_window/general_tab.cpp
     ui/settings_window/key_cap.cpp
     ui/settings_window/key_capture.cpp

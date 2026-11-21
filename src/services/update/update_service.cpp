@@ -40,6 +40,9 @@ constexpr int kReleasesToRead = 20;
 constexpr const char *kReleaseCacheFile = "update-cache.json";
 constexpr const char *kUpdateInfoFile = "update-info.json";
 constexpr const char *kCleanupFile = "cleanup-files.json";
+constexpr const char *kSeenVersionFile = "seen-version.json";
+constexpr const char *kNotesMissing = "This version has no release notes on GitHub.";
+constexpr const char *kNotesFailed = "Could not load the release notes.";
 constexpr std::array<std::string_view, 3> kPreservedFolders = {"data", "config", "logs"};
 
 QString releasesApiUrl()
@@ -52,6 +55,17 @@ QString releasesApiUrl()
 QString latestReleasePageUrl()
 {
     return QStringLiteral("https://github.com/%1/releases/latest").arg(QString::fromLatin1(kRepository));
+}
+
+QString releaseByTagApiUrl(const std::string &version)
+{
+    return QStringLiteral("https://api.github.com/repos/%1/releases/tags/v%2")
+        .arg(QString::fromLatin1(kRepository), QString::fromStdString(version));
+}
+
+std::string changelogPageUrl()
+{
+    return std::string("https://github.com/") + kRepository + "/blob/main/CHANGELOG.md";
 }
 
 QString changelogUrl()
@@ -221,6 +235,21 @@ VersionCheck UpdateService::evaluateLatestTag(std::string_view latestVersion, st
     return check;
 }
 
+std::optional<ReleaseNotes> UpdateService::notesFor(const Json &releases, std::string_view version)
+{
+    for (const ReleaseInfo &release : parseReleases(releases)) {
+        if (compareVersions(release.version, version) == 0 && !release.notes.empty()) {
+            return ReleaseNotes{release.notes, release.page.empty() ? releaseTagUrl(release.version) : release.page};
+        }
+    }
+    return std::nullopt;
+}
+
+std::string UpdateService::releasePageUrl(std::string_view version)
+{
+    return releaseTagUrl(version);
+}
+
 Result<VersionCheck> UpdateService::evaluateBody(const QByteArray &body) const
 {
     auto parsed = parseJson<Json>(std::string_view(body.constData(), static_cast<std::size_t>(body.size())));
@@ -366,6 +395,75 @@ void UpdateService::fetchChangelog(std::function<void(Result<std::vector<Version
         const QByteArray &body = response.value().body;
         done(parseChangelog(std::string_view(body.constData(), static_cast<std::size_t>(body.size()))));
     });
+}
+
+void UpdateService::fetchReleaseNotes(const std::string &version, std::function<void(Result<ReleaseNotes>)> done)
+{
+    if (!m_releaseBody.isEmpty()) {
+        auto cached = parseJson<Json>(std::string_view(m_releaseBody.constData(), static_cast<std::size_t>(m_releaseBody.size())));
+        if (cached) {
+            if (auto notes = notesFor(cached.value(), version)) {
+                done(std::move(*notes));
+                return;
+            }
+        }
+    }
+    QPointer<UpdateService> self(this);
+    const auto fromChangelog = [self, version, done](bool missing) {
+        if (!self) {
+            return;
+        }
+        self->fetchChangelog([version, done, missing](Result<std::vector<VersionNotes>> changelog) {
+            if (changelog) {
+                if (const VersionNotes *notes = findVersionNotes(changelog.value(), version); notes && !notes->markdown.empty()) {
+                    done(ReleaseNotes{notes->markdown, changelogPageUrl()});
+                    return;
+                }
+            }
+            done(missing ? Error{"RELEASE_NOT_FOUND", kNotesMissing, "v" + version}
+                         : Error{"RELEASE_NOTES_FAILED", kNotesFailed, "v" + version});
+        });
+    };
+    if (apiPaused()) {
+        fromChangelog(false);
+        return;
+    }
+    m_http->send(githubRequest(releaseByTagApiUrl(version)), [self, done, fromChangelog](Result<HttpResponse> response) {
+        if (!self) {
+            return;
+        }
+        if (response && response.value().isSuccess()) {
+            const QByteArray &body = response.value().body;
+            auto parsed = parseJson<Json>(std::string_view(body.constData(), static_cast<std::size_t>(body.size())));
+            if (parsed) {
+                if (auto release = parseRelease(parsed.value()); release && !release->notes.empty()) {
+                    done(ReleaseNotes{release->notes, release->page.empty() ? releaseTagUrl(release->version) : release->page});
+                    return;
+                }
+            }
+        }
+        fromChangelog(response && response.value().status == 404);
+    });
+}
+
+std::string UpdateService::lastSeenVersion() const
+{
+    auto text = readTextFile(m_configDirectory / kSeenVersionFile);
+    if (!text) {
+        return {};
+    }
+    auto parsed = parseJson<Json>(text.value());
+    return parsed && parsed.value().is_object() ? parsed.value().value("version", std::string()) : std::string();
+}
+
+void UpdateService::markVersionSeen()
+{
+    if (lastSeenVersion() == m_currentVersion) {
+        return;
+    }
+    OrderedJson json = OrderedJson::object();
+    json["version"] = m_currentVersion;
+    (void)atomicWrite(m_configDirectory / kSeenVersionFile, dumpJson(json, 2));
 }
 
 void UpdateService::performUpdate(const VersionCheck &check)

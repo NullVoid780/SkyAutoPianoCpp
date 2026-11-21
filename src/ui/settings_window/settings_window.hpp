@@ -17,7 +17,8 @@ class QVBoxLayout;
 
 namespace sky {
 
-class BlockUpdatesDialog;
+class ChangelogPanel;
+class ConfirmDialog;
 class ConfigService;
 class ElevationLayer;
 class GeneralTab;
@@ -58,6 +59,7 @@ signals:
     void recordIssueRequested();
     void saveCrashReportRequested(const QString &id);
     void crashFolderRequested();
+    void clearCrashReportsRequested();
     void updateAvailable(const sky::VersionCheck &check);
 
 protected:
@@ -70,11 +72,13 @@ private:
     void loadForm(const Config &config);
     Config formConfig() const;
     OrderedJson mergedJson(const Config &form) const;
-    void save();
+    bool save();
+    bool hasUnsavedChanges() const;
     void exportSettings();
     void importSettings();
     void applyImported(Result<OrderedJson> imported);
     void checkForUpdates();
+    void showWhatsNew();
     void showUpdateResult(UpdateOverviewCard::State state, const QString &latestVersion = QString());
     void onBlockUpdatesToggled(bool blocked);
     void notify(ToastType type, const std::string &message);
@@ -98,10 +102,15 @@ private:
     std::vector<QWidget *> m_pages;
     SaveButton *m_save;
     ElevationLayer *m_shadows;
-    BlockUpdatesDialog *m_blockDialog;
+    ConfirmDialog *m_blockDialog;
+    ConfirmDialog *m_unsavedDialog;
+    ConfirmDialog *m_clearCrashesDialog;
+    ChangelogPanel *m_whatsNew;
     ToastHost *m_toasts;
     QVariantAnimation *m_pageFade;
     bool m_busy = false;
+    bool m_closing = false;
+    bool m_loadingWhatsNew = false;
 };
 
 }  // namespace sky

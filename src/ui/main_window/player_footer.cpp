@@ -71,6 +71,7 @@ PlayerFooter::PlayerFooter(QWidget *parent)
     m_progress->setObjectName(QStringLiteral("ProgressSlider"));
     m_progress->setRange(0, 0);
     m_hold->hide();
+    m_gear->setAccessibleName(QStringLiteral("Settings"));
 
     connect(m_gear, &QAbstractButton::clicked, this, &PlayerFooter::settingsRequested);
     connect(m_theme, &QAbstractButton::clicked, this, &PlayerFooter::themeToggleRequested);
@@ -125,7 +126,7 @@ void PlayerFooter::showTarget(const QString &name, bool hold, int totalSeconds)
 
 void PlayerFooter::showEmpty()
 {
-    m_name->setText(QStringLiteral("* Click on the plus to add sheet"));
+    m_name->setText(QStringLiteral("Pick a song to play, or press + to add one"));
     m_hold->hide();
     {
         const QSignalBlocker blocker(m_progress);

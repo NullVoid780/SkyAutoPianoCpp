@@ -82,8 +82,6 @@ void applyShared(Theme &t)
     t.toastError = QColor(231, 76, 60);
     t.toastInfo = QColor(52, 152, 219);
     t.toastNeutral = QColor(160, 160, 160);
-    t.menuHoverFill = rgba(59, 130, 246, 0.12);
-    t.menuHoverText = a.blue500;
     t.dangerText = a.red500;
     t.dangerHoverFill = rgba(239, 68, 68, 0.12);
     t.dangerHoverText = a.red600;
@@ -188,9 +186,6 @@ void applyLightSettings(Theme &t)
     s.trackFill = a.gray100;
     s.trackBorder = a.slate300;
     s.trackOnBorder = a.blue400;
-    s.selectBorder = rgba(0, 0, 0, 0.12);
-    s.selectListFill = a.white;
-    s.selectListText = QColor("#1b1d1e");
     s.keyCapFill = a.gray50;
     s.keyCapBorder = a.gray200;
     s.keyCapHoverFill = rgba(255, 255, 255, 0.1);
@@ -246,9 +241,6 @@ void applyDarkSettings(Theme &t)
     s.trackFill = rgba(255, 255, 255, 0.2);
     s.trackBorder = rgba(255, 255, 255, 0.1);
     s.trackOnBorder = t.hoverColor;
-    s.selectBorder = rgba(255, 255, 255, 0.15);
-    s.selectListFill = QColor("#141618");
-    s.selectListText = QColor("#f0f3f6");
     s.keyCapFill = rgba(255, 255, 255, 0.03);
     s.keyCapBorder = rgba(255, 255, 255, 0.05);
     s.keyCapHoverFill = rgba(255, 255, 255, 0.1);
@@ -342,6 +334,8 @@ void applySections(Theme &t)
     t.footerText = t.fontColor;
     t.progressPlayed = t.progressGroove;
     t.settings.contentFill = t.background;
+    t.menuHoverText = t.hoverColor;
+    t.menuHoverFill = withAlpha(t.hoverColor, 0.12);
     t.titleBarFill = t.windowMain;
     t.titleBarText = t.fontColor;
     t.windowBorder = t.windowMain;

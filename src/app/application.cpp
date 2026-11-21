@@ -212,30 +212,47 @@ void Application::updateCrashState()
 
 void Application::showPendingChangelog()
 {
-    const auto info = m_updates->pendingChangelog();
-    if (!info || info->newVersion.empty()) {
-        return;
-    }
-    if (compareVersions(info->newVersion, m_updates->currentVersion()) != 0) {
-        Logger::warning("update", "v" + info->newVersion + " was downloaded but v" + m_updates->currentVersion() +
-                                      " is running, so the update did not install");
-        m_updates->markChangelogShown();
-        return;
-    }
-    const QString version = toQString(info->newVersion);
-    if (!info->notes.empty()) {
-        m_changelog->present(version, toQString(info->notes));
-        return;
-    }
-    QPointer<ChangelogPanel> panel(m_changelog);
-    m_updates->fetchChangelog([panel, version](Result<std::vector<VersionNotes>> changelog) {
-        if (!panel) {
+    const std::string current = m_updates->currentVersion();
+    if (const auto info = m_updates->pendingChangelog(); info && !info->newVersion.empty()) {
+        if (compareVersions(info->newVersion, current) == 0) {
+            presentReleaseNotes(current, info->notes);
             return;
         }
-        const VersionNotes *notes = changelog ? findVersionNotes(changelog.value(), fromQString(version)) : nullptr;
-        panel->present(version, notes ? toQString(notes->markdown)
-                                      : QStringLiteral("You are now on version %1. The release notes are on GitHub.")
-                                            .arg(version));
+        Logger::warning("update", "v" + info->newVersion + " was downloaded but v" + current +
+                                      " is running, so the update did not install");
+        m_updates->markChangelogShown();
+    }
+    const std::string seen = m_updates->lastSeenVersion();
+    const bool updated = seen.empty() ? m_uiState->quickStartDone() : compareVersions(current, seen) > 0;
+    if (!updated) {
+        m_updates->markVersionSeen();
+        return;
+    }
+    presentReleaseNotes(current, {});
+}
+
+void Application::presentReleaseNotes(const std::string &version, const std::string &knownNotes)
+{
+    if (!knownNotes.empty()) {
+        m_updates->markVersionSeen();
+        m_changelog->present(toQString(version), toQString(knownNotes), toQString(UpdateService::releasePageUrl(version)));
+        return;
+    }
+    QPointer<Application> self(this);
+    m_updates->fetchReleaseNotes(version, [self, version](Result<ReleaseNotes> notes) {
+        if (!self) {
+            return;
+        }
+        if (notes) {
+            self->m_updates->markVersionSeen();
+            self->m_changelog->present(toQString(version), toQString(notes.value().notes), toQString(notes.value().page));
+            return;
+        }
+        Logger::info("update", "no what's new for v" + version + ": " + notes.error().userMessage);
+        if (notes.error().code == "RELEASE_NOT_FOUND") {
+            self->m_updates->markVersionSeen();
+            self->m_updates->markChangelogShown();
+        }
     });
 }
 
@@ -874,6 +891,16 @@ void Application::openSettings()
     connect(m_settings, &SettingsWindow::importPreviousRequested, this, [this] { detectLegacyLibrary(true); });
     connect(m_settings, &SettingsWindow::recordIssueRequested, this, &Application::startIssueRecording);
     connect(m_settings, &SettingsWindow::saveCrashReportRequested, this, &Application::saveCrashReport);
+    connect(m_settings, &SettingsWindow::clearCrashReportsRequested, this, [this] {
+        const std::size_t removed = deleteCrashReports(crashDirectory());
+        refreshCrashList();
+        if (m_settings) {
+            m_settings->showToast(Toast{ToastType::Success, {},
+                                        removed == 1 ? std::string("Deleted 1 crash report.")
+                                                     : "Deleted " + std::to_string(removed) + " crash reports.",
+                                        kDefaultToastMs});
+        }
+    });
     connect(m_settings, &SettingsWindow::crashFolderRequested, this, [this] {
         std::error_code error;
         std::filesystem::create_directories(crashDirectory(), error);

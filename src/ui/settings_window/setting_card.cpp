@@ -1,6 +1,7 @@
 #include "ui/settings_window/setting_card.hpp"
 
 #include <QComboBox>
+#include <QAbstractButton>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
@@ -65,6 +66,11 @@ SettingCard::SettingCard(const QString &iconId, const QString &title, const QStr
     row->addLayout(copy, 1);
     if (control) {
         control->setParent(this);
+        const auto *button = qobject_cast<QAbstractButton *>(control);
+        if (control->accessibleName().isEmpty() && !(button && !button->text().isEmpty())) {
+            control->setAccessibleName(title);
+            control->setAccessibleDescription(description);
+        }
         if (qobject_cast<QComboBox *>(control)) {
             row->addSpacing(kSelectMargin);
         }

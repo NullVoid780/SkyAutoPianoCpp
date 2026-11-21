@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
+#include "crash/pending_reports.hpp"
 #include "ui/settings_window/action_button.hpp"
 #include "ui/settings_window/settings_row.hpp"
 #include "ui/settings_window/tab_header.hpp"
@@ -36,7 +37,11 @@ QLabel *sectionNote(const QString &text, QWidget *parent)
 }  // namespace
 
 ReportsTab::ReportsTab(QWidget *parent)
-    : QWidget(parent), m_crashHost(new QWidget(this)), m_crashList(new QVBoxLayout(m_crashHost)), m_crashCount(nullptr)
+    : QWidget(parent),
+      m_crashHost(new QWidget(this)),
+      m_crashList(new QVBoxLayout(m_crashHost)),
+      m_crashCount(nullptr),
+      m_clearButton(nullptr)
 {
     auto *header = new TabHeader(QStringLiteral("bug"), [] { return currentTheme().hoverColor; },
                                  QStringLiteral("Reports"),
@@ -56,6 +61,9 @@ ReportsTab::ReportsTab(QWidget *parent)
     m_crashCount = sectionNote(QString(), this);
     crashTitleRow->addWidget(m_crashCount);
     crashTitleRow->addStretch();
+    auto *clearButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("trash3"), QStringLiteral("Delete all"));
+    m_clearButton = clearButton;
+    crashTitleRow->addWidget(clearButton);
     auto *folderButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("folder2"), QStringLiteral("Open folder"));
     crashTitleRow->addWidget(folderButton);
 
@@ -77,10 +85,15 @@ ReportsTab::ReportsTab(QWidget *parent)
     column->addLayout(crashTitleRow);
     column->addSpacing(kTitleGap);
     column->addWidget(m_crashHost);
+    column->addSpacing(kTitleGap);
+    column->addWidget(sectionNote(QStringLiteral("Crash reports older than %1 days are deleted by themselves.")
+                                      .arg(kCrashReportMaxAgeDays),
+                                  this));
     column->addStretch();
 
     connect(recordButton, &QAbstractButton::clicked, this, &ReportsTab::recordIssueRequested);
     connect(folderButton, &QAbstractButton::clicked, this, &ReportsTab::crashFolderRequested);
+    connect(clearButton, &QAbstractButton::clicked, this, &ReportsTab::clearCrashReportsRequested);
     setCrashes({});
 }
 
@@ -88,10 +101,12 @@ void ReportsTab::setCrashes(const std::vector<CrashListEntry> &crashes)
 {
     while (QLayoutItem *item = m_crashList->takeAt(0)) {
         if (QWidget *widget = item->widget()) {
+            widget->hide();
             widget->deleteLater();
         }
         delete item;
     }
+    m_clearButton->setVisible(!crashes.empty());
     m_crashCount->setText(crashes.empty() ? QString()
                           : crashes.size() == 1 ? QStringLiteral("1 saved")
                                                 : QStringLiteral("%1 saved").arg(crashes.size()));

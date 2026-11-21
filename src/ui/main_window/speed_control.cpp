@@ -52,6 +52,7 @@ SpeedControl::SpeedControl(QWidget *parent) : QWidget(parent)
     auto *field = new SpeedField(this);
     m_field = field;
     m_field->setObjectName(QStringLiteral("SpeedField"));
+    m_field->setAccessibleName(QStringLiteral("Speed"));
     m_field->setFixedSize(40, 20);
     m_field->setValidator(new QDoubleValidator(0, kMax, 2, m_field));
 

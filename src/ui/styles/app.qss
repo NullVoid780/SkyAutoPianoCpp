@@ -531,12 +531,12 @@ QLineEdit#ThemeNameField:focus, QLineEdit#ThemeHexField:focus {
     background: @settingsShortcutFocusFill;
 }
 
-QLabel#BlockTitle {
+QLabel#ConfirmTitle {
     font-size: 24px;
     font-weight: 700;
 }
 
-QLabel#BlockBody {
+QLabel#ConfirmBody {
     font-size: 15px;
     color: @settingsCardDesc;
 }
@@ -649,6 +649,17 @@ QPushButton#ChangelogButton {
     border-radius: 8px;
     background: @fontColor;
     color: @background;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+QPushButton#ChangelogSecondaryButton {
+    min-width: 100px;
+    padding: 11px 23px;
+    border: 1px solid @fontColor;
+    border-radius: 8px;
+    background: transparent;
+    color: @fontColor;
     font-size: 14px;
     font-weight: 600;
 }

@@ -64,6 +64,7 @@ private:
     void updateCrashState();
     void updateSkyStatus();
     void showPendingChangelog();
+    void presentReleaseNotes(const std::string &version, const std::string &knownNotes);
     void requestRelaunch();
     void detectLegacyLibrary(bool manual);
     void onLegacyDetected(std::optional<LegacyImportPlan> plan, bool manual);

@@ -1,4 +1,4 @@
-#include "ui/settings_window/block_updates_dialog.hpp"
+#include "ui/settings_window/confirm_dialog.hpp"
 
 #include <QEvent>
 #include <QHBoxLayout>
@@ -10,7 +10,6 @@
 
 #include "ui/render/icon_cache.hpp"
 #include "ui/render/paint_utils.hpp"
-#include "ui/settings_window/action_button.hpp"
 #include "ui/theme_manager.hpp"
 #include "ui/widgets/icon_button.hpp"
 
@@ -35,13 +34,13 @@ constexpr qreal kRise = 20;
 
 }  // namespace
 
-BlockUpdatesDialog::BlockUpdatesDialog(QWidget *window)
+ConfirmDialog::ConfirmDialog(QWidget *window, Content content)
     : Overlay(window),
+      m_iconId(content.iconId),
       m_panel(new QWidget(this)),
       m_iconSpace(new QWidget(m_panel)),
-      m_cancel(new ActionButton(ActionButton::Kind::Subtle, QString(), QStringLiteral("Cancel"), m_panel)),
-      m_confirm(new ActionButton(ActionButton::Kind::Amber, QStringLiteral("shield-check"),
-                                 QStringLiteral("Yes, Block Updates"), m_panel)),
+      m_secondary(new ActionButton(ActionButton::Kind::Subtle, content.secondaryIconId, content.secondaryLabel, m_panel)),
+      m_primary(new ActionButton(content.primaryKind, content.primaryIconId, content.primaryLabel, m_panel)),
       m_close(new IconButton(QStringLiteral("x-lg"), kCloseIcon, QSize(kCloseBox, kCloseBox),
                              IconButtonStyle{[] { return currentTheme().settings.cardDescText; },
                                              [] { return currentTheme().fontColor; }},
@@ -50,22 +49,23 @@ BlockUpdatesDialog::BlockUpdatesDialog(QWidget *window)
     m_iconSpace->setFixedSize(kIconCircle, kIconCircle);
     m_iconSpace->setAttribute(Qt::WA_TransparentForMouseEvents);
     m_close->setToolTip(QStringLiteral("Close"));
-    m_cancel->setMinimumWidth(m_confirm->sizeHint().width());
+    m_close->setAccessibleName(QStringLiteral("Close"));
+    m_secondary->setMinimumWidth(m_primary->sizeHint().width());
 
-    auto *title = new QLabel(QStringLiteral("Block Automatic Updates?"), m_panel);
-    title->setObjectName(QStringLiteral("BlockTitle"));
+    auto *title = new QLabel(content.title, m_panel);
+    title->setObjectName(QStringLiteral("ConfirmTitle"));
     title->setAlignment(Qt::AlignCenter);
-    auto *body = new QLabel(QStringLiteral("Are you sure you want to block automatic updates?\n"
-                                           "You can still check for updates manually anytime."),
-                            m_panel);
-    body->setObjectName(QStringLiteral("BlockBody"));
+    auto *body = new QLabel(content.body, m_panel);
+    body->setObjectName(QStringLiteral("ConfirmBody"));
     body->setAlignment(Qt::AlignCenter);
     body->setWordWrap(true);
 
     auto *buttons = new QHBoxLayout();
     buttons->setSpacing(kButtonGap);
-    buttons->addWidget(m_cancel, 1);
-    buttons->addWidget(m_confirm, 1);
+    buttons->addStretch();
+    buttons->addWidget(m_secondary);
+    buttons->addWidget(m_primary);
+    buttons->addStretch();
 
     auto *column = new QVBoxLayout(m_panel);
     column->setContentsMargins(kPadding, kPadding, kPadding, kPadding);
@@ -79,33 +79,33 @@ BlockUpdatesDialog::BlockUpdatesDialog(QWidget *window)
     column->addLayout(buttons);
 
     m_panel->installEventFilter(this);
-    connect(m_close, &QAbstractButton::clicked, this, [this] { finish(false); });
-    connect(m_cancel, &QAbstractButton::clicked, this, [this] { finish(false); });
-    connect(m_confirm, &QAbstractButton::clicked, this, [this] { finish(true); });
+    connect(m_close, &QAbstractButton::clicked, this, [this] { finish(Choice::Dismissed); });
+    connect(m_secondary, &QAbstractButton::clicked, this, [this] { finish(Choice::Secondary); });
+    connect(m_primary, &QAbstractButton::clicked, this, [this] { finish(Choice::Primary); });
     connect(this, &Overlay::closed, this, [this] {
         auto done = std::move(m_done);
         m_done = nullptr;
         if (done) {
-            done(m_confirmed);
+            done(m_choice);
         }
     });
 }
 
-void BlockUpdatesDialog::ask(std::function<void(bool)> done)
+void ConfirmDialog::ask(std::function<void(Choice)> done)
 {
     m_done = std::move(done);
-    m_confirmed = false;
+    m_choice = Choice::Dismissed;
     open();
-    m_cancel->setFocus(Qt::OtherFocusReason);
+    m_secondary->setFocus(Qt::OtherFocusReason);
 }
 
-void BlockUpdatesDialog::finish(bool confirmed)
+void ConfirmDialog::finish(Choice choice)
 {
-    m_confirmed = confirmed;
+    m_choice = choice;
     close();
 }
 
-bool BlockUpdatesDialog::eventFilter(QObject *watched, QEvent *event)
+bool ConfirmDialog::eventFilter(QObject *watched, QEvent *event)
 {
     if (watched == m_panel && event->type() == QEvent::Resize) {
         m_close->move(m_panel->width() - kCloseInset - kCloseBox, kCloseInset);
@@ -114,17 +114,17 @@ bool BlockUpdatesDialog::eventFilter(QObject *watched, QEvent *event)
     return Overlay::eventFilter(watched, event);
 }
 
-QColor BlockUpdatesDialog::dimColor() const
+QColor ConfirmDialog::dimColor() const
 {
     return currentTheme().settings.modalDim;
 }
 
-ShadowSpec BlockUpdatesDialog::panelShadow() const
+ShadowSpec ConfirmDialog::panelShadow() const
 {
     return currentTheme().settings.modalShadow;
 }
 
-QRect BlockUpdatesDialog::panelGeometry() const
+QRect ConfirmDialog::panelGeometry() const
 {
     const int width = std::min(kMaxWidth, static_cast<int>(parentWidget()->width() * kWidthRatio));
     QLayout *layout = m_panel->layout();
@@ -133,7 +133,7 @@ QRect BlockUpdatesDialog::panelGeometry() const
     return QRect((parentWidget()->width() - width) / 2, (parentWidget()->height() - height) / 2 + rise, width, height);
 }
 
-void BlockUpdatesDialog::paintPanel(QPainter &painter, const QRectF &rect)
+void ConfirmDialog::paintPanel(QPainter &painter, const QRectF &rect)
 {
     const SettingsPalette &s = currentTheme().settings;
     const QPainterPath path = roundedPath(rect.adjusted(0.5, 0.5, -0.5, -0.5), kRadius);
@@ -147,7 +147,7 @@ void BlockUpdatesDialog::paintPanel(QPainter &painter, const QRectF &rect)
     painter.setBrush(s.amberSoft);
     painter.drawEllipse(circle.adjusted(0.5, 0.5, -0.5, -0.5));
     painter.drawPixmap(QPointF(circle.center().x() - kIconGlyph / 2.0, circle.center().y() - kIconGlyph / 2.0),
-                       IconCache::pixmap(QStringLiteral("exclamation-triangle"), kIconGlyph, s.amberSolidHover,
+                       IconCache::pixmap(m_iconId, kIconGlyph, s.amberSolidHover,
                                          painter.device()->devicePixelRatioF()));
 }
 

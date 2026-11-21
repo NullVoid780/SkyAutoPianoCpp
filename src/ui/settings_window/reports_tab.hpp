@@ -28,11 +28,13 @@ signals:
     void recordIssueRequested();
     void saveCrashReportRequested(const QString &id);
     void crashFolderRequested();
+    void clearCrashReportsRequested();
 
 private:
     QWidget *m_crashHost;
     QVBoxLayout *m_crashList;
     QLabel *m_crashCount;
+    QWidget *m_clearButton;
 };
 
 }  // namespace sky

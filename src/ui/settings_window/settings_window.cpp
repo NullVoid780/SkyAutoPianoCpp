@@ -1,6 +1,7 @@
 #include "ui/settings_window/settings_window.hpp"
 
 #include <QApplication>
+#include <QCloseEvent>
 #include <QGraphicsOpacityEffect>
 #include <QHBoxLayout>
 #include <QPointer>
@@ -24,7 +25,8 @@
 #include "ui/core/easing.hpp"
 #include "ui/core/elevation_layer.hpp"
 #include "ui/core/smooth_scroll.hpp"
-#include "ui/settings_window/block_updates_dialog.hpp"
+#include "ui/main_window/changelog_panel.hpp"
+#include "ui/settings_window/confirm_dialog.hpp"
 #include "ui/settings_window/general_tab.hpp"
 #include "ui/settings_window/keyboard_tab.hpp"
 #include "ui/settings_window/save_button.hpp"
@@ -95,7 +97,22 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
       m_about(new AboutTab(QLatin1String(kAppVersion), m_pageHost)),
       m_save(new SaveButton(this)),
       m_shadows(new ElevationLayer(this)),
-      m_blockDialog(new BlockUpdatesDialog(this)),
+      m_blockDialog(new ConfirmDialog(
+          this, {QStringLiteral("exclamation-triangle"), QStringLiteral("Block Automatic Updates?"),
+                 QStringLiteral("Are you sure you want to block automatic updates?\n"
+                                "You can still check for updates manually anytime."),
+                 QStringLiteral("Cancel"), QString(), QStringLiteral("Yes, Block Updates"),
+                 QStringLiteral("shield-check"), ActionButton::Kind::Amber})),
+      m_unsavedDialog(new ConfirmDialog(
+          this, {QStringLiteral("save"), QStringLiteral("Save your changes?"),
+                 QStringLiteral("You changed some settings but didn't save them."), QStringLiteral("Cancel"),
+                 QString(), QStringLiteral("Save"), QStringLiteral("save"), ActionButton::Kind::Primary})),
+      m_clearCrashesDialog(new ConfirmDialog(
+          this, {QStringLiteral("trash3"), QStringLiteral("Delete all crash reports?"),
+                 QStringLiteral("They can't be brought back. Save any report you still want to send first."),
+                 QStringLiteral("Cancel"), QString(), QStringLiteral("Delete all"), QStringLiteral("trash3"),
+                 ActionButton::Kind::Amber})),
+      m_whatsNew(new ChangelogPanel(this)),
       m_toasts(new ToastHost(this)),
       m_pageFade(new QVariantAnimation(this))
 {
@@ -169,12 +186,21 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
     connect(m_reports, &ReportsTab::recordIssueRequested, this, &SettingsWindow::recordIssueRequested);
     connect(m_reports, &ReportsTab::saveCrashReportRequested, this, &SettingsWindow::saveCrashReportRequested);
     connect(m_reports, &ReportsTab::crashFolderRequested, this, &SettingsWindow::crashFolderRequested);
+    connect(m_reports, &ReportsTab::clearCrashReportsRequested, this, [this] {
+        QPointer<SettingsWindow> self(this);
+        m_clearCrashesDialog->ask([self](ConfirmDialog::Choice choice) {
+            if (self && choice == ConfirmDialog::Choice::Primary) {
+                emit self->clearCrashReportsRequested();
+            }
+        });
+    });
     connect(m_themes, &ThemesTab::toastRequested, this, &SettingsWindow::showToast);
     connect(m_themes, &ThemesTab::editingChanged, this, [this] {
         m_smoothScroll->stop();
         m_scroll->verticalScrollBar()->setValue(0);
     });
     connect(m_updates, &UpdatesTab::checkRequested, this, &SettingsWindow::checkForUpdates);
+    connect(m_updates, &UpdatesTab::whatsNewRequested, this, &SettingsWindow::showWhatsNew);
     if (const auto &last = m_services.updates.lastCheck()) {
         showUpdateResult(last->available ? UpdateOverviewCard::State::Available : UpdateOverviewCard::State::UpToDate,
                               toQString(last->latestVersion));
@@ -308,19 +334,25 @@ void SettingsWindow::notify(ToastType type, const std::string &message)
     m_toasts->show(Toast{type, {}, message, kDefaultToastMs});
 }
 
-void SettingsWindow::save()
+bool SettingsWindow::save()
 {
     const Config form = formConfig();
     if (auto valid = ConfigService::validateShortcuts(form.shortcut); !valid) {
         notify(ToastType::Error, valid.error().userMessage);
-        return;
+        return false;
     }
     if (auto saved = m_services.config.replace(mergedJson(form)); !saved) {
         notify(ToastType::Error, "Can't save the settings!");
-        return;
+        return false;
     }
     loadForm(m_services.config.value());
     notify(ToastType::Success, "Settings saved and applied.");
+    return true;
+}
+
+bool SettingsWindow::hasUnsavedChanges() const
+{
+    return mergedJson(formConfig()) != mergedJson(m_services.config.value());
 }
 
 void SettingsWindow::exportSettings()
@@ -404,8 +436,8 @@ void SettingsWindow::onBlockUpdatesToggled(bool blocked)
         return;
     }
     QPointer<SettingsWindow> self(this);
-    m_blockDialog->ask([self](bool confirmed) {
-        if (self && !confirmed) {
+    m_blockDialog->ask([self](ConfirmDialog::Choice choice) {
+        if (self && choice != ConfirmDialog::Choice::Primary) {
             self->m_updates->setBlockUpdates(false);
         }
     });
@@ -415,6 +447,42 @@ void SettingsWindow::showUpdateResult(UpdateOverviewCard::State state, const QSt
 {
     m_updates->showResult(state, latestVersion);
     m_sidebar->setBadge(m_updatesNav, state == UpdateOverviewCard::State::Available);
+}
+
+void SettingsWindow::showWhatsNew()
+{
+    if (m_loadingWhatsNew) {
+        return;
+    }
+    m_loadingWhatsNew = true;
+    const std::string current = m_services.updates.currentVersion();
+    QPointer<SettingsWindow> self(this);
+    m_services.updates.fetchReleaseNotes(current, [self, current](Result<ReleaseNotes> notes) {
+        if (!self) {
+            return;
+        }
+        if (notes) {
+            self->m_loadingWhatsNew = false;
+            self->m_whatsNew->present(toQString(current), toQString(notes.value().notes), toQString(notes.value().page));
+            return;
+        }
+        self->m_services.updates.checkForUpdates([self, current](Result<VersionCheck> check) {
+            if (!self) {
+                return;
+            }
+            self->m_loadingWhatsNew = false;
+            if (check) {
+                for (const VersionNotes &entry : check.value().history) {
+                    if (compareVersions(entry.version, current) <= 0 && !entry.markdown.empty()) {
+                        self->m_whatsNew->present(toQString(entry.version), toQString(entry.markdown),
+                                                  toQString(UpdateService::releasePageUrl(entry.version)));
+                        return;
+                    }
+                }
+            }
+            self->notify(ToastType::Warning, "Couldn't load the release notes. Check your internet connection and try again.");
+        });
+    });
 }
 
 void SettingsWindow::checkForUpdates()
@@ -465,6 +533,28 @@ void SettingsWindow::showEvent(QShowEvent *event)
 
 void SettingsWindow::closeEvent(QCloseEvent *event)
 {
+    if (!m_closing && hasUnsavedChanges()) {
+        if (formConfig().panel.autoSave) {
+            if (!save()) {
+                event->ignore();
+                return;
+            }
+        } else {
+            event->ignore();
+            QPointer<SettingsWindow> self(this);
+            m_unsavedDialog->ask([self](ConfirmDialog::Choice choice) {
+                if (!self || choice == ConfirmDialog::Choice::Dismissed) {
+                    return;
+                }
+                if (choice == ConfirmDialog::Choice::Primary && !self->save()) {
+                    return;
+                }
+                self->m_closing = true;
+                self->close();
+            });
+            return;
+        }
+    }
     m_themes->leave();
     QWidget::closeEvent(event);
 }

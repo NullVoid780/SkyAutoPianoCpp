@@ -112,3 +112,38 @@ TEST_CASE("pruning keeps the newest reports and drops oversized dumps")
     CHECK_FALSE(std::filesystem::exists(dir / "20261116-100011-aa.dmp"));
     std::filesystem::remove_all(dir);
 }
+
+TEST_CASE("crash reports older than the limit are deleted on their own")
+{
+    const auto dir = std::filesystem::temp_directory_path() / "sky_crash_age_test";
+    std::filesystem::remove_all(dir);
+    std::filesystem::create_directories(dir);
+    for (const char *name : {"old.sapcr", "old.json", "new.sapcr", "new.json"}) {
+        std::ofstream(dir / name, std::ios::binary) << "x";
+    }
+    const auto longAgo = std::filesystem::file_time_type::clock::now() - std::chrono::hours(24 * (kCrashReportMaxAgeDays + 1));
+    std::filesystem::last_write_time(dir / "old.sapcr", longAgo);
+    pruneCrashReports(dir);
+    CHECK_FALSE(std::filesystem::exists(dir / "old.sapcr"));
+    CHECK_FALSE(std::filesystem::exists(dir / "old.json"));
+    CHECK(std::filesystem::exists(dir / "new.sapcr"));
+    CHECK(std::filesystem::exists(dir / "new.json"));
+    std::filesystem::remove_all(dir);
+}
+
+TEST_CASE("deleting all crash reports leaves other files alone")
+{
+    const auto dir = std::filesystem::temp_directory_path() / "sky_crash_delete_test";
+    std::filesystem::remove_all(dir);
+    std::filesystem::create_directories(dir);
+    for (const char *name : {"a.sapcr", "a.json", "a.dmp", "b.sapcr", "keep.txt"}) {
+        std::ofstream(dir / name, std::ios::binary) << "x";
+    }
+    CHECK(deleteCrashReports(dir) == 2);
+    CHECK_FALSE(std::filesystem::exists(dir / "a.sapcr"));
+    CHECK_FALSE(std::filesystem::exists(dir / "a.dmp"));
+    CHECK_FALSE(std::filesystem::exists(dir / "b.sapcr"));
+    CHECK(std::filesystem::exists(dir / "keep.txt"));
+    CHECK(deleteCrashReports(dir / "missing") == 0);
+    std::filesystem::remove_all(dir);
+}

@@ -263,3 +263,30 @@ TEST_CASE("a copy with the uninstaller next to it counts as installed")
     CHECK(UpdateService::detectInstallKind(folder) == InstallKind::Installed);
     std::filesystem::remove_all(folder);
 }
+
+TEST_CASE("what's new reads the notes of the exact version from the release list")
+{
+    const auto latest = UpdateService::notesFor(sampleReleases(), "2.1.0");
+    REQUIRE(latest);
+    CHECK(latest->notes == "### Fixed\n\n- Keys no longer get stuck\n- **Faster** start");
+    CHECK(latest->page == "https://github.com/NullVoid780/SkyAutoPianoCpp/releases/tag/v2.1.0");
+    const auto older = UpdateService::notesFor(sampleReleases(), "2.0.10");
+    REQUIRE(older);
+    CHECK(older->notes == "- Newer fix than 2.0.9");
+    CHECK(older->page == UpdateService::releasePageUrl("2.0.10"));
+    CHECK_FALSE(UpdateService::notesFor(sampleReleases(), "9.9.9"));
+    CHECK_FALSE(UpdateService::notesFor(Json::object(), "2.1.0"));
+}
+
+TEST_CASE("the last version that ran is remembered once")
+{
+    const auto dir = freshDirectory("sky-seen-version");
+    UpdateService first("2.0.0", dir, dir);
+    CHECK(first.lastSeenVersion().empty());
+    first.markVersionSeen();
+    CHECK(first.lastSeenVersion() == "2.0.0");
+    UpdateService second("2.0.1", dir, dir);
+    CHECK(second.lastSeenVersion() == "2.0.0");
+    second.markVersionSeen();
+    CHECK(second.lastSeenVersion() == "2.0.1");
+}

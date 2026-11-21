@@ -42,7 +42,6 @@ struct SettingsPalette {
     QColor cardFill, cardBorder, cardHoverBorder, tileStart, tileEnd, tileGlyph;
     QColor warnBorder, warnHoverBorder, warnFillStart, warnFillEnd, warnText, warnTileStart, warnTileEnd;
     QColor trackFill, trackBorder, trackOnBorder, knob;
-    QColor selectBorder, selectListFill, selectListText;
     QColor keyCapFill, keyCapBorder, keyCapHoverFill, keyGlyphFocusFill, keyShape, tipText;
     QColor shortcutFill, shortcutBorder, shortcutText, shortcutFocusFill, shortcutFocusBorder, shortcutRing;
     QColor checkStart, checkEnd, saveStart, saveEnd;

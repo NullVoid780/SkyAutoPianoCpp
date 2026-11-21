@@ -26,6 +26,7 @@ signals:
     void blockUpdatesToggled(bool blocked);
     void checkRequested();
     void communityRequested();
+    void whatsNewRequested();
 
 private:
     UpdateOverviewCard *m_overview;

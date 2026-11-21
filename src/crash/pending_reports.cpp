@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <map>
+#include <set>
 #include <system_error>
 #include <vector>
 
@@ -45,27 +46,49 @@ std::string newReportId()
     return buffer;
 }
 
-void pruneCrashReports(const std::filesystem::path &directory, std::size_t keep, std::uintmax_t maxDumpBytes)
+namespace {
+
+bool isCrashFile(const std::filesystem::path &path)
+{
+    const std::wstring extension = path.extension().wstring();
+    return extension == L".json" || extension == L".dmp" || extension == L".sapcr";
+}
+
+}  // namespace
+
+void pruneCrashReports(const std::filesystem::path &directory, std::size_t keep, std::uintmax_t maxDumpBytes,
+                       std::chrono::hours maxAge)
 {
     std::error_code error;
     if (!std::filesystem::is_directory(directory, error)) {
         return;
     }
+    const auto cutoff = std::filesystem::file_time_type::clock::now() - maxAge;
     std::map<std::string, std::vector<std::filesystem::path>> reports;
+    std::set<std::string> expired;
     for (const auto &entry : std::filesystem::directory_iterator(directory, error)) {
         if (!entry.is_regular_file(error)) {
             continue;
         }
         const std::filesystem::path path = entry.path();
-        const std::wstring extension = path.extension().wstring();
-        if (extension != L".json" && extension != L".dmp" && extension != L".sapcr") {
+        if (!isCrashFile(path)) {
             continue;
         }
-        if (extension == L".dmp" && entry.file_size(error) > maxDumpBytes) {
+        if (path.extension() == L".dmp" && entry.file_size(error) > maxDumpBytes) {
             std::filesystem::remove(path, error);
             continue;
         }
+        std::error_code timeError;
+        if (const auto written = entry.last_write_time(timeError); !timeError && written < cutoff) {
+            expired.insert(path.stem().string());
+        }
         reports[path.stem().string()].push_back(path);
+    }
+    for (const std::string &id : expired) {
+        for (const auto &file : reports[id]) {
+            std::filesystem::remove(file, error);
+        }
+        reports.erase(id);
     }
     if (reports.size() <= keep) {
         return;
@@ -80,6 +103,24 @@ void pruneCrashReports(const std::filesystem::path &directory, std::size_t keep,
         }
         --excess;
     }
+}
+
+std::size_t deleteCrashReports(const std::filesystem::path &directory)
+{
+    std::error_code error;
+    std::set<std::string> removed;
+    std::vector<std::filesystem::path> files;
+    for (const auto &entry : std::filesystem::directory_iterator(directory, error)) {
+        if (entry.is_regular_file(error) && isCrashFile(entry.path())) {
+            files.push_back(entry.path());
+        }
+    }
+    for (const auto &file : files) {
+        if (std::filesystem::remove(file, error)) {
+            removed.insert(file.stem().string());
+        }
+    }
+    return removed.size();
 }
 
 }  // namespace sky

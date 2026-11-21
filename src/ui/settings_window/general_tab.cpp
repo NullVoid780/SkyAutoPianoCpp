@@ -39,7 +39,7 @@ GeneralTab::GeneralTab(QWidget *parent)
     m_playbackMode->setAccessibleName(QStringLiteral("Playback Mode"));
 
     auto *autoSave = new SettingsRow(QStringLiteral("save"), QStringLiteral("Auto Save Settings"),
-                                     QStringLiteral("Automatically save settings to the control panel."), m_autoSave, this);
+                                     QStringLiteral("Save your changes by itself when you close Settings."), m_autoSave, this);
     auto *minimize = new SettingsRow(QStringLiteral("dash-lg"), QStringLiteral("Minimize on Play"),
                                      QStringLiteral("Minimize the window when playback starts."), m_minimizeOnPlay, this);
     auto *pause = new SettingsRow(QStringLiteral("pause-fill"), QStringLiteral("Pause When Sky Isn't in Front"),

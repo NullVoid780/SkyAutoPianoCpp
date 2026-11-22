@@ -23,7 +23,7 @@ jobs:
       QT_QPA_PLATFORM: offscreen
     steps:
       - name: Get the code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up the build tools
         uses: ./.github/actions/setup
@@ -39,7 +39,7 @@ jobs:
 
       - name: Keep the test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results
           path: build/win-x64-ci/test-results.xml
@@ -50,11 +50,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get the code with its history
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Scan for secrets
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

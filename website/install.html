@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Install guide · Sky Auto Piano</title>
+  <meta name="description" content="How to install Sky Auto Piano, play your first song, update it, remove it, and fix the most common problems.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="assets/icon.png">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="docs.css">
+  <script>const savedTheme = localStorage.getItem("theme"); if (savedTheme) document.documentElement.dataset.theme = savedTheme;</script>
+  <script src="site.js" defer></script>
+</head>
+<body id="top">
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="docs-header">
+    <a class="docs-brand" href="index.html" aria-label="Sky Auto Piano home">
+      <img src="assets/icon.png" alt="" width="28" height="28">
+      Sky Auto Piano <span>Docs</span>
+    </a>
+    <nav class="header-nav" aria-label="Main">
+      <a class="header-link" href="index.html">Home</a>
+      <a class="header-link" href="install.html" aria-current="page">Docs</a>
+      <a class="header-link" href="https://github.com/NullVoid780/SkyAutoPianoCpp">GitHub <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a>
+    </nav>
+    <div class="docs-header-actions">
+      <button class="search-trigger" type="button" data-search><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/></svg><span>Search</span><kbd>Ctrl K</kbd></button>
+      <button class="icon-button mobile-only" type="button" data-search aria-label="Search"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/></svg></button>
+      <button class="icon-button" type="button" data-theme-toggle aria-label="Switch between light and dark"><svg class="icon" data-theme-icon="moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278M4.858 1.311A7.27 7.27 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.32 7.32 0 0 0 5.205-2.162q-.506.063-1.029.063c-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286"/></svg><svg class="icon" data-theme-icon="sun" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6m0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg></button>
+      <a class="button header-download" href="https://github.com/NullVoid780/SkyAutoPianoCpp/releases/latest"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/></svg><span>Download</span></a>
+    </div>
+  </header>
+
+  <div class="docs-subbar">
+    <button class="subbar-button" type="button" data-menu aria-expanded="false"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/></svg>Menu</button>
+    <button class="subbar-button" type="button" data-toc-toggle aria-expanded="false">On this page<svg class="icon chevron" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg></button>
+  </div>
+
+  <div class="docs-shell">
+    <aside class="docs-sidebar" aria-label="Documentation">
+      <div class="side-group">
+        <p class="side-title">Using the app</p>
+        <ul>
+          <li><a class="side-link active" href="install.html" aria-current="page"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/></svg>Install guide</a></li>
+          <li><a class="side-link" href="guide.html"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/></svg>User guide<span class="badge">New editor</span></a></li>
+          <li><a class="side-link" href="themes.html"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m4 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M5.5 7a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m.5 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3"/><path d="M16 8c0 3.15-1.866 2.585-3.567 2.07C11.42 9.763 10.465 9.473 10 10c-.603.683-.475 1.819-.351 2.92C9.826 14.495 9.996 16 8 16a8 8 0 1 1 8-8m-8 7c.611 0 .654-.171.655-.176.078-.146.124-.464.07-1.119-.014-.168-.037-.37-.061-.591-.052-.464-.112-1.005-.118-1.462-.01-.707.083-1.61.704-2.314.369-.417.845-.578 1.272-.618.404-.038.812.026 1.16.104.343.077.702.186 1.025.284l.028.008c.346.105.658.199.953.266.653.148.904.083.991.024C14.717 9.38 15 9.161 15 8a7 7 0 1 0-7 7"/></svg>Themes</a></li>
+        </ul>
+      </div>
+      <div class="side-group">
+        <p class="side-title">Developers</p>
+        <ul>
+          <li><a class="side-link" href="build.html"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0m6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0"/></svg>Build from source</a></li>
+          <li><a class="side-link" href="contributing.html"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/></svg>Contributing</a></li>
+        </ul>
+      </div>
+      <div class="side-group">
+        <p class="side-title">Links</p>
+        <ul>
+          <li><a class="side-link" href="https://github.com/NullVoid780/SkyAutoPianoCpp/releases"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/><path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"/></svg>Releases<svg class="icon external" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a></li>
+          <li><a class="side-link" href="https://github.com/NullVoid780/SkyAutoPianoCpp/issues"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.52.359A.5.5 0 0 1 6 0h4a.5.5 0 0 1 .474.658L8.694 6H12.5a.5.5 0 0 1 .395.807l-7 9a.5.5 0 0 1-.873-.454L6.823 9.5H3.5a.5.5 0 0 1-.48-.641zM6.374 1 4.168 8.5H7.5a.5.5 0 0 1 .478.647L6.78 13.04 11.478 7H8a.5.5 0 0 1-.474-.658L9.306 1z"/></svg>Report an issue<svg class="icon external" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a></li>
+          <li><a class="side-link" href="https://github.com/NullVoid780/SkyAutoPianoCpp"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/></svg>Source code<svg class="icon external" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a></li>
+          <li><a class="side-link" href="https://discord.gg/Mu8RS9FZky"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"/></svg>Discord<svg class="icon external" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="docs-main" id="main">
+      <article class="doc docs-article">
+        <header class="doc-hero">
+          <p class="crumbs"><a href="install.html">Docs</a><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg><span>Using the app</span></p>
+          <div class="doc-hero-title"><span class="doc-chip"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/></svg></span><h1>Install guide</h1></div>
+          <p class="docs-lead">How to install Sky Auto Piano, play your first song, update it and remove it. At the end there are fixes for the most common problems.</p>
+          <div class="page-actions">
+            <button class="action" type="button" data-copy-markdown><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/></svg><span data-label>Copy as Markdown</span></button>
+          </div>
+        </header>
+
+
+      <section id="need">
+        <h2>What you need</h2>
+        <ul>
+          <li>Windows 10 (version 1809 or newer) or Windows 11, 64-bit</li>
+          <li>About 60 MB of free space</li>
+          <li>Sky: Children of the Light for PC</li>
+        </ul>
+        <p>You <strong>don't</strong> need administrator rights or any other programs. The installer has everything.</p>
+      </section>
+
+      <section id="download">
+        <h2>1. Download</h2>
+        <p class="cta-row"><a class="button" href="https://github.com/NullVoid780/SkyAutoPianoCpp/releases/latest"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/></svg>Download for Windows</a></p>
+        <ol class="numbered">
+          <li>Go to the <a href="https://github.com/NullVoid780/SkyAutoPianoCpp/releases">Releases page</a>.</li>
+          <li>Under the newest release, download <code>SkyAutoPiano-&lt;version&gt;-setup.exe</code>.</li>
+        </ol>
+      </section>
+
+      <section id="install">
+        <h2>2. Install</h2>
+        <ol class="numbered">
+          <li>Double-click the file you downloaded.</li>
+          <li>If Windows shows a blue <strong>"Windows protected your PC"</strong> window, click <strong>More info</strong>, then <strong>Run anyway</strong>. This shows up because the installer isn't code-signed yet.</li>
+          <li>Click <strong>Next</strong> and keep the suggested folder, or pick your own.</li>
+          <li>Tick <strong>Create a desktop shortcut</strong> if you want one.</li>
+          <li>Click <strong>Install</strong>, then <strong>Finish</strong>. The app opens by itself.</li>
+        </ol>
+        <p>Next time, open it from the Start menu: search for <strong>Sky Auto Piano</strong>.</p>
+      </section>
+
+      <section id="first-start">
+        <h2>3. First start</h2>
+        <dl class="parts">
+          <div><dt>Used the original Electron app before?</dt><dd>The app finds it and asks if you want to copy your songs, playlists, favorites and settings. Click <strong>Import</strong>. Your old app isn't changed.</dd></div>
+          <div><dt>Didn't get asked, or skipped it?</dt><dd>Go to <span class="path">Settings → General → Import Previous Songs</span> and pick the old app's folder.</dd></div>
+          <div><dt>New here?</dt><dd>Click <strong>+</strong> in the bottom-right corner to add sheet files, or open the menu (☰) and go to <strong>Store</strong> to download songs.</dd></div>
+        </dl>
+      </section>
+
+      <section id="first-song">
+        <h2>4. Play your first song</h2>
+        <ol class="numbered">
+          <li>Open Sky and sit at an instrument.</li>
+          <li>In the app, click the song you want.</li>
+          <li>Click inside the Sky window so the game is in front.</li>
+          <li>Press <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>V</kbd>. Press it again to pause.</li>
+        </ol>
+        <p class="tip">Turn on <span class="path">Settings → General → Minimize on Play</span> to hide the app when a song starts.</p>
+      </section>
+
+      <section id="files">
+        <h2>Where your files are</h2>
+        <p>Everything is kept inside the install folder (<code>C:\Users\&lt;your name&gt;\AppData\Local\Programs\Sky Auto Piano</code> by default):</p>
+        <div class="table">
+          <table>
+            <thead><tr><th>Folder</th><th>What's inside</th></tr></thead>
+            <tbody>
+              <tr><td><code>config</code></td><td>Your settings</td></tr>
+              <tr><td><code>data</code></td><td>Your songs, playlists, favorites and recent plays</td></tr>
+              <tr><td><code>logs</code></td><td>A small log file that helps with bug reports</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>You can open this folder from <span class="path">Settings → About → Data Folder</span>.</p>
+        <p><strong>To back up</strong>, copy the <code>config</code> and <code>data</code> folders somewhere safe. You can also save your settings to one file with <span class="path">Settings → General → Export</span>.</p>
+      </section>
+
+      <section id="updating">
+        <h2>Updating</h2>
+        <p>The app checks for a new version when it starts, and every few hours while it's open. When there is one, a window shows what's new:</p>
+        <dl class="parts">
+          <div><dt>Update now</dt><dd>Downloads it. When it's ready, click <strong>Restart now</strong>, or just keep playing: it installs by itself when you close the app.</dd></div>
+          <div><dt>Not now</dt><dd>Hides it until the next time you open the app.</dd></div>
+        </dl>
+        <p>You can also check by hand in <span class="path">Settings → Updates → Check Now</span>, or download the newest installer and run it over your current install.</p>
+        <p>Updating never touches your songs or settings. Don't want update checks? Turn off <strong>Automatic Updates</strong> in <span class="path">Settings → Updates</span>.</p>
+      </section>
+
+      <section id="uninstalling">
+        <h2>Uninstalling</h2>
+        <ol class="numbered">
+          <li>Open <span class="path">Windows Settings → Apps → Installed apps</span>.</li>
+          <li>Find <strong>Sky Auto Piano</strong>, click <strong>⋯</strong>, then <strong>Uninstall</strong>.</li>
+        </ol>
+        <p>Your <code>config</code>, <code>data</code> and <code>logs</code> folders are <strong>kept</strong>, so nothing is lost if you install again. To remove everything, delete the install folder after uninstalling.</p>
+      </section>
+
+      <section id="problems">
+        <h2>Common problems</h2>
+        <div class="accordions">
+          <details>
+            <summary>The game doesn't react when a song plays</summary>
+            <ul>
+              <li>Click inside the Sky window before you press the shortcut.</li>
+              <li>If you run Sky as administrator, run this app as administrator too. Windows blocks key presses from a normal program to an administrator one.</li>
+              <li>If you changed Sky's keyboard keys, set the same keys in <span class="path">Settings → Keyboard</span>.</li>
+            </ul>
+          </details>
+          <details>
+            <summary>Notes are out of time, or some are missed</summary>
+            <ul>
+              <li>Try the other mode in <span class="path">Settings → General → Playback Mode</span>. <strong>Strict</strong> has the best timing, <strong>Lite</strong> is easier on a slow PC.</li>
+              <li>Close heavy programs like screen recorders while you play.</li>
+            </ul>
+          </details>
+          <details>
+            <summary>Shortcuts don't work</summary>
+            <ul>
+              <li>Shortcuts are paused while the <strong>Settings</strong> window is open. Close it and try again.</li>
+              <li>Another program may use the same keys. Pick different ones in <span class="path">Settings → Shortcuts</span>.</li>
+            </ul>
+          </details>
+          <details>
+            <summary>"The code execution cannot proceed because … .dll was not found"</summary>
+            <ul>
+              <li>A file is missing from the install folder, often because antivirus removed it. Run the installer again to repair it.</li>
+            </ul>
+          </details>
+          <details>
+            <summary>My antivirus warns about the app</summary>
+            <ul>
+              <li>The app sends key presses to another window, which some antivirus programs find suspicious. All the code is in the repository, so you can read it or <a href="build.html">build it yourself</a>.</li>
+            </ul>
+          </details>
+          <details>
+            <summary>The app closed by itself</summary>
+            <ul>
+              <li>A crash report is saved on your PC, and the app tells you about it on the next start. Please <a href="https://github.com/NullVoid780/SkyAutoPianoCpp/issues">open an issue</a> and attach the newest files from <code>%LOCALAPPDATA%\SkyAutoPiano\crashes</code> and <code>logs\skyautopiano.log</code>.</li>
+            </ul>
+          </details>
+          <details>
+            <summary>I can't open a second window</summary>
+            <ul>
+              <li>That's on purpose. Opening the app again brings the open window to the front.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+        <nav class="pager" aria-label="Previous and next page">
+          <span></span>
+          <a class="pager-next" href="guide.html"><span>Next</span>User guide</a>
+        </nav>
+        <footer class="docs-footer">
+          <span>A fan project. Not made by or connected to thatgamecompany. MIT licensed.</span>
+          <a href="https://github.com/NullVoid780/SkyAutoPianoCpp/blob/main/docs/INSTALL.md">Edit this page on GitHub</a>
+        </footer>
+      </article>
+    </main>
+
+    <aside class="docs-toc" aria-label="On this page">
+      <p class="toc-head">On this page</p>
+      <ol class="toc-list">
+        <li class="level-2"><a href="#need">What you need</a></li>
+        <li class="level-2"><a href="#download">1. Download</a></li>
+        <li class="level-2"><a href="#install">2. Install</a></li>
+        <li class="level-2"><a href="#first-start">3. First start</a></li>
+        <li class="level-2"><a href="#first-song">4. Play your first song</a></li>
+        <li class="level-2"><a href="#files">Where your files are</a></li>
+        <li class="level-2"><a href="#updating">Updating</a></li>
+        <li class="level-2"><a href="#uninstalling">Uninstalling</a></li>
+        <li class="level-2"><a href="#problems">Common problems</a></li>
+      </ol>
+      <a class="back-top" href="#top"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-7.5 3.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707z"/></svg>Back to top</a>
+    </aside>
+  </div>
+</body>
+</html>

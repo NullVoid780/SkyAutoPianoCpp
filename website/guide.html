@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>User guide · Sky Auto Piano</title>
+  <meta name="description" content="Everything Sky Auto Piano can do: adding and playing songs, playlists, the sheet editor, settings and themes.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="assets/icon.png">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="docs.css">
+  <script>const savedTheme = localStorage.getItem("theme"); if (savedTheme) document.documentElement.dataset.theme = savedTheme;</script>
+  <script src="site.js" defer></script>
+</head>
+<body id="top">
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="docs-header">
+    <a class="docs-brand" href="index.html" aria-label="Sky Auto Piano home">
+      <img src="assets/icon.png" alt="" width="28" height="28">
+      Sky Auto Piano <span>Docs</span>
+    </a>
+    <nav class="header-nav" aria-label="Main">
+      <a class="header-link" href="index.html">Home</a>
+      <a class="header-link" href="install.html" aria-current="page">Docs</a>
+      <a class="header-link" href="https://github.com/NullVoid780/SkyAutoPianoCpp">GitHub <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a>
+    </nav>
+    <div class="docs-header-actions">
+      <button class="search-trigger" type="button" data-search><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/></svg><span>Search</span><kbd>Ctrl K</kbd></button>
+      <button class="icon-button mobile-only" type="button" data-search aria-label="Search"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/></svg></button>
+      <button class="icon-button" type="button" data-theme-toggle aria-label="Switch between light and dark"><svg class="icon" data-theme-icon="moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278M4.858 1.311A7.27 7.27 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.32 7.32 0 0 0 5.205-2.162q-.506.063-1.029.063c-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286"/></svg><svg class="icon" data-theme-icon="sun" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6m0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg></button>
+      <a class="button header-download" href="https://github.com/NullVoid780/SkyAutoPianoCpp/releases/latest"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/></svg><span>Download</span></a>
+    </div>
+  </header>
+
+  <div class="docs-subbar">
+    <button class="subbar-button" type="button" data-menu aria-expanded="false"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/></svg>Menu</button>
+    <button class="subbar-button" type="button" data-toc-toggle aria-expanded="false">On this page<svg class="icon chevron" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg></button>
+  </div>
+
+  <div class="docs-shell">
+    <aside class="docs-sidebar" aria-label="Documentation">
+      <div class="side-group">
+        <p class="side-title">Using the app</p>
+        <ul>
+          <li><a class="side-link" href="install.html"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/></svg>Install guide</a></li>
+          <li><a class="side-link active" href="guide.html" aria-current="page"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/></svg>User guide<span class="badge">New editor</span></a></li>
+          <li><a class="side-link" href="themes.html"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m4 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M5.5 7a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m.5 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3"/><path d="M16 8c0 3.15-1.866 2.585-3.567 2.07C11.42 9.763 10.465 9.473 10 10c-.603.683-.475 1.819-.351 2.92C9.826 14.495 9.996 16 8 16a8 8 0 1 1 8-8m-8 7c.611 0 .654-.171.655-.176.078-.146.124-.464.07-1.119-.014-.168-.037-.37-.061-.591-.052-.464-.112-1.005-.118-1.462-.01-.707.083-1.61.704-2.314.369-.417.845-.578 1.272-.618.404-.038.812.026 1.16.104.343.077.702.186 1.025.284l.028.008c.346.105.658.199.953.266.653.148.904.083.991.024C14.717 9.38 15 9.161 15 8a7 7 0 1 0-7 7"/></svg>Themes</a></li>
+        </ul>
+      </div>
+      <div class="side-group">
+        <p class="side-title">Developers</p>
+        <ul>
+          <li><a class="side-link" href="build.html"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0m6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0"/></svg>Build from source</a></li>
+          <li><a class="side-link" href="contributing.html"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/></svg>Contributing</a></li>
+        </ul>
+      </div>
+      <div class="side-group">
+        <p class="side-title">Links</p>
+        <ul>
+          <li><a class="side-link" href="https://github.com/NullVoid780/SkyAutoPianoCpp/releases"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/><path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"/></svg>Releases<svg class="icon external" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a></li>
+          <li><a class="side-link" href="https://github.com/NullVoid780/SkyAutoPianoCpp/issues"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.52.359A.5.5 0 0 1 6 0h4a.5.5 0 0 1 .474.658L8.694 6H12.5a.5.5 0 0 1 .395.807l-7 9a.5.5 0 0 1-.873-.454L6.823 9.5H3.5a.5.5 0 0 1-.48-.641zM6.374 1 4.168 8.5H7.5a.5.5 0 0 1 .478.647L6.78 13.04 11.478 7H8a.5.5 0 0 1-.474-.658L9.306 1z"/></svg>Report an issue<svg class="icon external" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a></li>
+          <li><a class="side-link" href="https://github.com/NullVoid780/SkyAutoPianoCpp"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/></svg>Source code<svg class="icon external" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a></li>
+          <li><a class="side-link" href="https://discord.gg/Mu8RS9FZky"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"/></svg>Discord<svg class="icon external" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="docs-main" id="main">
+      <article class="doc docs-article">
+        <header class="doc-hero">
+          <p class="crumbs"><a href="install.html">Docs</a><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg><span>Using the app</span></p>
+          <div class="doc-hero-title"><span class="doc-chip"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/></svg></span><h1>User guide</h1></div>
+          <p class="docs-lead">A quick tour of everything the app can do. If you haven't installed it yet, start with the <a href="install.html">install guide</a>.</p>
+          <div class="page-actions">
+            <button class="action" type="button" data-copy-markdown><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/></svg><span data-label>Copy as Markdown</span></button>
+          </div>
+        </header>
+
+
+      <section id="quick-start">
+        <h2>Quick Start</h2>
+        <p>The first time you open the app, a short setup walks you through:</p>
+        <ul>
+          <li><strong>Look:</strong> follow Windows, or always light or dark, and pick a theme.</li>
+          <li><strong>Previous version:</strong> the app looks for the original Electron app and offers to import its songs, playlists, favorites and settings in one click. If it isn't found, press <strong>Choose folder</strong> and pick the old app's folder. Nothing in the old app is changed.</li>
+          <li><strong>Playback:</strong> Lite or Strict, and whether to hide the window when a song starts.</li>
+          <li><strong>Controls:</strong> the global shortcuts for play, previous, next and speed.</li>
+        </ul>
+        <p>Press <strong>Skip setup</strong> to jump straight in. Run it again any time from <span class="path">Settings → General → Quick Start</span>.</p>
+      </section>
+
+      <section id="main-window">
+        <h2>The main window</h2>
+        <figure class="shot doc-shot">
+          <picture>
+            <source srcset="assets/screenshots/library-dark.png" media="(prefers-color-scheme: dark)">
+            <img src="assets/screenshots/library-light.png" alt="The main window: the search box at the top, song cards in the middle and the player at the bottom" width="1200" height="760" loading="lazy">
+          </picture>
+        </figure>
+        <dl class="parts">
+          <div><dt>Top</dt><dd>The menu button (☰) and the search box. Search looks at song names and authors.</dd></div>
+          <div><dt>Middle</dt><dd>Your songs, one card each, with the name, author, transcriber and BPM.</dd></div>
+          <div><dt>Bottom</dt><dd>The player, with the song name, progress bar, speed, long-press switch, loop and the <strong>Prev</strong>, <strong>Play</strong> and <strong>Next</strong> buttons.</dd></div>
+        </dl>
+        <p>The menu (☰) switches between <strong>All Songs</strong>, <strong>Favorite</strong>, <strong>Playlists</strong>, <strong>Recent Play</strong> and <strong>Store</strong>.</p>
+      </section>
+
+      <section id="adding-songs">
+        <h2>Adding songs</h2>
+        <p>There are three ways:</p>
+        <ul>
+          <li>Click <strong>+</strong> in the bottom-right corner and pick one or more sheet files (<code>.json</code>, <code>.txt</code>, <code>.skysheet</code>, <code>.mid</code>, <code>.midi</code>).</li>
+          <li>Open <strong>Store</strong> from the menu, find a song and download it.</li>
+          <li>Copy everything from the original Electron app with <span class="path">Settings → General → Import Previous Songs</span>.</li>
+        </ul>
+      </section>
+
+      <section id="playing">
+        <h2>Playing a song</h2>
+        <ol class="numbered">
+          <li>Click a song card to pick it.</li>
+          <li>Click inside the Sky window.</li>
+          <li>Press <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>V</kbd>, or click <strong>Play</strong>. Press it again to pause.</li>
+        </ol>
+        <p>Pausing keeps your place. To start from somewhere else, pause and click anywhere on the progress bar.</p>
+        <div class="table">
+          <table>
+            <thead><tr><th>Control</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td>Speed</td><td>How fast the song plays, from 0.1× to 5×. <kbd>Ctrl</kbd> <kbd>↑</kbd> and <kbd>Ctrl</kbd> <kbd>↓</kbd> change it, even while playing.</td></tr>
+              <tr><td>Long-press mode</td><td>Holds each key for the length of the note. Turn it on for instruments that hold notes, like the violin.</td></tr>
+              <tr><td>Loop</td><td>Click to switch between off, loop the whole list, and loop one song.</td></tr>
+              <tr><td>Delay next</td><td>How long to wait before the next song starts.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3 id="lite-or-strict">Lite or Strict?</h3>
+        <p>Choose in <span class="path">Settings → General → Playback Mode</span>:</p>
+        <ul>
+          <li><strong>Lite</strong> is light on your PC, but the timing can drift a little on a busy PC.</li>
+          <li><strong>Strict</strong> has the most accurate timing, but uses more CPU.</li>
+        </ul>
+        <p class="tip">If notes sound out of time, try the other one.</p>
+      </section>
+
+      <section id="organizing">
+        <h2>Organizing songs</h2>
+        <p>Each song card has a <strong>⋮</strong> menu:</p>
+        <dl class="parts">
+          <div><dt>Favorite</dt><dd>Adds the song to your Favorite list. Click again to remove it.</dd></div>
+          <div><dt>Edit</dt><dd>Opens the <a href="#editor">sheet editor</a>.</dd></div>
+          <div><dt>Add to playlist</dt><dd>Puts the song in a playlist.</dd></div>
+          <div><dt>Delete</dt><dd>Removes the song from your library.</dd></div>
+        </dl>
+        <p>Inside a playlist you can also <strong>Move up</strong>, <strong>Move down</strong> and <strong>Remove from playlist</strong>.</p>
+        <p><strong>Multi-select</strong> (top right of the list) lets you tick many songs, then add them to a playlist or delete them all at once.</p>
+        <p><strong>Recent Play</strong> shows the songs you played last, newest first.</p>
+      </section>
+
+      <section id="editor">
+        <h2>The sheet editor</h2>
+        <p>Open it from a song card: <span class="path">⋮ → Edit</span>.</p>
+
+        <h3 id="editor-setup">Choosing a view</h3>
+        <p>Each time the editor opens, it asks two quick questions, with a picture of each choice:</p>
+        <ol class="numbered">
+          <li><strong>Simple or Advanced view.</strong> Simple shows the song as tiles laid out like Sky's keyboard. Advanced shows a timeline with every key on its own row.</li>
+          <li><strong>Colorful or Plain notes.</strong> Colorful gives each keyboard row its own color (blue, green, purple). Plain shows every note in one calm color: white on the dark theme, slate on the light theme.</li>
+        </ol>
+        <p>Your last answers are already selected, so you can just press <kbd>Enter</kbd> twice. The arrow keys switch between the two pictures, and double-clicking a picture picks it straight away.</p>
+
+        <div class="pair">
+          <figure>
+            <div class="shot"><img src="assets/screenshots/editor-simple.png" alt="The Simple view: one tile per moment, laid out like Sky's keyboard" width="1280" height="800" loading="lazy"></div>
+            <figcaption><strong>Simple view.</strong> One tile per column, shaped like Sky's 3×5 keyboard. Pale tiles are rests.</figcaption>
+          </figure>
+          <figure>
+            <div class="shot"><img src="assets/screenshots/editor-advanced.png" alt="The Advanced view: a timeline with one row per key" width="1280" height="800" loading="lazy"></div>
+            <figcaption><strong>Advanced view.</strong> A timeline with one row per key. Blank columns are rests.</figcaption>
+          </figure>
+        </div>
+
+        <h3 id="editor-layout">Around the editor</h3>
+        <dl class="parts">
+          <div><dt>Top bar</dt><dd>The song name, the <strong>Simple / Advanced</strong> switch, whether your changes are saved, and the <strong>Discard</strong>, <strong>Export</strong> and <strong>Save</strong> buttons. The editor remembers the view you used last.</dd></div>
+          <div><dt>Toolbar</dt><dd>Icons for undo and redo, adding, removing and clearing columns, copy, cut and paste, playing notes a column earlier or later, holding them shorter or longer, moving them a key up or down, snapping to the grid, the grid size and zoom. Hover an icon to see its name and shortcut. It works the same in both views.</dd></div>
+          <div><dt>Timeline</dt><dd>The whole song, left to right. Each row is one key, labelled on the left: the top keyboard row in blue, the middle row in green and the bottom row in purple. Every note shows its key letter. The strip underneath shows the whole song; click or drag it to jump around.</dd></div>
+          <div><dt>Side panel</dt><dd>The column you picked, with its time and notes, the key pad, and the song details (name, author, transcriber, BPM). Click a detail to change it.</dd></div>
+        </dl>
+        <p>The window opens at a size that fits your screen, and you can resize or maximize it. On a smaller window the toolbar wraps onto two lines, the key pad shrinks, and the side panel moves under the timeline. When space is tight, the song details fold away behind <strong>Show song details</strong>.</p>
+
+        <h3 id="editor-editing">Editing notes</h3>
+        <dl class="parts">
+          <div><dt>Add or remove a note</dt><dd>Click a cell. You can also pick a column, then click a key on the key pad or press its keyboard key. In the Simple view, pick a tile, then click a key in it.</dd></div>
+          <div><dt>Move a note</dt><dd>Drag it. Hold <kbd>Alt</kbd> while you drag to place it between columns. In the Simple view, drag the picked tile onto another tile to move its notes there.</dd></div>
+          <div><dt>Hold a note longer</dt><dd>Drag the end of its bar, or <kbd>Shift</kbd>-drag the note itself.</dd></div>
+          <div><dt>Select columns</dt><dd>Drag across empty cells or along the ruler, or use <kbd>Shift</kbd> with the arrow keys.</dd></div>
+          <div><dt>Grid</dt><dd>Sets how much time one column holds, from 1 beat down to 1/8 beat. When the editor opens a sheet it works out the beat from the notes themselves, so it lines up even when the BPM saved in the sheet is wrong.</dd></div>
+        </dl>
+        <p class="tip">Some sheets were recorded live and don't follow a steady beat. The editor then leaves every note at its exact time and says so in the side panel. <strong>Snap to grid</strong> lines the notes up with the columns.</p>
+        <p>The line under the timeline shows how many notes the song has, how long it is, the tempo, and how long one column lasts. The editor asks before closing if something isn't saved yet.</p>
+
+        <h3 id="editor-listening">Listening to the song</h3>
+        <p>Press <kbd>Space</kbd>, or the play button at the left of the toolbar, to hear the song from the selected column. A blue playhead moves through the song, the selected column follows it, and the keys light up on the key pad. Press <kbd>Space</kbd> again or <kbd>Esc</kbd> to stop. Click a column while it plays to jump there. You also hear each note as you add it. The speaker button next to play mutes the sound, and the editor remembers that.</p>
+        <p><strong>Soundpack.</strong> The editor plays the Sky piano soundpack that comes with the app. To use your own sounds, put one file per key in a <code>soundpack/Piano</code> folder inside the app's <code>data</code> folder, named <code>0</code> to <code>14</code>. <code>0</code> is the top-left key (Y) and <code>14</code> is the bottom-right key (/). MP3, WAV and FLAC all work, and your files play instead of the built-in soundpack.</p>
+
+        <h3 id="editor-shortcuts">Editor shortcuts</h3>
+        <div class="table">
+          <table>
+            <thead><tr><th>Shortcut</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td><kbd>←</kbd> <kbd>→</kbd> or <kbd>A</kbd> <kbd>D</kbd></td><td>Previous / next column (add <kbd>Shift</kbd> to select)</td></tr>
+              <tr><td><kbd>Ctrl</kbd> <kbd>←</kbd> / <kbd>Ctrl</kbd> <kbd>→</kbd></td><td>Jump one bar</td></tr>
+              <tr><td><kbd>Home</kbd> <kbd>End</kbd>, <kbd>PgUp</kbd> <kbd>PgDn</kbd></td><td>Go to the start / end, or one screen back / forward</td></tr>
+              <tr><td><kbd>Y</kbd> <kbd>U</kbd> <kbd>I</kbd> <kbd>O</kbd> <kbd>P</kbd> … <kbd>/</kbd></td><td>Add or remove that note in the column</td></tr>
+              <tr><td><kbd>E</kbd> or <kbd>Insert</kbd></td><td>Insert an empty column after the selection</td></tr>
+              <tr><td><kbd>Q</kbd> or <kbd>Delete</kbd></td><td>Delete the selected columns and pull the rest of the song forward</td></tr>
+              <tr><td><kbd>Backspace</kbd></td><td>Erase the notes in the selected columns and keep the time</td></tr>
+              <tr><td><kbd>Ctrl</kbd> <kbd>C</kbd> / <kbd>Ctrl</kbd> <kbd>X</kbd></td><td>Copy / cut the selected columns</td></tr>
+              <tr><td><kbd>Ctrl</kbd> <kbd>V</kbd></td><td>Paste at the cursor and push the rest of the song back</td></tr>
+              <tr><td><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>V</kbd></td><td>Paste on top of the notes already there</td></tr>
+              <tr><td><kbd>Ctrl</kbd> <kbd>D</kbd></td><td>Duplicate the selected columns</td></tr>
+              <tr><td><kbd>Alt</kbd> <kbd>↑</kbd> / <kbd>Alt</kbd> <kbd>↓</kbd></td><td>Move the selected notes one key higher / lower</td></tr>
+              <tr><td><kbd>Alt</kbd> <kbd>←</kbd> / <kbd>Alt</kbd> <kbd>→</kbd></td><td>Play the selected notes one column earlier / later</td></tr>
+              <tr><td><kbd>[</kbd> / <kbd>]</kbd></td><td>Hold the selected notes one column shorter / longer</td></tr>
+              <tr><td><kbd>↑</kbd> <kbd>↓</kbd> (Simple view)</td><td>Move one row of tiles up / down</td></tr>
+              <tr><td><kbd>Ctrl</kbd> <kbd>Z</kbd> / <kbd>Ctrl</kbd> <kbd>Y</kbd></td><td>Undo / redo</td></tr>
+              <tr><td><kbd>Ctrl</kbd> <kbd>A</kbd></td><td>Select the whole song</td></tr>
+              <tr><td><kbd>Ctrl</kbd> + wheel, <kbd>Ctrl</kbd> <kbd>=</kbd> / <kbd>Ctrl</kbd> <kbd>-</kbd></td><td>Zoom in / out</td></tr>
+              <tr><td>Wheel</td><td>Scroll along the song</td></tr>
+              <tr><td><kbd>Space</kbd></td><td>Play or pause from the selected column</td></tr>
+              <tr><td><kbd>Ctrl</kbd> <kbd>S</kbd></td><td>Save</td></tr>
+              <tr><td><kbd>Esc</kbd></td><td>Select only the cursor column</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="settings">
+        <h2>Settings</h2>
+        <p>Click the gear in the bottom-left corner. While Settings is open, the global shortcuts are paused so you can type freely.</p>
+        <dl class="parts">
+          <div><dt>General</dt><dd>
+            <ul>
+              <li><strong>Import / Export:</strong> save all your settings to one file, or load them back.</li>
+              <li><strong>Auto Save Settings:</strong> save changes from the player (speed, long-press and so on) by itself.</li>
+              <li><strong>Minimize on Play:</strong> hide the app when a song starts.</li>
+              <li><strong>Playback Mode:</strong> Lite or Strict.</li>
+              <li><strong>Import Previous Songs:</strong> copy everything from the original Electron app.</li>
+              <li><strong>Quick Start:</strong> go through the first-time setup again.</li>
+            </ul>
+          </dd></div>
+          <div><dt>Keyboard</dt><dd>If you changed Sky's own keys, turn on <strong>Custom Keyboard</strong> and set the same 15 keys here. Press <kbd>Tab</kbd> to jump to the next key.</dd></div>
+          <div><dt>Shortcuts</dt><dd>Click a shortcut box and press the new keys. Two actions can't share the same keys.</dd></div>
+          <div><dt>Themes</dt><dd>Pick a look for the whole app, or build your own. See <a href="#themes">Themes</a> below.</dd></div>
+          <div><dt>Updates</dt><dd>See your version, <strong>Check Now</strong> for a new one, and turn <strong>Automatic Updates</strong> on or off.</dd></div>
+          <div><dt>About</dt><dd>Links to the original app and this project, and buttons to open your data folder and the licence files.</dd></div>
+        </dl>
+        <p class="tip">Click the <strong>save</strong> button in the bottom-right corner after changing settings, unless <strong>Auto Save Settings</strong> is on.</p>
+      </section>
+
+      <section id="themes">
+        <h2>Themes</h2>
+        <p>By default the app follows Windows: if Windows apps are set to dark, the app is dark, and it switches by itself when you change the Windows setting. Click the sun or moon button in the top-right of the player to pick light or dark yourself. To follow Windows again, open <span class="path">Settings → Themes</span> and set <strong>Light or Dark</strong> to <strong>Follow Windows</strong> (or <strong>Always light</strong> / <strong>Always dark</strong>).</p>
+        <p>For more looks, open <span class="path">Settings → Themes</span>:</p>
+        <dl class="parts">
+          <div><dt>Built-in themes</dt><dd>Default, Indigo, Green, Orange, Pink, Blue and Black and White. Each one has a light and a dark version, and its preview shows both halves. Click one to use it.</dd></div>
+          <div><dt>New Theme</dt><dd>Starts a theme from the look you have now. The <strong>pencil</strong> on any theme makes a copy you can change.</dd></div>
+          <div><dt>Building a theme</dt><dd>Choose <strong>Editing: Light mode</strong> or <strong>Dark mode</strong>, then pick the five <strong>Quick Colors</strong>: Accent, Background, Cards and boxes, Text and Player bar. Each one colors every part of the app that belongs with it, and the whole app changes as you go. Opacity is supported.</dd></div>
+          <div><dt>Live Preview</dt><dd>A small picture of the app in light and dark sits beside the builder and stays in view while you scroll. Its tabs switch between the song list, menus, alerts, Settings and the sheet editor. Point at a color, or open a section, and the preview jumps to the right screen and lights up the part that color paints. <strong>Quick Colors</strong> follow the screen too: on the Editor tab they become the editor's five main colors, on Settings the Settings window's, and so on.</dd></div>
+          <div><dt>Fine-tuning</dt><dd>Under <strong>All Colors</strong>, open a section (song cards, player bar, menu drawer and so on) to change a single part. Each section shows how many of its colors you changed from the theme you started with.</dd></div>
+          <div><dt>Undo and saving</dt><dd>The <strong>undo</strong> arrow next to a color puts back the color it had when you started, and <strong>Undo changes</strong> does that for the whole version you are editing. <strong>Save Theme</strong> keeps it. <strong>Cancel</strong> throws away your changes.</dd></div>
+          <div><dt>Title bar</dt><dd>On Windows 11 the bar at the top of each window takes the theme's colors too. It follows the window background unless you set it under <span class="path">All Colors → Title Bar</span>. Windows 10 keeps its normal light or dark title bar.</dd></div>
+          <div><dt>Import / Export</dt><dd>Share a theme as a small <code>.json</code> file.</dd></div>
+        </dl>
+        <p class="tip">Want every detail, including how to write a theme file by hand? Read the <a href="themes.html">Themes guide</a>.</p>
+        <p>The sun and moon button switches the theme you are using between its light and dark version, and stops following Windows until you turn <strong>Follow Windows</strong> back on.</p>
+      </section>
+
+      <section id="trouble">
+        <h2>If something goes wrong</h2>
+        <p>If the app crashes, a report is saved in <code>%LOCALAPPDATA%\SkyAutoPiano\crashes</code> and you'll see a message about it on the next start. Please share those files and <code>logs\skyautopiano.log</code> when you <a href="https://github.com/NullVoid780/SkyAutoPianoCpp/issues">report the problem</a>.</p>
+        <p>More fixes are in the <a href="install.html#problems">install guide</a>. You can also ask on <a href="https://discord.gg/Mu8RS9FZky">Discord</a>.</p>
+      </section>
+
+        <nav class="pager" aria-label="Previous and next page">
+          <a class="pager-prev" href="install.html"><span>Previous</span>Install guide</a>
+          <a class="pager-next" href="themes.html"><span>Next</span>Themes</a>
+        </nav>
+        <footer class="docs-footer">
+          <span>A fan project. Not made by or connected to thatgamecompany. MIT licensed.</span>
+          <a href="https://github.com/NullVoid780/SkyAutoPianoCpp/blob/main/docs/USER_GUIDE.md">Edit this page on GitHub</a>
+        </footer>
+      </article>
+    </main>
+
+    <aside class="docs-toc" aria-label="On this page">
+      <p class="toc-head">On this page</p>
+      <ol class="toc-list">
+        <li class="level-2"><a href="#quick-start">Quick Start</a></li>
+        <li class="level-2"><a href="#main-window">The main window</a></li>
+        <li class="level-2"><a href="#adding-songs">Adding songs</a></li>
+        <li class="level-2"><a href="#playing">Playing a song</a></li>
+        <li class="level-3"><a href="#lite-or-strict">Lite or Strict?</a></li>
+        <li class="level-2"><a href="#organizing">Organizing songs</a></li>
+        <li class="level-2"><a href="#editor">The sheet editor</a></li>
+        <li class="level-3"><a href="#editor-setup">Choosing a view</a></li>
+        <li class="level-3"><a href="#editor-layout">Around the editor</a></li>
+        <li class="level-3"><a href="#editor-editing">Editing notes</a></li>
+        <li class="level-3"><a href="#editor-listening">Listening to the song</a></li>
+        <li class="level-3"><a href="#editor-shortcuts">Editor shortcuts</a></li>
+        <li class="level-2"><a href="#settings">Settings</a></li>
+        <li class="level-2"><a href="#themes">Themes</a></li>
+        <li class="level-2"><a href="#trouble">If something goes wrong</a></li>
+      </ol>
+      <a class="back-top" href="#top"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-7.5 3.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707z"/></svg>Back to top</a>
+    </aside>
+  </div>
+</body>
+</html>

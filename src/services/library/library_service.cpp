@@ -13,6 +13,7 @@
 #include "core/random.hpp"
 #include "core/string_utils.hpp"
 #include "core/text_file.hpp"
+#include "model/key_table.hpp"
 #include "services/library/legacy_import.hpp"
 #include "services/library/playlist_service.hpp"
 
@@ -428,18 +429,31 @@ Result<void> LibraryService::updateEntryField(int index, const std::string &fiel
     return {};
 }
 
-Result<void> LibraryService::saveEditedKeyMap(int index, const KeyMap &keyMap)
+Result<void> LibraryService::saveEditedNotes(int index, const SheetPayload &payload, bool hasHoldNotes)
 {
     const SheetEntry *row = entry(index);
     if (!row) {
         return Error{"SHEET_NOT_FOUND", "Failed to save changes to the music sheet", {}};
     }
-    const SheetPayload payload{keyMap, songNotesFromKeyMap(keyMap)};
     if (auto written = atomicWrite(payloadPath(*row), dumpJson(payload.toJson())); !written) {
         return Error{"PAYLOAD_SAVE_FAILED", "Failed to save changes to the music sheet", written.error().details};
     }
+    SheetEntry &stored = m_entries[static_cast<std::size_t>(index)];
+    const bool rowChanged = stored.hasHoldNotes() != hasHoldNotes || stored.bitsPerPage() < kSkyKeyCount;
+    if (rowChanged) {
+        stored.set("hasHoldNotes", hasHoldNotes);
+        if (stored.bitsPerPage() < kSkyKeyCount) {
+            stored.set("bitsPerPage", kSkyKeyCount);
+        }
+        if (auto saved = saveList(); !saved) {
+            return Error{"SHEET_SAVE_FAILED", "Failed to save changes to the music sheet", saved.error().details};
+        }
+    }
     invalidatePayload(index);
     emit payloadChanged(index);
+    if (rowChanged) {
+        emit changed();
+    }
     return {};
 }
 

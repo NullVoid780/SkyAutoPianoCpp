@@ -42,6 +42,10 @@ add_library(sky_net STATIC
 target_link_libraries(sky_net PUBLIC sky_core Qt6::Network PRIVATE miniz::miniz)
 
 add_library(sky_services STATIC
+    services/audio/note_synth.cpp
+    services/audio/sample_bank.cpp
+    services/audio/sheet_audio.cpp
+    services/audio/wave_out.cpp
     services/library/chromium_local_storage.cpp
     services/library/favorites_service.cpp
     services/library/legacy_import.cpp
@@ -69,7 +73,9 @@ add_library(sky_services STATIC
     services/update/update_service.cpp
     services/update/version.cpp
 )
-target_link_libraries(sky_services PUBLIC sky_codec sky_net sky_model sky_core skyinput PRIVATE miniz::miniz)
+target_link_libraries(sky_services PUBLIC sky_codec sky_net sky_model sky_core skyinput PRIVATE miniz::miniz winmm)
+find_path(DRLIBS_INCLUDE_DIRS "dr_mp3.h" REQUIRED)
+target_include_directories(sky_services SYSTEM PRIVATE ${DRLIBS_INCLUDE_DIRS})
 target_compile_definitions(sky_services PRIVATE SKY_UPDATE_REPOSITORY="${SKY_UPDATE_REPOSITORY}")
 
 add_library(sky_crash STATIC
@@ -132,12 +138,16 @@ add_library(sky_ui STATIC
     ui/settings_window/update_prompt.cpp
     ui/editor_window/editable_field.cpp
     ui/editor_window/editor_document.cpp
+    ui/editor_window/editor_setup.cpp
     ui/editor_window/editor_window.cpp
-    ui/editor_window/grid_geometry.cpp
     ui/editor_window/key_pad.cpp
     ui/editor_window/key_pad_cell.cpp
     ui/editor_window/meta_panel.cpp
-    ui/editor_window/note_grid.cpp
+    ui/editor_window/step_grid_view.cpp
+    ui/editor_window/timeline_view.cpp
+    ui/editor_window/tool_button.cpp
+    ui/widgets/flow_layout.cpp
+    ui/widgets/step_dots.cpp
     ui/widgets/toggle_switch.cpp
     ui/settings_window/about_tab.cpp
     ui/settings_window/action_button.cpp
@@ -226,6 +236,10 @@ target_sources(crashreport PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated/crashre
 
 file(GLOB SKY_ICON_FILES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/assets/icons/*.svg)
 qt_add_resources(skyautopiano sky_icons PREFIX "/icons" BASE ${CMAKE_SOURCE_DIR}/assets/icons FILES ${SKY_ICON_FILES})
+file(GLOB_RECURSE SKY_SOUNDPACK_FILES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/assets/soundpack/*.mp3
+     ${CMAKE_SOURCE_DIR}/assets/soundpack/*.wav ${CMAKE_SOURCE_DIR}/assets/soundpack/*.flac)
+qt_add_resources(skyautopiano sky_soundpack PREFIX "/soundpack" BASE ${CMAKE_SOURCE_DIR}/assets/soundpack
+                 FILES ${SKY_SOUNDPACK_FILES})
 
 get_target_property(SKY_QMAKE Qt6::qmake IMPORTED_LOCATION)
 get_filename_component(SKY_QT_BIN ${SKY_QMAKE} DIRECTORY)

@@ -82,13 +82,88 @@ delete them all at once.
 
 Open it from a song card: **⋮ → Edit**.
 
-- Change the name, author, transcriber and BPM on the left.
-- The grid shows the song step by step. Click a step to pick it.
-- Click a key on the key pad to add it to that step. Click it again to remove it.
-- **Save** keeps your changes, **Cancel** throws them away.
-- **Export** saves the sheet as a `.txt`, `.json` or `.skysheet` file you can share.
+Each time the editor opens, it asks two quick questions, with a picture of each choice:
 
-Sheets with held notes can be viewed but not changed yet.
+1. **Simple or Advanced view.** Simple shows the song as tiles laid out like Sky's keyboard.
+   Advanced shows a timeline with every key on its own row.
+2. **Colorful or Plain notes.** Colorful gives each keyboard row its own color (blue, green,
+   purple). Plain shows every note in one calm color: white on the dark theme, slate on the light
+   theme.
+
+Your last answers are already selected, so you can just press **Enter** twice. The arrow keys switch
+between the two pictures, and double-clicking a picture picks it straight away. The window opens at a size that fits your screen, and you
+can resize or maximize it. On a smaller window the toolbar wraps onto two lines, the key pad
+shrinks, and the side panel moves under the timeline. When space is tight, the song details fold
+away behind **Show song details**.
+
+- **Top bar:** the song name, the **Simple / Advanced** view switch, whether your changes are saved,
+  and the **Discard**, **Export** and **Save** buttons. The editor remembers the view you used last.
+- **Simple view:** the song as tiles, one per column, each laid out like Sky's 3×5 keyboard. Pale
+  tiles are rests. Click a tile to pick it, then click a key in it (or on the key pad) to add or
+  remove that note. Drag the picked tile onto another tile to move its notes there.
+- **Advanced view:** the timeline described below.
+- **Toolbar** (works in both views): a row of icons for undo and redo, adding, removing and clearing
+  columns, copy, cut and paste, playing notes a column earlier or later, holding them shorter or
+  longer, moving them a key up or down, snapping to the grid, the grid size and zoom. Hover an icon to
+  see its name and shortcut.
+- **Timeline:** the whole song, left to right. Each row is one key, labelled on the left, with the
+  top keyboard row in blue, the middle row in green and the bottom row in purple. Every note shows
+  its key letter. A blank column is a rest. The strip underneath shows the whole song: click or
+  drag it to jump around.
+- **Side panel:** the column you picked, with its time and notes, the key pad, and the song details
+  (name, author, transcriber, BPM). Click a detail to change it.
+
+**Listening to the song:** press **Space**, or the play button at the left of the toolbar, to hear
+the song from the selected column. A blue playhead moves through the song, the selected column follows
+it, and the keys light up on the key pad. Press **Space** again or **Esc** to stop. Click a column
+while it plays to jump there. You also hear each note as you add it. The speaker button next to play
+mutes the sound, and the editor remembers that.
+
+**Soundpack:** the editor plays the Sky piano soundpack that comes with the app. To use your own
+sounds, put one file per key in a `soundpack/Piano` folder inside the app's `data` folder, named `0` to
+`14` (`0` is the top-left key, Y, and `14` is the bottom-right key, /). MP3, WAV and FLAC all work. Your
+files then play instead of the built-in soundpack.
+
+How to edit:
+
+- **Add or remove a note:** click a cell. You can also pick a column and then click a key on the key
+  pad, or press its keyboard key.
+- **Move a note:** drag it. Hold **Alt** while you drag to place it between columns.
+- **Hold a note longer:** drag the end of its bar, or **Shift**+drag the note itself.
+- **Select columns:** drag across empty cells or along the ruler, or use **Shift + arrows**.
+- **Grid** sets how much time one column holds, from 1 beat down to 1/8 beat. When the editor opens a
+  sheet it works out the beat from the notes themselves, so it lines up even when the BPM saved in
+  the sheet is wrong.
+- Some sheets were recorded live and don't follow a steady beat. The editor then leaves every note at
+  its exact time and says so in the side panel. **Snap to grid** lines the notes up with the columns.
+- The line under the timeline shows how many notes the song has, how long it is, the tempo, and how
+  long one column lasts.
+- The editor asks before closing if something isn't saved yet.
+
+| Shortcut | What it does |
+|---|---|
+| `Left` / `Right` or `A` / `D` | Previous / next column (add `Shift` to select) |
+| `Ctrl + Left` / `Ctrl + Right` | Jump one bar |
+| `Home` / `End`, `Page Up` / `Page Down` | Go to the start / end, or one screen back / forward |
+| Sky keys (`Y U I O P`, `H J K L ;`, `N M , . /`) | Add or remove that note in the column |
+| `E` or `Insert` | Insert an empty column after the selection |
+| `Q` or `Delete` | Delete the selected columns and pull the rest of the song forward |
+| `Backspace` | Erase the notes in the selected columns and keep the time |
+| `Ctrl + C` / `Ctrl + X` | Copy / cut the selected columns |
+| `Ctrl + V` | Paste at the cursor and push the rest of the song back |
+| `Ctrl + Shift + V` | Paste on top of the notes already there |
+| `Ctrl + D` | Duplicate the selected columns |
+| `Alt + Up` / `Alt + Down` | Move the selected notes one key higher / lower |
+| `Alt + Left` / `Alt + Right` | Play the selected notes one column earlier / later |
+| `[` / `]` | Hold the selected notes one column shorter / longer |
+| `Up` / `Down` (Simple view) | Move one row of tiles up / down |
+| `Ctrl + Z` / `Ctrl + Y` | Undo / redo |
+| `Ctrl + A` | Select the whole song |
+| `Ctrl + wheel`, `Ctrl + =` / `Ctrl + -` | Zoom in / out |
+| `Wheel` | Scroll along the song |
+| `Space` | Play or pause from the selected column |
+| `Ctrl + S` | Save |
+| `Esc` | Select only the cursor column |
 
 ## Settings
 

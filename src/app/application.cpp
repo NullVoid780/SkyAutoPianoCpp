@@ -863,7 +863,8 @@ void Application::applyTheme(AppTheme theme)
 void Application::openEditor(int libraryIndex)
 {
     if (!m_editor) {
-        m_editor = new EditorWindow(*m_library, m_mainWindow.get());
+        m_editor = new EditorWindow(*m_library, *m_uiState, Paths::dataDirectory() / "soundpack" / "Piano",
+                                    m_mainWindow.get());
         m_editor->show();
     } else if (m_editor->isMinimized()) {
         m_editor->showNormal();

@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Themes · Sky Auto Piano</title>
+  <meta name="description" content="Pick light or dark, use a built-in theme, build your own and share it as a file.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="assets/icon.png">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="docs.css">
+  <script>const savedTheme = localStorage.getItem("theme"); if (savedTheme) document.documentElement.dataset.theme = savedTheme;</script>
+  <script src="site.js" defer></script>
+</head>
+<body id="top">
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="docs-header">
+    <a class="docs-brand" href="index.html" aria-label="Sky Auto Piano home">
+      <img src="assets/icon.png" alt="" width="28" height="28">
+      Sky Auto Piano <span>Docs</span>
+    </a>
+    <nav class="header-nav" aria-label="Main">
+      <a class="header-link" href="index.html">Home</a>
+      <a class="header-link" href="install.html" aria-current="page">Docs</a>
+      <a class="header-link" href="https://github.com/NullVoid780/SkyAutoPianoCpp">GitHub <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a>
+    </nav>
+    <div class="docs-header-actions">
+      <button class="search-trigger" type="button" data-search><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/></svg><span>Search</span><kbd>Ctrl K</kbd></button>
+      <button class="icon-button mobile-only" type="button" data-search aria-label="Search"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/></svg></button>
+      <button class="icon-button" type="button" data-theme-toggle aria-label="Switch between light and dark"><svg class="icon" data-theme-icon="moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278M4.858 1.311A7.27 7.27 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.32 7.32 0 0 0 5.205-2.162q-.506.063-1.029.063c-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286"/></svg><svg class="icon" data-theme-icon="sun" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6m0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg></button>
+      <a class="button header-download" href="https://github.com/NullVoid780/SkyAutoPianoCpp/releases/latest"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/></svg><span>Download</span></a>
+    </div>
+  </header>
+
+  <div class="docs-subbar">
+    <button class="subbar-button" type="button" data-menu aria-expanded="false"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/></svg>Menu</button>
+    <button class="subbar-button" type="button" data-toc-toggle aria-expanded="false">On this page<svg class="icon chevron" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg></button>
+  </div>
+
+  <div class="docs-shell">
+    <aside class="docs-sidebar" aria-label="Documentation">
+      <div class="side-group">
+        <p class="side-title">Using the app</p>
+        <ul>
+          <li><a class="side-link" href="install.html"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/></svg>Install guide</a></li>
+          <li><a class="side-link" href="guide.html"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/></svg>User guide<span class="badge">New editor</span></a></li>
+          <li><a class="side-link active" href="themes.html" aria-current="page"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m4 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M5.5 7a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m.5 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3"/><path d="M16 8c0 3.15-1.866 2.585-3.567 2.07C11.42 9.763 10.465 9.473 10 10c-.603.683-.475 1.819-.351 2.92C9.826 14.495 9.996 16 8 16a8 8 0 1 1 8-8m-8 7c.611 0 .654-.171.655-.176.078-.146.124-.464.07-1.119-.014-.168-.037-.37-.061-.591-.052-.464-.112-1.005-.118-1.462-.01-.707.083-1.61.704-2.314.369-.417.845-.578 1.272-.618.404-.038.812.026 1.16.104.343.077.702.186 1.025.284l.028.008c.346.105.658.199.953.266.653.148.904.083.991.024C14.717 9.38 15 9.161 15 8a7 7 0 1 0-7 7"/></svg>Themes</a></li>
+        </ul>
+      </div>
+      <div class="side-group">
+        <p class="side-title">Developers</p>
+        <ul>
+          <li><a class="side-link" href="build.html"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0m6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0"/></svg>Build from source</a></li>
+          <li><a class="side-link" href="contributing.html"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/></svg>Contributing</a></li>
+        </ul>
+      </div>
+      <div class="side-group">
+        <p class="side-title">Links</p>
+        <ul>
+          <li><a class="side-link" href="https://github.com/NullVoid780/SkyAutoPianoCpp/releases"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/><path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"/></svg>Releases<svg class="icon external" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a></li>
+          <li><a class="side-link" href="https://github.com/NullVoid780/SkyAutoPianoCpp/issues"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.52.359A.5.5 0 0 1 6 0h4a.5.5 0 0 1 .474.658L8.694 6H12.5a.5.5 0 0 1 .395.807l-7 9a.5.5 0 0 1-.873-.454L6.823 9.5H3.5a.5.5 0 0 1-.48-.641zM6.374 1 4.168 8.5H7.5a.5.5 0 0 1 .478.647L6.78 13.04 11.478 7H8a.5.5 0 0 1-.474-.658L9.306 1z"/></svg>Report an issue<svg class="icon external" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a></li>
+          <li><a class="side-link" href="https://github.com/NullVoid780/SkyAutoPianoCpp"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/></svg>Source code<svg class="icon external" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a></li>
+          <li><a class="side-link" href="https://discord.gg/Mu8RS9FZky"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"/></svg>Discord<svg class="icon external" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="docs-main" id="main">
+      <article class="doc docs-article">
+        <header class="doc-hero">
+          <p class="crumbs"><a href="install.html">Docs</a><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg><span>Using the app</span></p>
+          <div class="doc-hero-title"><span class="doc-chip"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m4 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M5.5 7a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m.5 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3"/><path d="M16 8c0 3.15-1.866 2.585-3.567 2.07C11.42 9.763 10.465 9.473 10 10c-.603.683-.475 1.819-.351 2.92C9.826 14.495 9.996 16 8 16a8 8 0 1 1 8-8m-8 7c.611 0 .654-.171.655-.176.078-.146.124-.464.07-1.119-.014-.168-.037-.37-.061-.591-.052-.464-.112-1.005-.118-1.462-.01-.707.083-1.61.704-2.314.369-.417.845-.578 1.272-.618.404-.038.812.026 1.16.104.343.077.702.186 1.025.284l.028.008c.346.105.658.199.953.266.653.148.904.083.991.024C14.717 9.38 15 9.161 15 8a7 7 0 1 0-7 7"/></svg></span><h1>Themes</h1></div>
+          <p class="docs-lead">Change how Sky Auto Piano looks: pick light or dark, use a built-in theme, build your own, and share it with friends as a small file.</p>
+          <div class="page-actions">
+            <button class="action" type="button" data-copy-markdown><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/></svg><span data-label>Copy as Markdown</span></button>
+          </div>
+        </header>
+
+      <section id="light-or-dark">
+        <h2>Light or dark</h2>
+        <p>By default the app follows Windows. If Windows apps are set to dark, the app is dark, and it switches by itself when you change the Windows setting.</p>
+        <ul>
+          <li>Click the <strong>sun or moon</strong> button in the top-right of the player to switch between light and dark. The app then stops following Windows.</li>
+          <li>To follow Windows again, open <span class="path">Settings → Themes</span> and set <strong>Light or Dark</strong> to <strong>Follow Windows</strong>. You can also pick <strong>Always light</strong> or <strong>Always dark</strong> there.</li>
+        </ul>
+        <p class="tip">Every theme has a light and a dark version, so your theme stays the same when you switch.</p>
+      </section>
+
+      <section id="built-in-themes">
+        <h2>Built-in themes</h2>
+        <p>Open <span class="path">Settings → Themes</span> and click a theme to use it straight away. Each preview shows the light half on the left and the dark half on the right.</p>
+        <figure class="shot doc-shot">
+          <img src="assets/screenshots/settings-themes.png" alt="Settings → Themes with the built-in themes, each showing a light and a dark half" width="1100" height="760" loading="lazy">
+        </figure>
+        <div class="table">
+          <table>
+            <thead><tr><th>Theme</th><th>Look</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Default</strong></td><td>Clean white and near-black with a teal accent</td></tr>
+              <tr><td><strong>Indigo</strong></td><td>Soft lavender with an indigo accent</td></tr>
+              <tr><td><strong>Green</strong></td><td>Pale mint and deep forest green</td></tr>
+              <tr><td><strong>Orange</strong></td><td>Warm peach with an orange accent</td></tr>
+              <tr><td><strong>Pink</strong></td><td>Light blossom pink and a dark plum</td></tr>
+              <tr><td><strong>Blue</strong></td><td>Sky blue and deep navy</td></tr>
+              <tr><td><strong>Black and White</strong></td><td>Pure black and white with no color at all</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Built-in themes can't be changed, but the <strong>pencil</strong> on any of them makes a copy that you can.</p>
+      </section>
+
+      <section id="build-your-own">
+        <h2>Build your own theme</h2>
+        <ol class="numbered">
+          <li>Open <span class="path">Settings → Themes</span> and press <strong>New Theme</strong>. It starts from the look you have now. To start from another theme, press the <strong>pencil</strong> on it instead.</li>
+          <li>Give it a name and pick <strong>Editing: Light mode</strong> or <strong>Dark mode</strong>. You build the two versions one at a time.</li>
+          <li>Pick the five <strong>Quick Colors</strong>. Each one paints every part of the app that belongs with it, and the whole app changes as you go.</li>
+          <li>Open a section under <strong>All Colors</strong> if you want to change one single part.</li>
+          <li>Switch to the other mode and do the same, then press <strong>Save Theme</strong>.</li>
+        </ol>
+
+        <h3 id="quick-colors">Quick Colors</h3>
+        <p>The Quick Colors follow the tab you have open in the <strong>Live Preview</strong>:</p>
+        <div class="table">
+          <table>
+            <thead><tr><th>Preview tab</th><th>Quick Colors</th></tr></thead>
+            <tbody>
+              <tr><td>Songs</td><td>Accent, Background, Cards and boxes, Text, Player bar</td></tr>
+              <tr><td>Menus</td><td>Pop-up background, Pop-up text, Highlight, Border, Dim</td></tr>
+              <tr><td>Alerts</td><td>Success, Warning, Error, Info, Text</td></tr>
+              <tr><td>Settings</td><td>Background, Cards, Borders, Descriptions, Switches and Save</td></tr>
+              <tr><td>Editor</td><td>Background, Cells, Notes, Highlighted cells, Info panel</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Every color picker supports opacity, so a color can be see-through.</p>
+
+        <h3 id="live-preview">Live Preview</h3>
+        <p>A small picture of the app sits beside the builder and stays in view while you scroll. It shows the light and dark version side by side. Point at a color, or open a section, and the preview jumps to the right screen and lights up the part that color paints.</p>
+
+        <h3 id="undo-save-and-cancel">Undo, save and cancel</h3>
+        <dl class="parts">
+          <div><dt>Undo arrow</dt><dd>Puts back the color it had when you started.</dd></div>
+          <div><dt>Undo changes</dt><dd>Does that for the whole light or dark version you're editing.</dd></div>
+          <div><dt>Save Theme</dt><dd>Keeps your theme. <strong>Cancel</strong> throws your changes away.</dd></div>
+          <div><dt>Changed count</dt><dd>Each section under <strong>All Colors</strong> shows how many of its colors you've changed.</dd></div>
+        </dl>
+
+        <h3 id="title-bar">Title bar</h3>
+        <p>On Windows 11 the bar at the top of each window uses the theme's colors too. It follows the window background unless you set it under <span class="path">All Colors → Title Bar</span>. Windows 10 keeps its normal light or dark title bar.</p>
+      </section>
+
+      <section id="share">
+        <h2>Share a theme</h2>
+        <dl class="parts">
+          <div><dt>Export</dt><dd>Press the <strong>download</strong> button on any theme and save the <code>.json</code> file. Send it to anyone.</dd></div>
+          <div><dt>Import</dt><dd>Press <strong>Import</strong> at the top of <span class="path">Settings → Themes</span> and pick a theme file. It shows up under <strong>Your Themes</strong>.</dd></div>
+        </dl>
+        <p>You can keep up to 100 themes of your own. They're saved in <code>data\themes.json</code> next to <code>SkyAutoPiano.exe</code>, so they move with the app.</p>
+      </section>
+
+      <section id="file-format">
+        <h2>Theme file format</h2>
+        <p>A theme file is plain JSON, so you can also write or tweak one by hand:</p>
+        <div class="code"><pre><code>{
+    "format": "sky-auto-piano-theme",
+    "version": 2,
+    "name": "Night Sky",
+    "light": {
+        "app.surface": "#f4f6ff",
+        "app.text": "#1f2440",
+        "app.accent": "#4f6bed"
+    },
+    "dark": {
+        "app.surface": "#10142a",
+        "app.text": "#e6e9ff",
+        "app.accent": "#8aa2ff",
+        "popup.dim": "#00000099"
+    }
+}</code></pre></div>
+        <ul>
+          <li><code>format</code> must be <code>sky-auto-piano-theme</code>, and <code>name</code> can be up to 40 characters.</li>
+          <li>Colors are <code>#RRGGBB</code>, or <code>#RRGGBBAA</code> where the last two digits are the opacity (<code>00</code> is clear, <code>ff</code> is solid).</li>
+          <li>Unknown names and broken colors are skipped, so an old theme file still opens in a newer app.</li>
+        </ul>
+        <p class="tip">You only need the colors you want to change. Everything you leave out is worked out from <code>app.surface</code>, <code>app.text</code> and <code>app.accent</code>, so those three alone already make a full theme.</p>
+
+        <h3 id="color-names">Color names</h3>
+        <p>These are the names under <strong>All Colors</strong>, in the same order as in the app.</p>
+        <div class="table table-names">
+          <table>
+            <thead><tr><th>Section</th><th>Names</th></tr></thead>
+            <tbody>
+              <tr><td>Everyday Colors</td><td><code>app.surface</code> base surface, <code>app.text</code> text, <code>app.accent</code> accent, <code>app.success</code>, <code>app.error</code></td></tr>
+              <tr><td>Main Window</td><td><code>main.window</code> window background, <code>main.searchFill</code>, <code>main.searchText</code>, <code>main.searchIcon</code>, <code>main.buttonBorder</code>, <code>main.scrollbar</code></td></tr>
+              <tr><td>Title Bar</td><td><code>title.fill</code>, <code>title.text</code>, <code>title.border</code> window border</td></tr>
+              <tr><td>Song Cards</td><td><code>card.fill</code>, <code>card.text</code> title and values, <code>card.label</code>, <code>card.edge</code> top edge, <code>card.author</code>, <code>card.transcriber</code>, <code>card.bpm</code>, <code>card.hold</code> hold badge, <code>card.menu</code>, <code>card.selected</code> selected outline, <code>card.favorite</code> heart, <code>card.storeTag</code></td></tr>
+              <tr><td>Player Bar</td><td><code>footer.fill</code>, <code>footer.text</code> text and icons, <code>footer.edge</code> top edge, <code>footer.track</code>, <code>footer.played</code>, <code>footer.handle</code>, <code>footer.play</code>, <code>footer.skip</code> previous and next, <code>footer.buttonFill</code>, <code>footer.loop</code>, <code>footer.speedFill</code>, <code>footer.speedText</code>, <code>footer.switch</code>, <code>footer.knob</code></td></tr>
+              <tr><td>Menu Drawer</td><td><code>drawer.fill</code>, <code>drawer.text</code> tab text, <code>drawer.activeStart</code> active tab, <code>drawer.selectionBar</code></td></tr>
+              <tr><td>Menus and Dialogs</td><td><code>popup.menuFill</code>, <code>popup.menuBorder</code>, <code>popup.menuHover</code> menu highlight, <code>popup.dialogFill</code>, <code>popup.dialogText</code>, <code>popup.confirm</code> confirm button, <code>popup.dim</code> shade behind pop-ups</td></tr>
+              <tr><td>Notifications</td><td><code>toast.success</code>, <code>toast.warning</code>, <code>toast.error</code>, <code>toast.info</code>, <code>toast.text</code></td></tr>
+              <tr><td>Settings Window</td><td><code>settings.content</code> page background, <code>settings.sidebar</code>, <code>settings.sidebarEdge</code>, <code>settings.card</code>, <code>settings.cardBorder</code>, <code>settings.description</code>, <code>settings.switch</code> switch on, <code>settings.save</code> save button</td></tr>
+              <tr><td>Sheet Editor</td><td><code>editor.window</code> window background, <code>editor.panel</code> info panel, <code>editor.grid</code> grid lines, <code>editor.dot</code> grid dots, <code>editor.note</code> notes, <code>editor.hover</code> hovered cell, <code>editor.active</code> active cell, <code>editor.export</code> export button</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="trouble">
+        <h2>If a theme won't import</h2>
+        <dl class="parts">
+          <div><dt>"The selected theme file is invalid."</dt><dd>The file isn't valid JSON, <code>format</code> is missing or wrong, or it has no <code>name</code>. Open it in a text editor and compare it with the example above.</dd></div>
+          <div><dt>A color didn't change</dt><dd>Check that the name is spelled exactly as in the table, and that the color has 6 or 8 digits after the <code>#</code>.</dd></div>
+          <div><dt>The title bar didn't change</dt><dd>Title bar colors only work on Windows 11.</dd></div>
+        </dl>
+      </section>
+
+        <nav class="pager" aria-label="Previous and next page">
+          <a class="pager-prev" href="guide.html"><span>Previous</span>User guide</a>
+          <a class="pager-next" href="build.html"><span>Next</span>Build from source</a>
+        </nav>
+        <footer class="docs-footer">
+          <span>A fan project. Not made by or connected to thatgamecompany. MIT licensed.</span>
+          <a href="https://github.com/NullVoid780/SkyAutoPianoCpp/blob/main/docs/THEMES.md">Edit this page on GitHub</a>
+        </footer>
+      </article>
+    </main>
+
+    <aside class="docs-toc" aria-label="On this page">
+      <p class="toc-head">On this page</p>
+      <ol class="toc-list">
+        <li class="level-2"><a href="#light-or-dark">Light or dark</a></li>
+        <li class="level-2"><a href="#built-in-themes">Built-in themes</a></li>
+        <li class="level-2"><a href="#build-your-own">Build your own theme</a></li>
+        <li class="level-3"><a href="#quick-colors">Quick Colors</a></li>
+        <li class="level-3"><a href="#live-preview">Live Preview</a></li>
+        <li class="level-3"><a href="#undo-save-and-cancel">Undo, save and cancel</a></li>
+        <li class="level-3"><a href="#title-bar">Title bar</a></li>
+        <li class="level-2"><a href="#share">Share a theme</a></li>
+        <li class="level-2"><a href="#file-format">Theme file format</a></li>
+        <li class="level-3"><a href="#color-names">Color names</a></li>
+        <li class="level-2"><a href="#trouble">If a theme won't import</a></li>
+      </ol>
+      <a class="back-top" href="#top"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-7.5 3.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707z"/></svg>Back to top</a>
+    </aside>
+  </div>
+</body>
+</html>

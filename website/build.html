@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build from source · Sky Auto Piano</title>
+  <meta name="description" content="How to build Sky Auto Piano yourself, how the code is organized, how to run the tests and how to publish a new version.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="assets/icon.png">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="docs.css">
+  <script>const savedTheme = localStorage.getItem("theme"); if (savedTheme) document.documentElement.dataset.theme = savedTheme;</script>
+  <script src="site.js" defer></script>
+</head>
+<body id="top">
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="docs-header">
+    <a class="docs-brand" href="index.html" aria-label="Sky Auto Piano home">
+      <img src="assets/icon.png" alt="" width="28" height="28">
+      Sky Auto Piano <span>Docs</span>
+    </a>
+    <nav class="header-nav" aria-label="Main">
+      <a class="header-link" href="index.html">Home</a>
+      <a class="header-link" href="install.html" aria-current="page">Docs</a>
+      <a class="header-link" href="https://github.com/NullVoid780/SkyAutoPianoCpp">GitHub <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a>
+    </nav>
+    <div class="docs-header-actions">
+      <button class="search-trigger" type="button" data-search><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/></svg><span>Search</span><kbd>Ctrl K</kbd></button>
+      <button class="icon-button mobile-only" type="button" data-search aria-label="Search"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/></svg></button>
+      <button class="icon-button" type="button" data-theme-toggle aria-label="Switch between light and dark"><svg class="icon" data-theme-icon="moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278M4.858 1.311A7.27 7.27 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.32 7.32 0 0 0 5.205-2.162q-.506.063-1.029.063c-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286"/></svg><svg class="icon" data-theme-icon="sun" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6m0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg></button>
+      <a class="button header-download" href="https://github.com/NullVoid780/SkyAutoPianoCpp/releases/latest"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/></svg><span>Download</span></a>
+    </div>
+  </header>
+
+  <div class="docs-subbar">
+    <button class="subbar-button" type="button" data-menu aria-expanded="false"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/></svg>Menu</button>
+    <button class="subbar-button" type="button" data-toc-toggle aria-expanded="false">On this page<svg class="icon chevron" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg></button>
+  </div>
+
+  <div class="docs-shell">
+    <aside class="docs-sidebar" aria-label="Documentation">
+      <div class="side-group">
+        <p class="side-title">Using the app</p>
+        <ul>
+          <li><a class="side-link" href="install.html"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/></svg>Install guide</a></li>
+          <li><a class="side-link" href="guide.html"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/></svg>User guide<span class="badge">New editor</span></a></li>
+          <li><a class="side-link" href="themes.html"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m4 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M5.5 7a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m.5 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3"/><path d="M16 8c0 3.15-1.866 2.585-3.567 2.07C11.42 9.763 10.465 9.473 10 10c-.603.683-.475 1.819-.351 2.92C9.826 14.495 9.996 16 8 16a8 8 0 1 1 8-8m-8 7c.611 0 .654-.171.655-.176.078-.146.124-.464.07-1.119-.014-.168-.037-.37-.061-.591-.052-.464-.112-1.005-.118-1.462-.01-.707.083-1.61.704-2.314.369-.417.845-.578 1.272-.618.404-.038.812.026 1.16.104.343.077.702.186 1.025.284l.028.008c.346.105.658.199.953.266.653.148.904.083.991.024C14.717 9.38 15 9.161 15 8a7 7 0 1 0-7 7"/></svg>Themes</a></li>
+        </ul>
+      </div>
+      <div class="side-group">
+        <p class="side-title">Developers</p>
+        <ul>
+          <li><a class="side-link active" href="build.html" aria-current="page"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0m6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0"/></svg>Build from source</a></li>
+          <li><a class="side-link" href="contributing.html"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/></svg>Contributing</a></li>
+        </ul>
+      </div>
+      <div class="side-group">
+        <p class="side-title">Links</p>
+        <ul>
+          <li><a class="side-link" href="https://github.com/NullVoid780/SkyAutoPianoCpp/releases"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/><path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"/></svg>Releases<svg class="icon external" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a></li>
+          <li><a class="side-link" href="https://github.com/NullVoid780/SkyAutoPianoCpp/issues"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.52.359A.5.5 0 0 1 6 0h4a.5.5 0 0 1 .474.658L8.694 6H12.5a.5.5 0 0 1 .395.807l-7 9a.5.5 0 0 1-.873-.454L6.823 9.5H3.5a.5.5 0 0 1-.48-.641zM6.374 1 4.168 8.5H7.5a.5.5 0 0 1 .478.647L6.78 13.04 11.478 7H8a.5.5 0 0 1-.474-.658L9.306 1z"/></svg>Report an issue<svg class="icon external" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a></li>
+          <li><a class="side-link" href="https://github.com/NullVoid780/SkyAutoPianoCpp"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/></svg>Source code<svg class="icon external" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a></li>
+          <li><a class="side-link" href="https://discord.gg/Mu8RS9FZky"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"/></svg>Discord<svg class="icon external" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg></a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="docs-main" id="main">
+      <article class="doc docs-article">
+        <header class="doc-hero">
+          <p class="crumbs"><a href="install.html">Docs</a><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg><span>Developers</span></p>
+          <div class="doc-hero-title"><span class="doc-chip"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0m6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0"/></svg></span><h1>Build from source</h1></div>
+          <p class="docs-lead">For people who want to build the app themselves or work on the code. If you just want to use the app, see the <a href="install.html">install guide</a>.</p>
+          <div class="page-actions">
+            <button class="action" type="button" data-copy-markdown><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/></svg><span data-label>Copy as Markdown</span></button>
+          </div>
+        </header>
+
+
+      <section id="stack">
+        <h2>Tech stack</h2>
+        <dl class="parts">
+          <div><dt>Language</dt><dd><a href="https://isocpp.org/">C++20</a></dd></div>
+          <div><dt>Interface</dt><dd><a href="https://www.qt.io/">Qt 6</a> Widgets (no QML, no web views)</dd></div>
+          <div><dt>Build</dt><dd><a href="https://cmake.org/">CMake</a> with <a href="https://ninja-build.org/">Ninja</a>, libraries from <a href="https://vcpkg.io/">vcpkg</a></dd></div>
+          <div><dt>Libraries</dt><dd>
+            <ul>
+              <li><a href="https://github.com/nlohmann/json">nlohmann/json</a> for reading and writing JSON</li>
+              <li><a href="https://github.com/richgel999/miniz">miniz</a> for zip files</li>
+              <li><a href="https://github.com/mackron/dr_libs">dr_libs</a> for reading the soundpack's audio files</li>
+              <li><a href="https://github.com/catchorg/Catch2">Catch2</a> for tests</li>
+              <li><code>skyinput</code> (in <code>libs/skyinput</code>), our own small library that sends key presses to the game</li>
+            </ul>
+          </dd></div>
+          <div><dt>Installer</dt><dd><a href="https://jrsoftware.org/isinfo.php">Inno Setup 6</a></dd></div>
+        </dl>
+      </section>
+
+      <section id="prerequisites">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Windows 10 or 11, 64-bit</li>
+          <li><a href="https://visualstudio.microsoft.com/">Visual Studio 2022</a> (Community is fine). In the installer pick <strong>Desktop development with C++</strong>, and make sure <strong>C++ CMake tools for Windows</strong> and <strong>vcpkg package manager</strong> are ticked. This also gives you CMake and Ninja.</li>
+          <li><a href="https://www.qt.io/download-qt-installer-oss">Qt 6.8 or newer</a>. In the Qt installer pick the <strong>MSVC 2022 64-bit</strong> build. Only Qt Base and Qt SVG are needed.</li>
+          <li><a href="https://git-scm.com/">Git</a></li>
+          <li><a href="https://jrsoftware.org/isinfo.php">Inno Setup 6</a>, only if you want to make the installer</li>
+        </ul>
+      </section>
+
+      <section id="building">
+        <h2>Building</h2>
+
+        <h3 id="1-get-the-code">1. Get the code</h3>
+        <div class="code"><pre><code>git clone https://github.com/NullVoid780/SkyAutoPianoCpp.git
+cd SkyAutoPianoCpp</code></pre></div>
+
+        <h3 id="2-open-a-build-terminal">2. Open a build terminal</h3>
+        <p>From the Start menu, open <strong>x64 Native Tools Command Prompt for VS 2022</strong> (or <strong>Developer Command Prompt for VS 2022</strong>). A normal PowerShell or Command Prompt won't work.</p>
+        <p>Then tell the build where vcpkg and Qt are:</p>
+        <div class="code"><pre><code>set "VCPKG_ROOT=C:\Program Files\Microsoft Visual Studio\2022\Community\VC\vcpkg"
+set "QT_ROOT=C:\Qt\6.12.0\msvc2022_64"</code></pre></div>
+        <p class="warn"><strong>Use your own Qt version in <code>QT_ROOT</code>.</strong> Open <code>C:\Qt</code> in File Explorer and look at the folder name, for example <code>6.8.3</code> or <code>6.12.0</code>. You need to set these again every time you open a new terminal.</p>
+
+        <h3 id="3-build-the-app">3. Build the app</h3>
+        <div class="code"><pre><code>cmake --preset win-x64-release
+cmake --build --preset win-x64-release</code></pre></div>
+        <p>The first build takes a few minutes while vcpkg gets the libraries. When it's done, the app is at <code>build\win-x64-release\bin\SkyAutoPiano.exe</code>. Qt is copied next to it, so you can run it straight away.</p>
+        <p>There are three presets:</p>
+        <div class="table">
+          <table>
+            <thead><tr><th>Preset</th><th>What it's for</th></tr></thead>
+            <tbody>
+              <tr><td><code>win-x64-debug</code></td><td>Debug build, easiest to step through in a debugger</td></tr>
+              <tr><td><code>win-x64-release</code></td><td>Fast build with debug symbols, used for releases</td></tr>
+              <tr><td><code>win-x64-ci</code></td><td>Same as release, but every compiler warning counts as an error</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 id="4-make-the-installer">4. Make the installer</h3>
+        <p>With Inno Setup 6 installed:</p>
+        <div class="code"><pre><code>cmake --build --preset win-x64-release --target package</code></pre></div>
+        <p>This creates <code>build\win-x64-release\deploy\SkyAutoPiano-&lt;version&gt;-setup.exe</code>. To get only the ready-to-run folder without the installer, use <code>--target deploy</code> instead.</p>
+      </section>
+
+      <section id="layers">
+        <h2>How the code is organized</h2>
+        <p>You should be comfortable with C++ and Qt Widgets. The app is split into layers, and each layer only uses the ones below it:</p>
+        <div class="code code-plain"><pre><code>ui        windows, widgets, theme          (src/ui)
+app       start-up, wires everything       (src/app)
+services  library, playback, settings...   (src/services)
+codec     reading and writing sheet files  (src/codec)
+core      logging, files, text, timing     (src/core)</code></pre></div>
+
+        <h3 id="folders">Folders</h3>
+        <div class="code code-plain"><pre><code>SkyAutoPianoCpp/
+├── assets/           fonts, icons, the app icon and the soundpack
+├── cmake/            helper CMake scripts
+├── docs/             install, user and release guides
+├── libs/skyinput/    sends key presses to the game
+├── packaging/        installer script, Windows manifest and licences
+├── src/
+│   ├── app/          start-up, and wiring the parts together
+│   ├── codec/        reading and writing sheet files (JSON, ABC, MIDI)
+│   ├── core/         shared tools: logging, files, text, timing
+│   ├── crash/        crash handler and CrashReport.exe
+│   ├── model/        plain data: songs, notes, playlists, settings
+│   ├── net/          web requests, downloads, zip files
+│   ├── platform/     Windows-only parts: file dialogs, tray messages, title bar
+│   ├── services/
+│   │   ├── audio/          the sheet editor's sound and soundpack
+│   │   ├── library/        songs, playlists, favorites, recent plays, import
+│   │   ├── notifications/  pop-up messages
+│   │   ├── playback/       the Lite and Strict players and their timing
+│   │   ├── settings/       settings file, shortcuts, saved window state
+│   │   ├── store/          Sky Sheet Store
+│   │   └── update/         the updater
+│   └── ui/           every window, widget and the theme
+├── tests/            automated tests
+└── website/          this website</code></pre></div>
+
+        <h3 id="using-a-test-library">Using a test library</h3>
+        <p>The app keeps its <code>config</code>, <code>data</code> and <code>logs</code> folders next to the exe. To try things without touching your real songs, point it at another folder:</p>
+        <div class="code"><pre><code>set "SKYAUTOPIANO_HOME=D:\test-library"
+build\win-x64-release\bin\SkyAutoPiano.exe</code></pre></div>
+        <p class="warn"><strong>Only one copy of the app can run at a time.</strong> Close it before you build again, or the build fails with <code>LNK1168</code>.</p>
+
+        <dl class="parts">
+          <div><dt>Start-up</dt><dd><code>src/main.cpp</code> sets up Qt and the crash handler, then <code>src/app/application.cpp</code> creates every service and window and connects them. If you add a new service, this is where it gets created.</dd></div>
+          <div><dt>Playback</dt><dd><code>PlaybackService</code> (<code>src/services/playback/playback_service.cpp</code>) is what the rest of the app talks to. It runs either <code>LitePlayer</code> or <code>StrictPlayer</code>, depending on the setting. Both play the song on their own high-priority thread, so the window can't slow the timing down. The actual key presses go through <code>libs/skyinput</code>.</dd></div>
+          <div><dt>Theme and styles</dt><dd><strong>Every</strong> color, size and shadow lives in <code>src/ui/theme.cpp</code>. The stylesheet <code>src/ui/styles/app.qss</code> only uses <code>@token</code> names, which are filled in from the theme. A test (<code>tests/ui/test_theme_tokens.cpp</code>) fails if the stylesheet uses a token that doesn't exist, or a color written straight into it.</dd></div>
+          <div><dt>Icons</dt><dd>SVG files in <code>assets/icons</code>. Drop a new file there and use it by its name without <code>.svg</code>. The build picks them up automatically and recolors them to match the theme.</dd></div>
+          <div><dt>Adding a source file</dt><dd>New <code>.cpp</code> files must be added to the list in <code>src/CMakeLists.txt</code> (or <code>tests/CMakeLists.txt</code> for tests). They are not picked up automatically.</dd></div>
+        </dl>
+        <div class="code"><pre><code>IconCache::pixmap(QStringLiteral("download"), size, color, devicePixelRatioF());</code></pre></div>
+      </section>
+
+      <section id="tests">
+        <h2>Running tests</h2>
+        <div class="code"><pre><code>ctest --test-dir build\win-x64-release</code></pre></div>
+        <p>All tests should pass before you open a pull request. Tests use <a href="https://github.com/catchorg/Catch2">Catch2</a> and live in <code>tests/</code>, in the same folders as the code they test. Shared helpers are in <code>tests/support</code>.</p>
+        <p class="warn"><strong>Tests must never send real key presses to the game.</strong> Test the timing and the note lists instead of the player itself.</p>
+      </section>
+
+      <section id="publishing">
+        <h2>Publishing a new version</h2>
+        <p>The app updates itself from this repository's GitHub releases, so a release must follow these rules:</p>
+        <ol class="numbered">
+          <li>Change the version in <code>CMakeLists.txt</code> (<code>SKY_VERSION</code>) and <code>vcpkg.json</code>, and add a <code>## vx.y.z</code> section to <code>CHANGELOG.md</code>.</li>
+          <li>Build the installer with <code>--target package</code>.</li>
+          <li>Create a GitHub release with the tag <code>vx.y.z</code> and upload <code>SkyAutoPiano-x.y.z-setup.exe</code>. Don't rename the file.</li>
+          <li>Paste the notes into the release description. <strong>This is what users see in the update window.</strong> Add <code>&lt;!-- critical --&gt;</code> for an important fix. Anything after a <code>---</code> line only shows on GitHub.</li>
+          <li>Publish it as a normal release, not a draft or pre-release.</li>
+        </ol>
+      </section>
+
+      <section id="website">
+        <h2>The website</h2>
+        <p>The website in <code>website/</code> is plain HTML, CSS and one <code>site.js</code>, so you can open any page straight from the folder. It's published to GitHub Pages whenever <code>main</code> changes the website.</p>
+        <p>The docs pages are written by hand, so when you change one of the docs, change its page too. The <strong>Copy as Markdown</strong> button turns the text on the page into Markdown in the browser, so it always copies exactly what the page says.</p>
+      </section>
+
+      <section id="problems">
+        <h2>Problems while building</h2>
+        <div class="accordions">
+          <details>
+            <summary><code>Could not find a package configuration file provided by "Qt6"</code></summary>
+            <p><code>QT_ROOT</code> is missing or wrong. Most of the time the version number doesn't match what you have. Check the folder name in <code>C:\Qt</code> and use that, then run <code>cmake --preset win-x64-release</code> again in the same window.</p>
+          </details>
+          <details>
+            <summary><code>LNK1104: cannot open file 'winmm.lib'</code> or <code>'cl' is not recognized</code></summary>
+            <p>You're in a normal terminal. Open <strong>x64 Native Tools Command Prompt for VS 2022</strong> and set the two variables again.</p>
+          </details>
+          <details>
+            <summary><code>LNK1168: cannot open … SkyAutoPiano.exe for writing</code></summary>
+            <p>The app is still running. Close it, including from the tray, and build again.</p>
+          </details>
+          <details>
+            <summary><code>LNK1104: cannot open file 'bin\skyautopiano_tests.exe'</code></summary>
+            <p>Something, usually antivirus, was holding the file for a moment. Run the build command again.</p>
+          </details>
+          <details>
+            <summary><code>Could not find toolchain file: /scripts/buildsystems/vcpkg.cmake</code></summary>
+            <p><code>VCPKG_ROOT</code> isn't set. Point it at your vcpkg folder.</p>
+          </details>
+          <details>
+            <summary>The C++ compiler "is not able to compile a simple test program" and mentions <code>ld.exe</code></summary>
+            <p>The build folder remembers a linker from an earlier run in a normal terminal. Run <code>cmake --preset win-x64-release --fresh</code> from the Visual Studio terminal to start over without it.</p>
+          </details>
+          <details>
+            <summary>The installer step says Inno Setup was not found</summary>
+            <p>Install Inno Setup 6 in its default folder, then run the <code>cmake --preset</code> step again.</p>
+          </details>
+        </div>
+      </section>
+
+        <nav class="pager" aria-label="Previous and next page">
+          <a class="pager-prev" href="themes.html"><span>Previous</span>Themes</a>
+          <a class="pager-next" href="contributing.html"><span>Next</span>Contributing</a>
+        </nav>
+        <footer class="docs-footer">
+          <span>A fan project. Not made by or connected to thatgamecompany. MIT licensed.</span>
+          <a href="https://github.com/NullVoid780/SkyAutoPianoCpp/blob/main/DEVELOPMENT_AND_BUILD.md">Edit this page on GitHub</a>
+        </footer>
+      </article>
+    </main>
+
+    <aside class="docs-toc" aria-label="On this page">
+      <p class="toc-head">On this page</p>
+      <ol class="toc-list">
+        <li class="level-2"><a href="#stack">Tech stack</a></li>
+        <li class="level-2"><a href="#prerequisites">Prerequisites</a></li>
+        <li class="level-2"><a href="#building">Building</a></li>
+        <li class="level-3"><a href="#1-get-the-code">1. Get the code</a></li>
+        <li class="level-3"><a href="#2-open-a-build-terminal">2. Open a build terminal</a></li>
+        <li class="level-3"><a href="#3-build-the-app">3. Build the app</a></li>
+        <li class="level-3"><a href="#4-make-the-installer">4. Make the installer</a></li>
+        <li class="level-2"><a href="#layers">How the code is organized</a></li>
+        <li class="level-3"><a href="#folders">Folders</a></li>
+        <li class="level-3"><a href="#using-a-test-library">Using a test library</a></li>
+        <li class="level-2"><a href="#tests">Running tests</a></li>
+        <li class="level-2"><a href="#publishing">Publishing a new version</a></li>
+        <li class="level-2"><a href="#website">The website</a></li>
+        <li class="level-2"><a href="#problems">Problems while building</a></li>
+      </ol>
+      <a class="back-top" href="#top"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-7.5 3.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707z"/></svg>Back to top</a>
+    </aside>
+  </div>
+</body>
+</html>

@@ -67,3 +67,21 @@ TEST_CASE("unknown ui-state fields survive a save")
     const std::string text = readTextFile(dir.path() / "ui-state.json").value();
     CHECK(text.find("\"future\": 42") != std::string::npos);
 }
+
+TEST_CASE("the sheet editor remembers its view and note colors")
+{
+    ensureCoreApp();
+    TempDir dir;
+    {
+        UiStateService state(dir.path());
+        state.load();
+        CHECK_FALSE(state.editorAdvancedView());
+        CHECK(state.editorColorfulNotes());
+        state.setEditorAdvancedView(true);
+        state.setEditorColorfulNotes(false);
+    }
+    UiStateService reloaded(dir.path());
+    reloaded.load();
+    CHECK(reloaded.editorAdvancedView());
+    CHECK_FALSE(reloaded.editorColorfulNotes());
+}

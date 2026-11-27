@@ -40,6 +40,15 @@ public:
     bool legacyImportOffered() const;
     void setLegacyImportOffered();
 
+    bool editorAdvancedView() const;
+    void setEditorAdvancedView(bool advanced);
+
+    bool editorColorfulNotes() const;
+    void setEditorColorfulNotes(bool colorful);
+
+    bool editorSoundMuted() const;
+    void setEditorSoundMuted(bool muted);
+
     const std::filesystem::path &filePath() const { return m_path; }
 
 signals:

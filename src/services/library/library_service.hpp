@@ -82,7 +82,7 @@ public:
     Result<void> deleteSheet(int index);
     DeleteSummary deleteSheets(const std::set<std::string> &payloadFiles);
     Result<void> updateEntryField(int index, const std::string &field, OrderedJson value);
-    Result<void> saveEditedKeyMap(int index, const KeyMap &keyMap);
+    Result<void> saveEditedNotes(int index, const SheetPayload &payload, bool hasHoldNotes);
     std::set<std::string> legacySongKeys() const;
     void importLegacyRows(std::filesystem::path sourceData, std::vector<OrderedJson> rows, int alreadyPresent,
                           std::function<void(LegacyImportSummary)> done);

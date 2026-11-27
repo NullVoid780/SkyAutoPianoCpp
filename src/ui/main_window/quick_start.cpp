@@ -25,6 +25,7 @@
 #include "ui/settings_window/theme_preview.hpp"
 #include "ui/theme_catalog.hpp"
 #include "ui/theme_manager.hpp"
+#include "ui/widgets/step_dots.hpp"
 #include "ui/widgets/toggle_switch.hpp"
 
 namespace sky {
@@ -202,38 +203,6 @@ private:
     Theme m_dark;
     QPixmap m_cache;
     HoverTracker *m_hover;
-};
-
-class StepDots final : public QWidget {
-public:
-    explicit StepDots(QWidget *parent) : QWidget(parent) { setFixedHeight(12); }
-
-    void set(int count, int current)
-    {
-        m_count = count;
-        m_current = current;
-        setFixedWidth(std::max(0, count * 22 - 8));
-        update();
-    }
-
-protected:
-    void paintEvent(QPaintEvent *) override
-    {
-        const Theme &theme = currentTheme();
-        QPainter painter(this);
-        preparePainter(painter);
-        qreal x = 0;
-        for (int i = 0; i < m_count; ++i) {
-            const qreal width = i == m_current ? 22 : 8;
-            const QRectF dot(x, 2, width, 8);
-            paintPill(painter, dot, i <= m_current ? theme.hoverColor : withAlpha(theme.fontColor, 0.25));
-            x += width + 6;
-        }
-    }
-
-private:
-    int m_count = 0;
-    int m_current = 0;
 };
 
 QuickStart::QuickStart(ThemeController &themes, ConfigService &config, QWidget *window)

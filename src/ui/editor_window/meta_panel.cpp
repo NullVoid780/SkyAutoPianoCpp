@@ -1,6 +1,5 @@
 #include "ui/editor_window/meta_panel.hpp"
 
-#include <QLabel>
 #include <QPainter>
 #include <QVBoxLayout>
 
@@ -14,16 +13,14 @@ namespace {
 
 constexpr int kPadding = 15;
 constexpr int kRowGap = 6;
-constexpr int kBannerGap = 12;
 constexpr qreal kRadius = 12;
 
 }  // namespace
 
-MetaPanel::MetaPanel(QWidget *parent) : QWidget(parent), m_holdBanner(new QLabel(this))
+MetaPanel::MetaPanel(QWidget *parent) : QWidget(parent)
 {
-    setMaximumWidth(kMaxWidth);
-    setFixedWidth(kMaxWidth);
-    const std::array<QString, 4> labels = {QString(), QStringLiteral("Author:"), QStringLiteral("Transcribed by:"),
+    const std::array<QString, 4> labels = {QStringLiteral("Name:"), QStringLiteral("Author:"),
+                                           QStringLiteral("Transcribed by:"),
                                            QStringLiteral("BPM:")};
     auto *column = new QVBoxLayout(this);
     column->setContentsMargins(kPadding, kPadding, kPadding, kPadding);
@@ -32,22 +29,7 @@ MetaPanel::MetaPanel(QWidget *parent) : QWidget(parent), m_holdBanner(new QLabel
         m_fields[i] = new EditableField(labels[i], this);
         column->addWidget(m_fields[i]);
     }
-    m_holdBanner->setObjectName(QStringLiteral("EditorHoldBanner"));
-    m_holdBanner->setWordWrap(true);
-    m_holdBanner->setText(
-        QStringLiteral("This sheet contains hold notes. The current editor is read-only for hold sheets."));
-    m_holdBanner->setVisible(false);
-    column->addSpacing(kBannerGap - kRowGap);
-    column->addWidget(m_holdBanner);
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this, [this] { update(); });
-}
-
-void MetaPanel::setHoldSheet(bool hold)
-{
-    m_holdBanner->setVisible(hold);
-    for (EditableField *field : m_fields) {
-        field->setEditable(!hold);
-    }
 }
 
 void MetaPanel::paintEvent(QPaintEvent *)

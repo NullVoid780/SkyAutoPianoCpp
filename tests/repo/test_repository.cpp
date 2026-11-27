@@ -106,6 +106,7 @@ TEST_CASE("every icon the code asks for exists")
     const std::vector<std::regex> patterns = {
         std::regex(R"re(IconCache::(?:icon|pixmap)\(\s*QStringLiteral\("([^"]+)"\))re"),
         std::regex(R"re(IconButton\(\s*QStringLiteral\("([^"]+)"\))re"),
+        std::regex(R"re(ToolButton\(\s*QStringLiteral\("([^"]+)"\))re"),
         std::regex(R"re(ActionButton\(\s*ActionButton::Kind::\w+\s*,\s*QStringLiteral\("([^"]+)"\))re"),
         std::regex(R"re(TransportButton\(\s*TransportButton::Kind::\w+\s*,\s*QStringLiteral\("([^"]+)"\))re"),
         std::regex(R"re(new (?:SettingsRow|SettingCard|TabHeader)\(\s*QStringLiteral\("([^"]+)"\))re"),

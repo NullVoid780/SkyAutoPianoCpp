@@ -16,6 +16,8 @@ add_executable(skyautopiano_tests
     services/test_config_service.cpp
     services/test_legacy_import.cpp
     services/test_library_service.cpp
+    services/test_note_synth.cpp
+    services/test_sample_bank.cpp
     services/test_playback_service.cpp
     services/test_playlist_service.cpp
     services/test_report_writer.cpp
@@ -37,6 +39,9 @@ target_include_directories(skyautopiano_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR
 target_compile_definitions(skyautopiano_tests PRIVATE SKY_QSS_PATH="${CMAKE_SOURCE_DIR}/src/ui/styles/app.qss"
     SKY_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 target_link_libraries(skyautopiano_tests PRIVATE sky_ui sky_services sky_codec sky_core sky_crash skyinput miniz::miniz Catch2::Catch2WithMain)
+file(GLOB_RECURSE SKY_TEST_SOUNDPACK_FILES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/assets/soundpack/*.mp3)
+qt_add_resources(skyautopiano_tests sky_test_soundpack PREFIX "/soundpack" BASE ${CMAKE_SOURCE_DIR}/assets/soundpack
+                 FILES ${SKY_TEST_SOUNDPACK_FILES})
 
 add_custom_command(TARGET skyautopiano_tests POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

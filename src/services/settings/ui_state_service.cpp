@@ -127,6 +127,51 @@ void UiStateService::setQuickStartDone()
     save();
 }
 
+bool UiStateService::editorAdvancedView() const
+{
+    const auto found = m_raw.find("editorAdvancedView");
+    return found != m_raw.end() && found->is_boolean() && found->get<bool>();
+}
+
+void UiStateService::setEditorAdvancedView(bool advanced)
+{
+    if (editorAdvancedView() == advanced) {
+        return;
+    }
+    m_raw["editorAdvancedView"] = advanced;
+    save();
+}
+
+bool UiStateService::editorColorfulNotes() const
+{
+    const auto found = m_raw.find("editorColorfulNotes");
+    return found == m_raw.end() || !found->is_boolean() || found->get<bool>();
+}
+
+void UiStateService::setEditorColorfulNotes(bool colorful)
+{
+    if (editorColorfulNotes() == colorful) {
+        return;
+    }
+    m_raw["editorColorfulNotes"] = colorful;
+    save();
+}
+
+bool UiStateService::editorSoundMuted() const
+{
+    const auto found = m_raw.find("editorSoundMuted");
+    return found != m_raw.end() && found->is_boolean() && found->get<bool>();
+}
+
+void UiStateService::setEditorSoundMuted(bool muted)
+{
+    if (editorSoundMuted() == muted) {
+        return;
+    }
+    m_raw["editorSoundMuted"] = muted;
+    save();
+}
+
 bool UiStateService::followSystemTheme() const
 {
     const auto found = m_raw.find("followSystemTheme");

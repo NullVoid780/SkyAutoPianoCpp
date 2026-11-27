@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "codec/key_map_builder.hpp"
+#include "codec/playback_note_builder.hpp"
 #include "core/string_utils.hpp"
 #include "model/key_table.hpp"
 
@@ -43,6 +45,19 @@ std::vector<SongNote> songNotesFromKeyMap(const KeyMap &keyMap)
         return a.key < b.key;
     });
     return notes;
+}
+
+Result<SheetPayload> payloadFromSongNotes(std::vector<SongNote> songNotes)
+{
+    auto playbackNotes = buildPlaybackNotes(songNotes, kSkyKeyCount);
+    if (!playbackNotes) {
+        return playbackNotes.error();
+    }
+    auto keyMap = buildKeyMap(playbackNotes.value());
+    if (!keyMap) {
+        return keyMap.error();
+    }
+    return SheetPayload{std::move(keyMap).value(), std::move(songNotes)};
 }
 
 OrderedJson buildExportDocument(const SheetEntry &entry, const std::vector<SongNote> &payloadNotes,

@@ -2,6 +2,7 @@
 
 #include <fstream>
 
+#include "codec/sheet_exporter.hpp"
 #include "core/base64.hpp"
 #include "core/text_file.hpp"
 #include "qt_test_support.hpp"
@@ -226,8 +227,12 @@ TEST_CASE("editor saves update the row and the payload")
     REQUIRE(f.library.updateEntryField(0, "bpm", 90).ok());
     CHECK(f.library.entry(0)->bpm() == 90.0);
 
-    const KeyMap edited({{0.0, {"u"}}, {1000.0, {}}});
-    REQUIRE(f.library.saveEditedKeyMap(0, edited).ok());
+    CHECK_FALSE(f.library.entry(0)->hasHoldNotes());
+    auto edited = payloadFromSongNotes({SongNote{0, "1Key1", 300}});
+    REQUIRE(edited);
+    REQUIRE(f.library.saveEditedNotes(0, edited.value(), true).ok());
     const std::string text = readTextFile(f.dir.path() / f.library.entry(0)->payloadFile()).value();
-    CHECK(text == R"({"version":2,"keyMap":{"0":["u"],"1000":[]},"songNotes":[{"time":0,"key":"1Key1"}]})");
+    CHECK(text ==
+          R"({"version":2,"keyMap":{"0":["u"],"1000":[]},"songNotes":[{"time":0,"key":"1Key1","hold":300}]})");
+    CHECK(f.library.entry(0)->hasHoldNotes());
 }

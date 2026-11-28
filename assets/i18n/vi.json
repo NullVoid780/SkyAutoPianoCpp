@@ -775,5 +775,6 @@
   "Verify": "Xác minh",
   "Restore and Verify Data": "Khôi phục và xác minh dữ liệu",
   "Re-check that everything copied from the old version is complete in this library before removing it.": "Kiểm tra lại xem mọi thứ đã sao chép từ phiên bản cũ đã đầy đủ trong thư viện này chưa trước khi gỡ nó.",
-  "Uninstalling...": "Đang gỡ cài đặt..."
+  "Uninstalling...": "Đang gỡ cài đặt...",
+  "Pick the language for the app - it switches right away.": "Chọn ngôn ngữ cho ứng dụng - thay đổi sẽ áp dụng ngay lập tức."
 }

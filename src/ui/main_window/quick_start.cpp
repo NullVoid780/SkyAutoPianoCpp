@@ -26,6 +26,7 @@
 #include "ui/settings_window/theme_preview.hpp"
 #include "ui/theme_catalog.hpp"
 #include "ui/theme_manager.hpp"
+#include "ui/widgets/select_box.hpp"
 #include "ui/widgets/step_dots.hpp"
 #include "ui/widgets/toggle_switch.hpp"
 
@@ -52,6 +53,26 @@ QLabel *text(const QString &value, const char *objectName, QWidget *parent, bool
 QColor inkOn(const QColor &fill)
 {
     return fill.lightnessF() > 0.7 ? currentTheme().accent.ink900 : currentTheme().accent.white;
+}
+
+// The same language-name mapping the Settings > General tab uses for the
+// descriptions under each language's native name.
+const char *languageName(const char *code)
+{
+    const QLatin1String id(code);
+    if (id == QLatin1String("en")) {
+        return trNoop("English");
+    }
+    if (id == QLatin1String("vi")) {
+        return trNoop("Vietnamese");
+    }
+    if (id == QLatin1String("zh_CN")) {
+        return trNoop("Chinese (Simplified)");
+    }
+    if (id == QLatin1String("ja")) {
+        return trNoop("Japanese");
+    }
+    return trNoop("Spanish");
 }
 
 }  // namespace
@@ -217,16 +238,7 @@ QuickStart::QuickStart(ThemeController &themes, ConfigService &config, QWidget *
       m_skip(new ActionButton(ActionButton::Kind::Subtle, QString(), tr("Skip setup"), m_panel)),
       m_next(new ActionButton(ActionButton::Kind::Primary, QString(), tr("Next"), m_panel))
 {
-    m_welcome = buildWelcome();
-    m_look = buildLook();
-    m_legacy = buildLegacy();
-    m_playback = buildPlayback();
-    m_controls = buildControls();
-    m_done = buildDone();
-    for (QWidget *step : {m_welcome, m_look, m_legacy, m_playback, m_controls, m_done}) {
-        m_stack->addWidget(step);
-    }
-    m_steps = {m_welcome, m_look, m_legacy, m_playback, m_controls, m_done};
+    buildSteps();
 
     auto *nav = new QHBoxLayout();
     nav->setSpacing(12);
@@ -257,6 +269,20 @@ QuickStart::QuickStart(ThemeController &themes, ConfigService &config, QWidget *
     connect(&m_themes, &ThemeController::followSystemChanged, this, &QuickStart::syncLook);
 }
 
+void QuickStart::buildSteps()
+{
+    m_welcome = buildWelcome();
+    m_look = buildLook();
+    m_legacy = buildLegacy();
+    m_playback = buildPlayback();
+    m_controls = buildControls();
+    m_done = buildDone();
+    for (QWidget *step : {m_welcome, m_look, m_legacy, m_playback, m_controls, m_done}) {
+        m_stack->addWidget(step);
+    }
+    m_steps = {m_welcome, m_look, m_legacy, m_playback, m_controls, m_done};
+}
+
 QWidget *QuickStart::page(const QString &iconId, const QString &title, const QString &body)
 {
     auto *widget = new QWidget(m_stack);
@@ -282,6 +308,21 @@ QWidget *QuickStart::buildWelcome()
                            tr("Let's set things up. It takes less than a minute, and you can change "
                                           "everything later in Settings."));
     auto *column = static_cast<QVBoxLayout *>(widget->layout());
+    column->addWidget(text(tr("Language"), "ColorPickerCaption", widget));
+    column->addSpacing(6);
+    m_language = new SelectBox(widget);
+    m_language->addOption(tr("Follow Windows"), tr("Use the same language as Windows"));
+    for (const LanguageInfo &language : supportedLanguages()) {
+        m_language->addOption(QString::fromUtf8(language.nativeName), tr(languageName(language.code)));
+    }
+    m_language->setAccessibleName(tr("Language"));
+    column->addWidget(m_language);
+    column->addSpacing(4);
+    column->addWidget(text(tr("Pick the language for the app - it switches right away."),
+                           "SettingsRowDescription", widget, true));
+    column->addSpacing(16);
+    setLanguage(m_languagePreference);
+    connect(m_language, &SelectBox::currentIndexChanged, this, &QuickStart::onLanguageIndexChanged);
     const QStringList points = {tr("Pick light or dark and a theme you like"),
                                 tr("Bring your songs over from the previous version"),
                                 tr("Choose how songs play and learn the shortcuts")};
@@ -488,6 +529,14 @@ void QuickStart::start()
     m_current = 0;
     setLegacyState(LegacyState::Searching);
     syncLook();
+    syncControls();
+    showStep(0);
+    open();
+    m_next->setFocus(Qt::OtherFocusReason);
+}
+
+void QuickStart::syncControls()
+{
     const PanelConfig panel = m_config.panel();
     {
         const QSignalBlocker liteBlocker(m_liteTile);
@@ -499,14 +548,14 @@ void QuickStart::start()
         m_minimize->setCheckedImmediately(panel.minimizeOnPlay);
     }
     loadControls();
-    showStep(0);
-    open();
-    m_next->setFocus(Qt::OtherFocusReason);
 }
 
 void QuickStart::setLegacyState(LegacyState state, int songs, int playlists, const QString &detail)
 {
     m_legacyState = state;
+    m_legacySongs = songs;
+    m_legacyPlaylists = playlists;
+    m_legacyDetail = detail;
     QString body;
     switch (state) {
     case LegacyState::Searching:
@@ -573,6 +622,67 @@ void QuickStart::applyCleanup()
         relayout();
         update();
     }
+}
+
+void QuickStart::setLanguage(const QString &preference)
+{
+    m_languagePreference = preference;
+    if (!m_language) {
+        return;
+    }
+    int index = 0;
+    const auto &languages = supportedLanguages();
+    for (std::size_t i = 0; i < languages.size(); ++i) {
+        if (preference == QLatin1String(languages[i].code)) {
+            index = static_cast<int>(i) + 1;
+        }
+    }
+    const QSignalBlocker blocker(m_language);
+    m_language->setCurrentIndex(index);
+}
+
+void QuickStart::onLanguageIndexChanged(int index)
+{
+    const auto &languages = supportedLanguages();
+    const QString preference = index <= 0 || index > static_cast<int>(languages.size())
+                                   ? QString()
+                                   : QString::fromLatin1(languages[static_cast<std::size_t>(index - 1)].code);
+    m_languagePreference = preference;
+    emit languageChosen(preference);
+    if (resolveLanguage(preference) == currentLanguage()) {
+        return;
+    }
+    installLanguage(preference);
+    rebuildSteps();
+}
+
+// The step pages hold text set at build time, so a language switch rebuilds
+// them in the new language and restores every piece of state they showed:
+// the current step, the look and playback choices, the shortcut list, the
+// legacy import state and the legacy cleanup state.
+void QuickStart::rebuildSteps()
+{
+    const int step = m_current;
+    for (QWidget *page : m_steps) {
+        m_stack->removeWidget(page);
+        delete page;
+    }
+    m_steps.clear();
+    m_modeTiles.clear();
+    m_themeChips.clear();
+    m_shortcutKeys.clear();
+    buildSteps();
+    syncLook();
+    syncControls();
+    setLegacyState(m_legacyState, m_legacySongs, m_legacyPlaylists, m_legacyDetail);
+    retranslateChrome();
+    showStep(step);
+}
+
+void QuickStart::retranslateChrome()
+{
+    m_back->setText(tr("Back"));
+    m_skip->setText(tr("Skip setup"));
 }
 
 void QuickStart::loadControls()

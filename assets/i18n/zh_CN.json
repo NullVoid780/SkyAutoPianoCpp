@@ -775,5 +775,6 @@
   "Verify": "验证",
   "Restore and Verify Data": "恢复并验证数据",
   "Re-check that everything copied from the old version is complete in this library before removing it.": "在删除旧版之前，重新检查从旧版复制的所有内容是否完整存在于此曲库中。",
-  "Uninstalling...": "正在卸载..."
+  "Uninstalling...": "正在卸载...",
+  "Pick the language for the app - it switches right away.": "选择应用语言 - 将立即切换。"
 }

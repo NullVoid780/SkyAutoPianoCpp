@@ -775,5 +775,6 @@
   "Verify": "Verificar",
   "Restore and Verify Data": "Restaurar y verificar datos",
   "Re-check that everything copied from the old version is complete in this library before removing it.": "Vuelve a comprobar que todo lo copiado de la versión antigua esté completo en esta biblioteca antes de eliminarla.",
-  "Uninstalling...": "Desinstalando..."
+  "Uninstalling...": "Desinstalando...",
+  "Pick the language for the app - it switches right away.": "Elige el idioma de la aplicación: se cambia al instante."
 }

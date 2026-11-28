@@ -775,5 +775,6 @@
   "Verify": "確認",
   "Restore and Verify Data": "データを復元して確認",
   "Re-check that everything copied from the old version is complete in this library before removing it.": "旧バージョンを削除する前に、旧バージョンからコピーした内容がすべてこのライブラリにそろっているか再確認します。",
-  "Uninstalling...": "アンインストールしています..."
+  "Uninstalling...": "アンインストールしています...",
+  "Pick the language for the app - it switches right away.": "アプリの言語を選択してください - すぐに切り替わります。"
 }

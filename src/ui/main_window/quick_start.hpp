@@ -12,6 +12,7 @@ namespace sky {
 class ActionButton;
 class ChoiceTile;
 class ConfigService;
+class SelectBox;
 class StepDots;
 class ThemeChip;
 class ThemeController;
@@ -31,6 +32,10 @@ public:
     // The same legacy cleanup state the Settings > General section shows:
     // the application computes it once and pushes it to both surfaces.
     void setLegacyCleanup(const QString &description, bool removeEnabled, bool verifyVisible, bool busy);
+    // The same language preference the Settings > General tab edits: the
+    // application seeds it from the persisted value, and every change is
+    // reported back through languageChosen so it is stored in the same place.
+    void setLanguage(const QString &preference);
 
 signals:
     void finished();
@@ -38,6 +43,7 @@ signals:
     void legacyFolderRequested();
     void legacyRemovalRequested();
     void legacyVerifyRequested();
+    void languageChosen(const QString &preference);
 
 protected:
     QWidget *panel() const override { return m_panel; }
@@ -62,6 +68,11 @@ private:
     void syncLook();
     void loadControls();
     void applyCleanup();
+    void buildSteps();
+    void rebuildSteps();
+    void syncControls();
+    void retranslateChrome();
+    void onLanguageIndexChanged(int index);
 
     ThemeController &m_themes;
     ConfigService &m_config;
@@ -85,6 +96,11 @@ private:
     bool m_cleanupRemoveEnabled = false;
     bool m_cleanupVerifyVisible = false;
     bool m_cleanupBusy = false;
+    SelectBox *m_language = nullptr;
+    QString m_languagePreference;
+    int m_legacySongs = 0;
+    int m_legacyPlaylists = 0;
+    QString m_legacyDetail;
     QLabel *m_legacyBody = nullptr;
     QLabel *m_legacyNote = nullptr;
     QWidget *m_legacyChoices = nullptr;

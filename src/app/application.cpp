@@ -1109,6 +1109,13 @@ void Application::showQuickStart()
 {
     if (!m_quickStart) {
         m_quickStart = new QuickStart(*m_themes, *m_config, m_mainWindow.get());
+        m_quickStart->setLanguage(toQString(m_uiState->language()));
+        connect(m_quickStart, &QuickStart::languageChosen, this, [this](const QString &preference) {
+            m_uiState->setLanguage(fromQString(preference));
+            if (m_settings) {
+                m_settings->setLanguage(preference);
+            }
+        });
         connect(m_quickStart, &QuickStart::finished, this, [this] { m_uiState->setQuickStartDone(); });
         connect(m_quickStart, &QuickStart::legacyImportRequested, this, [this] {
             if (m_quickStartLegacy) {

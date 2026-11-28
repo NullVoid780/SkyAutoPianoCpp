@@ -6,6 +6,7 @@
 #include <QHBoxLayout>
 #include <QIcon>
 #include <QLabel>
+#include <QMetaObject>
 #include <QPainter>
 #include <QSignalBlocker>
 #include <QStackedWidget>
@@ -653,7 +654,15 @@ void QuickStart::onLanguageIndexChanged(int index)
         return;
     }
     installLanguage(preference);
-    rebuildSteps();
+    // The rebuild deletes the step pages - including the Welcome page that
+    // owns the SelectBox whose currentIndexChanged signal is still being
+    // emitted (after the emission returns, the SelectBox still has to run
+    // setFocus() on itself, and the popup's own choose() frame is still on
+    // the stack). Destroying the emitter mid-signal is use-after-free, so
+    // the rebuild is deferred until the emission has fully unwound; it
+    // still lands in the same turn of the event loop, so the wizard
+    // re-renders in the new language right away.
+    QMetaObject::invokeMethod(this, &QuickStart::rebuildSteps, Qt::QueuedConnection);
 }
 
 // The step pages hold text set at build time, so a language switch rebuilds

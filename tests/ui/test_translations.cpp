@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "core/translator.hpp"
+#include "qt_test_support.hpp"
 
 namespace {
 
@@ -245,4 +246,23 @@ TEST_CASE("language preference resolves against the Windows languages", "[i18n]"
     CHECK(sky::resolveLanguage(QString(), {QStringLiteral("fr-FR"), QStringLiteral("es-ES")}) == QStringLiteral("es"));
     CHECK(sky::resolveLanguage(QString(), {QStringLiteral("fr-FR")}) == QStringLiteral("en"));
     CHECK(sky::resolveLanguage(QStringLiteral("xx"), {QStringLiteral("en-US")}) == QStringLiteral("en"));
+}
+
+TEST_CASE("switching the installed language forth and back is safe", "[i18n]")
+{
+    ensureCoreApp();
+    REQUIRE(sky::installLanguage(QStringLiteral("vi")) == QStringLiteral("vi"));
+    CHECK(sky::currentLanguage() == QStringLiteral("vi"));
+    CHECK(sky::tr("Settings") != QStringLiteral("Settings"));
+    // Back to following the system: the empty preference names no language,
+    // it resolves against the machine's own languages - the exact switch
+    // that used to crash the welcome screen when made after a fixed one.
+    const QString followed = sky::installLanguage(QString());
+    CHECK(followed == sky::resolveLanguage(QString()));
+    CHECK(sky::currentLanguage() == followed);
+    REQUIRE(sky::installLanguage(QStringLiteral("ja")) == QStringLiteral("ja"));
+    CHECK(sky::currentLanguage() == QStringLiteral("ja"));
+    REQUIRE(sky::installLanguage(QStringLiteral("en")) == QStringLiteral("en"));
+    CHECK(sky::currentLanguage() == QStringLiteral("en"));
+    CHECK(sky::tr("Settings") == QStringLiteral("Settings"));
 }

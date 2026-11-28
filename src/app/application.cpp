@@ -1281,8 +1281,13 @@ void Application::updateLegacyCleanupUi()
             }
         }
     }
-    const bool present = detection.status != LegacyDetectionStatus::NotFound || m_removalEvidence.has_value() ||
-                         m_uiState->legacyRemoved() || m_uiState->legacyMigrationStatus() != "not_detected";
+    // Once the old version has been removed and nothing of it is detected
+    // any more, the cleanup UI retires itself instead of staying on screen
+    // forever; if the old version is ever detected again it comes back.
+    const bool removedAndGone = detection.status == LegacyDetectionStatus::NotFound && m_uiState->legacyRemoved();
+    const bool present = !removedAndGone &&
+                         (detection.status != LegacyDetectionStatus::NotFound || m_removalEvidence.has_value() ||
+                          m_uiState->legacyRemoved() || m_uiState->legacyMigrationStatus() != "not_detected");
     const QString title = legacyCleanupTitle();
     if (m_settings) {
         m_settings->setLegacyCleanup(title, description, removeEnabled, busy, present);

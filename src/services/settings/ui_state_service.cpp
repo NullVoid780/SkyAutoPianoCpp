@@ -8,8 +8,7 @@ namespace sky {
 
 namespace {
 
-std::vector<std::string> stringList(const OrderedJson &raw, const char *key)
-{
+std::vector<std::string> stringList(const OrderedJson &raw, const char *key) {
     std::vector<std::string> values;
     const auto it = raw.find(key);
     if (it == raw.end() || !it->is_array()) {
@@ -23,8 +22,7 @@ std::vector<std::string> stringList(const OrderedJson &raw, const char *key)
     return values;
 }
 
-OrderedJson toJsonArray(const std::vector<std::string> &values)
-{
+OrderedJson toJsonArray(const std::vector<std::string> &values) {
     OrderedJson array = OrderedJson::array();
     for (const std::string &value : values) {
         array.push_back(value);
@@ -35,17 +33,15 @@ OrderedJson toJsonArray(const std::vector<std::string> &values)
 }  // namespace
 
 UiStateService::UiStateService(std::filesystem::path dataDirectory, QObject *parent)
-    : QObject(parent), m_path(dataDirectory / "ui-state.json")
-{
-}
+    : QObject(parent), m_path(dataDirectory / "ui-state.json") {}
 
-void UiStateService::load()
-{
+void UiStateService::load() {
     m_raw = OrderedJson::object();
     std::error_code ec;
     if (std::filesystem::exists(m_path, ec)) {
         auto text = readTextFile(m_path);
-        auto parsed = text ? parseJson<OrderedJson>(text.value()) : Result<OrderedJson>(text.error());
+        auto parsed =
+            text ? parseJson<OrderedJson>(text.value()) : Result<OrderedJson>(text.error());
         if (parsed && parsed.value().is_object()) {
             m_raw = std::move(parsed).value();
         } else {
@@ -65,19 +61,22 @@ void UiStateService::load()
     }
 }
 
-void UiStateService::save()
-{
+bool UiStateService::save() {
     m_raw["theme"] = m_theme == AppTheme::Dark ? "dark" : "light";
     m_raw["favorites"] = toJsonArray(m_favorites);
     m_raw["recentPlays"] = toJsonArray(m_recentPlays);
-    (void)ensureDir(m_path.parent_path());
+    if (auto ensured = ensureDir(m_path.parent_path()); !ensured) {
+        Logger::error("ui-state", ensured.error().details);
+        return false;
+    }
     if (auto written = atomicWrite(m_path, dumpJson(m_raw, 4)); !written) {
         Logger::error("ui-state", written.error().details);
+        return false;
     }
+    return true;
 }
 
-void UiStateService::setTheme(AppTheme theme)
-{
+void UiStateService::setTheme(AppTheme theme) {
     if (theme == m_theme) {
         return;
     }
@@ -86,29 +85,24 @@ void UiStateService::setTheme(AppTheme theme)
     emit themeChanged(theme);
 }
 
-void UiStateService::setFavorites(std::vector<std::string> names)
-{
+void UiStateService::setFavorites(std::vector<std::string> names) {
     m_favorites = std::move(names);
     save();
     emit favoritesChanged();
 }
 
-void UiStateService::setRecentPlays(std::vector<std::string> names)
-{
+void UiStateService::setRecentPlays(std::vector<std::string> names) {
     m_recentPlays = std::move(names);
     save();
     emit recentPlaysChanged();
 }
 
-
-std::string UiStateService::themeId() const
-{
+std::string UiStateService::themeId() const {
     const auto found = m_raw.find("themeId");
     return found != m_raw.end() && found->is_string() ? found->get<std::string>() : std::string();
 }
 
-void UiStateService::setThemeId(const std::string &id)
-{
+void UiStateService::setThemeId(const std::string &id) {
     if (themeId() == id) {
         return;
     }
@@ -120,14 +114,12 @@ void UiStateService::setThemeId(const std::string &id)
     save();
 }
 
-bool UiStateService::quickStartDone() const
-{
+bool UiStateService::quickStartDone() const {
     const auto found = m_raw.find("quickStartDone");
     return found != m_raw.end() && found->is_boolean() && found->get<bool>();
 }
 
-void UiStateService::setQuickStartDone()
-{
+void UiStateService::setQuickStartDone() {
     if (quickStartDone()) {
         return;
     }
@@ -135,14 +127,12 @@ void UiStateService::setQuickStartDone()
     save();
 }
 
-bool UiStateService::editorAdvancedView() const
-{
+bool UiStateService::editorAdvancedView() const {
     const auto found = m_raw.find("editorAdvancedView");
     return found != m_raw.end() && found->is_boolean() && found->get<bool>();
 }
 
-void UiStateService::setEditorAdvancedView(bool advanced)
-{
+void UiStateService::setEditorAdvancedView(bool advanced) {
     if (editorAdvancedView() == advanced) {
         return;
     }
@@ -150,14 +140,12 @@ void UiStateService::setEditorAdvancedView(bool advanced)
     save();
 }
 
-bool UiStateService::editorColorfulNotes() const
-{
+bool UiStateService::editorColorfulNotes() const {
     const auto found = m_raw.find("editorColorfulNotes");
     return found == m_raw.end() || !found->is_boolean() || found->get<bool>();
 }
 
-void UiStateService::setEditorColorfulNotes(bool colorful)
-{
+void UiStateService::setEditorColorfulNotes(bool colorful) {
     if (editorColorfulNotes() == colorful) {
         return;
     }
@@ -165,14 +153,12 @@ void UiStateService::setEditorColorfulNotes(bool colorful)
     save();
 }
 
-bool UiStateService::editorSoundMuted() const
-{
+bool UiStateService::editorSoundMuted() const {
     const auto found = m_raw.find("editorSoundMuted");
     return found != m_raw.end() && found->is_boolean() && found->get<bool>();
 }
 
-void UiStateService::setEditorSoundMuted(bool muted)
-{
+void UiStateService::setEditorSoundMuted(bool muted) {
     if (editorSoundMuted() == muted) {
         return;
     }
@@ -180,14 +166,12 @@ void UiStateService::setEditorSoundMuted(bool muted)
     save();
 }
 
-std::string UiStateService::language() const
-{
+std::string UiStateService::language() const {
     const auto found = m_raw.find("language");
     return found != m_raw.end() && found->is_string() ? found->get<std::string>() : std::string();
 }
 
-void UiStateService::setLanguage(const std::string &code)
-{
+void UiStateService::setLanguage(const std::string &code) {
     if (language() == code) {
         return;
     }
@@ -199,21 +183,18 @@ void UiStateService::setLanguage(const std::string &code)
     save();
 }
 
-std::string UiStateService::readLanguage(const std::filesystem::path &dataDirectory)
-{
+std::string UiStateService::readLanguage(const std::filesystem::path &dataDirectory) {
     UiStateService state(dataDirectory);
     state.load();
     return state.language();
 }
 
-bool UiStateService::followSystemTheme() const
-{
+bool UiStateService::followSystemTheme() const {
     const auto found = m_raw.find("followSystemTheme");
     return found == m_raw.end() || !found->is_boolean() || found->get<bool>();
 }
 
-void UiStateService::setFollowSystemTheme(bool follow)
-{
+void UiStateService::setFollowSystemTheme(bool follow) {
     if (followSystemTheme() == follow && m_raw.contains("followSystemTheme")) {
         return;
     }
@@ -221,49 +202,52 @@ void UiStateService::setFollowSystemTheme(bool follow)
     save();
 }
 
-bool UiStateService::legacyImportOffered() const
-{
+bool UiStateService::legacyImportOffered() const {
     const auto found = m_raw.find("legacyImportOffered");
     return found != m_raw.end() && found->is_boolean() && found->get<bool>();
 }
 
-void UiStateService::setLegacyImportOffered()
-{
+void UiStateService::setLegacyImportOffered() {
     m_raw["legacyImportOffered"] = true;
     save();
 }
 
-OrderedJson UiStateService::legacyMigration() const
-{
+OrderedJson UiStateService::legacyMigration() const {
     const auto found = m_raw.find("legacyMigration");
     return found != m_raw.end() && found->is_object() ? *found : OrderedJson::object();
 }
 
-std::string UiStateService::legacyMigrationStatus() const
-{
+std::string UiStateService::legacyMigrationStatus() const {
     return legacyMigration().value("status", std::string("not_detected"));
 }
 
-void UiStateService::setLegacyMigration(const std::string &status, const std::string &sourceFingerprint,
-                                        OrderedJson result)
-{
+bool UiStateService::setLegacyMigration(const std::string &status,
+                                        const std::string &sourceFingerprint, OrderedJson result) {
+    const bool hadPrevious = m_raw.contains("legacyMigration");
+    const OrderedJson previous = hadPrevious ? m_raw["legacyMigration"] : OrderedJson();
     OrderedJson migration = OrderedJson::object();
     migration["version"] = 1;
     migration["status"] = status;
     migration["sourceFingerprint"] = sourceFingerprint;
     migration["result"] = std::move(result);
     m_raw["legacyMigration"] = std::move(migration);
-    save();
+    if (!save()) {
+        if (hadPrevious) {
+            m_raw["legacyMigration"] = previous;
+        } else {
+            m_raw.erase("legacyMigration");
+        }
+        return false;
+    }
+    return true;
 }
 
-bool UiStateService::legacyRemoved() const
-{
+bool UiStateService::legacyRemoved() const {
     const auto found = m_raw.find("legacyRemoved");
     return found != m_raw.end() && found->is_boolean() && found->get<bool>();
 }
 
-void UiStateService::setLegacyRemoved()
-{
+void UiStateService::setLegacyRemoved() {
     m_raw["legacyRemoved"] = true;
     save();
 }

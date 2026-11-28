@@ -46,7 +46,8 @@ public:
     // downgraded to "needs_review" on load, never treated as success.
     OrderedJson legacyMigration() const;
     std::string legacyMigrationStatus() const;
-    void setLegacyMigration(const std::string &status, const std::string &sourceFingerprint, OrderedJson result);
+    bool setLegacyMigration(const std::string &status, const std::string &sourceFingerprint,
+                            OrderedJson result);
 
     // Separate record that the legacy Electron app was removed through the
     // Phase 2 flow. Stored apart from "legacyMigration" so the Phase 1
@@ -75,7 +76,7 @@ signals:
     void recentPlaysChanged();
 
 private:
-    void save();
+    bool save();
 
     std::filesystem::path m_path;
     OrderedJson m_raw = OrderedJson::object();

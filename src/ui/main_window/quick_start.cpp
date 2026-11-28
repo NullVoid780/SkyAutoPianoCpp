@@ -430,8 +430,10 @@ QWidget *QuickStart::buildLegacy()
 
 QWidget *QuickStart::buildCleanup()
 {
-    QWidget *widget = page(QStringLiteral("eraser"), tr("Remove Old Electron Version"),
+    QWidget *widget = page(QStringLiteral("eraser"),
+                           m_cleanupKnown ? m_cleanupTitleText : tr("Uninstall the old version"),
                            tr("Checking the old version..."));
+    m_cleanupTitle = widget->findChildren<QLabel *>(QStringLiteral("QuickStartTitle")).value(0);
     m_cleanupDescription = widget->findChildren<QLabel *>(QStringLiteral("QuickStartBody")).value(0);
     auto *column = static_cast<QVBoxLayout *>(widget->layout());
     m_cleanupRemove =
@@ -611,8 +613,10 @@ void QuickStart::setLegacyState(LegacyState state, int songs, int playlists, con
     }
 }
 
-void QuickStart::setLegacyCleanup(const QString &description, bool removeEnabled, bool busy, bool present)
+void QuickStart::setLegacyCleanup(const QString &title, const QString &description, bool removeEnabled,
+                                  bool busy, bool present)
 {
+    m_cleanupTitleText = title;
     m_cleanupText = description;
     m_cleanupKnown = true;
     m_cleanupRemoveEnabled = removeEnabled;
@@ -640,6 +644,9 @@ void QuickStart::applyCleanup()
     }
     if (m_cleanupKnown) {
         m_cleanupDescription->setText(m_cleanupText);
+        if (m_cleanupTitle) {
+            m_cleanupTitle->setText(m_cleanupTitleText);
+        }
     }
     m_cleanupRemove->setEnabled(m_cleanupRemoveEnabled && !m_cleanupBusy);
     m_cleanupRemove->setBusy(m_cleanupBusy, tr("Uninstalling..."));

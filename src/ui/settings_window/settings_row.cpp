@@ -34,15 +34,15 @@ SettingsRow::SettingsRow(const QString &iconId, const QString &title, const QStr
     m_iconSpace->setFixedSize(kPlainIcon, kPlainIcon);
     m_iconSpace->setAttribute(Qt::WA_TransparentForMouseEvents);
 
-    auto *titleLabel = new QLabel(title, this);
-    titleLabel->setObjectName(QStringLiteral("SettingsRowTitle"));
+    m_title = new QLabel(title, this);
+    m_title->setObjectName(QStringLiteral("SettingsRowTitle"));
     m_description = new QLabel(description, this);
     m_description->setObjectName(QStringLiteral("SettingsRowDescription"));
     m_description->setWordWrap(true);
 
     auto *copy = new QVBoxLayout();
     copy->setSpacing(kTitleGap);
-    copy->addWidget(titleLabel);
+    copy->addWidget(m_title);
     copy->addWidget(m_description);
 
     auto *row = new QHBoxLayout(this);
@@ -60,6 +60,11 @@ SettingsRow::SettingsRow(const QString &iconId, const QString &title, const QStr
         row->addWidget(control, 0, Qt::AlignVCenter);
     }
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this, [this] { update(); });
+}
+
+void SettingsRow::setTitle(const QString &title)
+{
+    m_title->setText(title);
 }
 
 void SettingsRow::setDescription(const QString &description)

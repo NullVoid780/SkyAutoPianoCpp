@@ -26,7 +26,7 @@ namespace {
 
 constexpr const char *kManualGuidance =
     "You can remove the old version yourself in Windows Settings > Apps > Installed apps: find the entry whose "
-    "uninstall registration matches the old Electron version and choose Uninstall. Nothing is deleted by this app.";
+    "uninstall registration matches the old version and choose Uninstall. Nothing is deleted by this app.";
 
 std::string blockerName(RemovalBlocker blocker)
 {

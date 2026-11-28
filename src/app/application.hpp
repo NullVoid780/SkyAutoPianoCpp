@@ -78,6 +78,8 @@ private:
     void importLegacy(const LegacyImportPlan &plan, bool manual);
     void refreshLegacyCleanup();
     void updateLegacyCleanupUi();
+    QString legacyOldVersion() const;
+    QString legacyCleanupTitle() const;
     LegacyImportEvidence legacyRemovalEvidence(const LegacyInstallInfo &install) const;
     void onLegacyRemovalClicked();
     void startLegacyVerification();

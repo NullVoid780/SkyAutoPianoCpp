@@ -27,7 +27,8 @@ public:
     // open. Verification of the imported data runs automatically when
     // this page is shown (the application drives it), so there is
     // deliberately no manual verify action here.
-    void setLegacyCleanup(const QString &description, bool removeEnabled, bool busy, bool present);
+    void setLegacyCleanup(const QString &title, const QString &description, bool removeEnabled, bool busy,
+                          bool present);
 
 signals:
     void importRequested();

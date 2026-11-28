@@ -331,9 +331,10 @@ void SettingsWindow::setLanguage(const QString &preference)
     m_general->setLanguage(preference);
 }
 
-void SettingsWindow::setLegacyCleanup(const QString &description, bool removeEnabled, bool busy, bool present)
+void SettingsWindow::setLegacyCleanup(const QString &title, const QString &description, bool removeEnabled,
+                                      bool busy, bool present)
 {
-    m_general->setLegacyCleanup(description, removeEnabled, busy, present);
+    m_general->setLegacyCleanup(title, description, removeEnabled, busy, present);
 }
 
 bool SettingsWindow::isLegacyCleanupShown() const

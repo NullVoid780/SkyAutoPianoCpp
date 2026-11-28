@@ -80,11 +80,11 @@ GeneralTab::GeneralTab(QWidget *parent)
                                         this);
     auto *importPrevious = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("download"), tr("Import"));
     auto *previous = new SettingsRow(QStringLiteral("music-note-list"), tr("Import Previous Songs"),
-                                     tr("Copy all songs from the Electron version of Sky Auto Piano into this library."),
+                                     tr("Copy all songs from the old version of Sky Auto Piano into this library."),
                                      importPrevious, this);
 
     m_legacyRemove = new ActionButton(ActionButton::Kind::Amber, QStringLiteral("trash3"), tr("Remove"));
-    m_legacyCleanup = new SettingsRow(QStringLiteral("eraser"), tr("Remove Old Electron Version"),
+    m_legacyCleanup = new SettingsRow(QStringLiteral("eraser"), tr("Uninstall the old version"),
                                       tr("Checking the old version..."), m_legacyRemove, this);
 
     auto *quickStartButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("arrow-clockwise"),
@@ -114,9 +114,11 @@ GeneralTab::GeneralTab(QWidget *parent)
     connect(m_language, &SelectBox::currentIndexChanged, this, &GeneralTab::onLanguageChanged);
 }
 
-void GeneralTab::setLegacyCleanup(const QString &description, bool removeEnabled, bool busy, bool present)
+void GeneralTab::setLegacyCleanup(const QString &title, const QString &description, bool removeEnabled,
+                                  bool busy, bool present)
 {
     m_legacyCleanup->setVisible(present);
+    m_legacyCleanup->setTitle(title);
     m_legacyCleanup->setDescription(description);
     m_legacyRemove->setEnabled(removeEnabled && !busy);
     m_legacyRemove->setBusy(busy, tr("Uninstalling..."));

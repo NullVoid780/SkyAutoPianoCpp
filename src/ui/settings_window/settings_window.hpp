@@ -52,7 +52,8 @@ public:
     int currentPage() const;
     void openPage(int index);
     void setCrashReports(const std::vector<CrashListEntry> &crashes);
-    void setLegacyCleanup(const QString &description, bool removeEnabled, bool busy, bool present);
+    void setLegacyCleanup(const QString &title, const QString &description, bool removeEnabled, bool busy,
+                          bool present);
     bool isLegacyCleanupShown() const;
 
 signals:

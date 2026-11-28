@@ -33,7 +33,8 @@ public:
     // application computes it once and pushes it to both surfaces. The
     // cleanup lives on its own step, present only while a legacy
     // installation or migration state exists.
-    void setLegacyCleanup(const QString &description, bool removeEnabled, bool busy, bool present);
+    void setLegacyCleanup(const QString &title, const QString &description, bool removeEnabled, bool busy,
+                          bool present);
     bool isLegacyCleanupShown() const;
     // The same language preference the Settings > General tab edits: the
     // application seeds it from the persisted value, and every change is
@@ -99,6 +100,8 @@ private:
     QLabel *m_cleanupDescription = nullptr;
     ActionButton *m_cleanupRemove = nullptr;
     QString m_cleanupText;
+    QString m_cleanupTitleText;
+    QLabel *m_cleanupTitle = nullptr;
     bool m_cleanupKnown = false;
     bool m_cleanupRemoveEnabled = false;
     bool m_cleanupBusy = false;

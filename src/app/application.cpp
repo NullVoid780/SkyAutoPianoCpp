@@ -1188,6 +1188,30 @@ void Application::refreshLegacyCleanup()
     updateLegacyCleanupUi();
 }
 
+QString Application::legacyOldVersion() const
+{
+    // Users know the old app by its own version number, not by the
+    // framework it was built with: use the detected install's version
+    // while it is still on the PC, and after a removal the version kept
+    // in the migration fingerprint ("<version>:<count>:<hash>").
+    if (m_removalDetection && m_removalDetection->install) {
+        return QString::fromStdString(m_removalDetection->install->legacy.version);
+    }
+    const std::string fingerprint = m_uiState->legacyMigration().value("sourceFingerprint", std::string());
+    const std::size_t colon = fingerprint.find(':');
+    if (colon != std::string::npos && colon > 0) {
+        return QString::fromStdString(fingerprint.substr(0, colon));
+    }
+    return QString();
+}
+
+QString Application::legacyCleanupTitle() const
+{
+    const QString version = legacyOldVersion();
+    return version.isEmpty() ? tr("Uninstall the old version")
+                             : tr("Uninstall version %1 (old version)").arg(version);
+}
+
 void Application::updateLegacyCleanupUi()
 {
     if (!m_removalDetection) {
@@ -1198,10 +1222,17 @@ void Application::updateLegacyCleanupUi()
     const bool busy = uninstalling || m_removalVerifying;
     QString description;
     bool removeEnabled = false;
+    const QString version = legacyOldVersion();
+    const QString alreadyRemoved = version.isEmpty() ? tr("The old version has already been removed.")
+                                                     : tr("Version %1 has already been removed.").arg(version);
     if (m_removalVerifying) {
         description = tr("Verifying that everything from the old version is complete in this library...");
+    } else if (detection.status == LegacyDetectionStatus::NotFound && m_uiState->legacyRemoved()) {
+        // The old version is gone because it was removed here; a plain
+        // "not found" would read as if it had never been installed.
+        description = alreadyRemoved;
     } else if (detection.status == LegacyDetectionStatus::NotFound) {
-        description = tr("No old Electron version was found on this PC.");
+        description = tr("No old version was found on this PC.");
     } else if (detection.status == LegacyDetectionStatus::Ambiguous) {
         description = tr("More than one old installation is registered, so automatic removal is off. You can "
                          "remove the old version in Windows Settings > Apps.");
@@ -1209,7 +1240,8 @@ void Application::updateLegacyCleanupUi()
         description = tr("The old version's uninstaller could not be validated, so automatic removal is off. "
                          "You can remove the old version in Windows Settings > Apps.");
     } else if (uninstalling) {
-        description = tr("Uninstalling the old Electron version...");
+        description = version.isEmpty() ? tr("Uninstalling the old version...")
+                                        : tr("Uninstalling version %1...").arg(version);
     } else if (m_removalEvidence) {
         const RemovalGate gate = m_removal->canOfferRemoval(*m_removalEvidence, detection);
         removeEnabled = gate.allowed;
@@ -1219,7 +1251,7 @@ void Application::updateLegacyCleanupUi()
         } else {
             switch (gate.blockers.front()) {
                 case RemovalBlocker::AlreadyRemoved:
-                    description = tr("The old Electron version has already been removed.");
+                    description = alreadyRemoved;
                     break;
                 case RemovalBlocker::ImportNotVerified:
                     description = tr("Removal unlocks after your data from the old version has been imported "
@@ -1239,7 +1271,9 @@ void Application::updateLegacyCleanupUi()
                     description = tr("The old and new versions share folders, so removal is off for safety.");
                     break;
                 case RemovalBlocker::LegacyRunning:
-                    description = tr("The old Electron version is still running. Close it, then try again.");
+                    description = version.isEmpty()
+                                      ? tr("The old version is still running. Close it, then try again.")
+                                      : tr("Version %1 is still running. Close it, then try again.").arg(version);
                     break;
                 default:
                     description = tr("The old version could not be validated for removal.");
@@ -1249,11 +1283,12 @@ void Application::updateLegacyCleanupUi()
     }
     const bool present = detection.status != LegacyDetectionStatus::NotFound || m_removalEvidence.has_value() ||
                          m_uiState->legacyRemoved() || m_uiState->legacyMigrationStatus() != "not_detected";
+    const QString title = legacyCleanupTitle();
     if (m_settings) {
-        m_settings->setLegacyCleanup(description, removeEnabled, busy, present);
+        m_settings->setLegacyCleanup(title, description, removeEnabled, busy, present);
     }
     if (m_quickStart) {
-        m_quickStart->setLegacyCleanup(description, removeEnabled, busy, present);
+        m_quickStart->setLegacyCleanup(title, description, removeEnabled, busy, present);
     }
     maybeAutoVerify();
 }
@@ -1370,9 +1405,12 @@ void Application::onLegacyRemovalClicked()
         m_removalDialog = nullptr;
     }
     if (!m_removalDialog) {
+        const QString version = legacyOldVersion();
+        const QString dialogTitle = version.isEmpty() ? tr("Uninstall the old version?")
+                                                      : tr("Uninstall version %1 (old version)?").arg(version);
         m_removalDialog = new ConfirmDialog(
             window,
-            {QStringLiteral("trash3"), tr("Remove the old Electron version?"),
+            {QStringLiteral("trash3"), dialogTitle,
              tr("The old version's own uninstaller will open and remove it. Your songs and settings in this "
                 "version stay untouched - this library is independent and does not sync back. Leftover data "
                 "files of the old version are not deleted, but its .myp file association will go away."),
@@ -1417,8 +1455,11 @@ void Application::pollLegacyRemoval()
     m_removalTimer->stop();
     if (outcome->status == RemovalStatus::Completed) {
         m_uiState->setLegacyRemoved();
+        const QString version = legacyOldVersion();
         tell(Toast{ToastType::Success, {},
-                   trUtf8("The old Electron version was removed. Your library here is unchanged."),
+                   version.isEmpty()
+                       ? trUtf8("The old version was removed. Your library here is unchanged.")
+                       : tr("Version %1 was removed. Your library here is unchanged.").arg(version).toStdString(),
                    kDefaultToastMs});
     } else if (outcome->status == RemovalStatus::Incomplete) {
         tell(Toast{ToastType::Warning, {},

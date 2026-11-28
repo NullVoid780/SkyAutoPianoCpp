@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-set(SKY_VERSION "2.0.1" CACHE STRING "Application version")
+set(SKY_VERSION "2.0.2" CACHE STRING "Application version")
 set(SKY_UPDATE_REPOSITORY "NullVoid780/SkyAutoPianoCpp" CACHE STRING "GitHub repository the updater reads releases from")
 
 project(SkyAutoPiano VERSION ${SKY_VERSION} LANGUAGES CXX)

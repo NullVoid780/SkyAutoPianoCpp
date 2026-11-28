@@ -295,3 +295,99 @@ TEST_CASE("the structured import result serializes honest counts")
     CHECK(json["sourceAccess"] == "read-only");
     CHECK(legacySourceFingerprint(LegacyInstall{{}, {}, "1.3.13", 4}).rfind("1.3.13:4:", 0) == 0);
 }
+
+TEST_CASE("reconciliation expects the deduped source rows, not the raw duplicates")
+{
+    TempDir temp;
+    const auto app = temp.path() / "old" / "resources" / "app";
+    writeFile(app / "package.json", R"({"name": "SkyAutoPiano", "version": "1.3.13", "main": "src/main/app.js"})");
+    // One song listed twice under the same name, author and transcriber,
+    // pointing at two different payload files: the importer copies the
+    // first and counts the second as already present.
+    writeFile(app / "data" / "listSheet.json", R"([
+        {"name": "Servant", "author": "Unknown", "transcribedBy": "Unknown", "bpm": 90, "keyMap": "servant-a.json"},
+        {"name": "Servant", "author": "Unknown", "transcribedBy": "Unknown", "bpm": 90, "keyMap": "servant-b.json"},
+        {"name": "Lullaby", "author": "", "transcribedBy": "B", "bpm": 90, "keyMap": "lullaby.json"}
+    ])");
+    writeFile(app / "data" / "servant-a.json", R"({"version":2,"keyMap":{"0":["y"]},"songNotes":[]})");
+    writeFile(app / "data" / "lullaby.json", R"({"version":2,"keyMap":{"0":["u"]},"songNotes":[]})");
+    const auto install = inspectLegacyFolder(temp.path() / "old");
+    REQUIRE(install);
+
+    // The destination library holds the first Servant payload, exactly as
+    // the importer left it.
+    const auto dest = temp.path() / "native";
+    writeFile(dest / "servant.json", R"({"version":2,"keyMap":{"0":["y"]},"songNotes":[]})");
+    writeFile(dest / "lullaby.json", R"({"version":2,"keyMap":{"0":["u"]},"songNotes":[]})");
+    const OrderedJson servantRow =
+        OrderedJson::parse(R"({"name": "Servant", "author": "Unknown", "transcribedBy": "Unknown"})");
+    const OrderedJson lullabyRow = OrderedJson::parse(R"({"name": "Lullaby", "author": "", "transcribedBy": "B"})");
+    const std::set<std::string> keys = {legacySongKey(servantRow), legacySongKey(lullabyRow)};
+    const std::map<std::string, std::string> existingPayloads = {
+        {legacySongKey(servantRow), "servant.json"}, {legacySongKey(lullabyRow), "lullaby.json"}};
+
+    SECTION("the duplicate payload differs from the first")
+    {
+        writeFile(app / "data" / "servant-b.json", R"({"version":2,"keyMap":{"0":["u","i"]},"songNotes":[1,2,3]})");
+    }
+    SECTION("the duplicate payload is byte-identical to the first")
+    {
+        writeFile(app / "data" / "servant-b.json", R"({"version":2,"keyMap":{"0":["y"]},"songNotes":[]})");
+    }
+
+    auto plan = planLegacyImport(*install, keys, {}, dest, existingPayloads);
+    REQUIRE(plan.ok());
+    CHECK(plan.value().rows.empty());
+    CHECK(plan.value().conflicts.empty());
+    CHECK(plan.value().missingPayloads == 0);
+    REQUIRE(plan.value().allRows.size() == 3);
+
+    // Build the expected set the way the removal reconciliation does: from
+    // the deduped rows, so the skipped duplicate is satisfied by the
+    // surviving row instead of being expected byte-for-byte.
+    const std::vector<OrderedJson> deduped = dedupedLegacyRows(plan.value().allRows);
+    REQUIRE(deduped.size() == 2);
+    CHECK(deduped[0].value("keyMap", std::string()) == "servant-a.json");
+    std::vector<std::pair<std::string, std::string>> expected;
+    std::vector<std::string> referenced;
+    for (const OrderedJson &row : deduped) {
+        const auto found = existingPayloads.find(legacySongKey(row));
+        REQUIRE(found != existingPayloads.end());
+        expected.emplace_back(row.value("keyMap", std::string()), found->second);
+        referenced.push_back(found->second);
+    }
+    const LegacyVerification check = verifyImportedSheets(install->dataDirectory, dest, expected, referenced);
+    CHECK(check.verified);
+    CHECK(check.failed == 0);
+    CHECK(check.checked == 4);
+}
+
+TEST_CASE("reconciliation still blocks when the library payload is not the imported one")
+{
+    TempDir temp;
+    const auto app = temp.path() / "old" / "resources" / "app";
+    writeFile(app / "package.json", R"({"name": "SkyAutoPiano", "version": "1.3.13", "main": "src/main/app.js"})");
+    writeFile(app / "data" / "listSheet.json", R"([
+        {"name": "Servant", "author": "Unknown", "transcribedBy": "Unknown", "bpm": 90, "keyMap": "servant-a.json"},
+        {"name": "Servant", "author": "Unknown", "transcribedBy": "Unknown", "bpm": 90, "keyMap": "servant-b.json"}
+    ])");
+    writeFile(app / "data" / "servant-a.json", R"({"version":2,"keyMap":{"0":["y"]},"songNotes":[]})");
+    writeFile(app / "data" / "servant-b.json", R"({"version":2,"keyMap":{"0":["u","i"]},"songNotes":[1,2,3]})");
+    const auto install = inspectLegacyFolder(temp.path() / "old");
+    REQUIRE(install);
+
+    // The library holds a different arrangement under the same key: the
+    // Phase 1 conflict, which must keep blocking the removal gate.
+    const auto dest = temp.path() / "native";
+    writeFile(dest / "servant.json", R"({"version":2,"keyMap":{"0":["h"]},"songNotes":[]})");
+    const OrderedJson servantRow =
+        OrderedJson::parse(R"({"name": "Servant", "author": "Unknown", "transcribedBy": "Unknown"})");
+    const std::set<std::string> keys = {legacySongKey(servantRow)};
+    const std::map<std::string, std::string> existingPayloads = {{legacySongKey(servantRow), "servant.json"}};
+
+    auto plan = planLegacyImport(*install, keys, {}, dest, existingPayloads);
+    REQUIRE(plan.ok());
+    REQUIRE(plan.value().conflicts.size() == 1);
+    CHECK(plan.value().conflicts.front().sourceFile == "servant-a.json");
+    CHECK(plan.value().conflicts.front().destinationFile == "servant.json");
+}

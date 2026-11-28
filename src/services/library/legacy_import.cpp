@@ -137,6 +137,18 @@ std::string legacySongKey(const OrderedJson &row)
     return text("name") + '\x1f' + text("author") + '\x1f' + text("transcribedBy");
 }
 
+std::vector<OrderedJson> dedupedLegacyRows(const std::vector<OrderedJson> &rows)
+{
+    std::vector<OrderedJson> deduped;
+    std::set<std::string> seen;
+    for (const OrderedJson &row : rows) {
+        if (seen.insert(legacySongKey(row)).second) {
+            deduped.push_back(row);
+        }
+    }
+    return deduped;
+}
+
 std::optional<LegacyInstall> inspectLegacyFolder(const std::filesystem::path &folder)
 {
     std::error_code error;

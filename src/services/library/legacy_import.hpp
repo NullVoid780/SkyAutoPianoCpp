@@ -128,6 +128,13 @@ std::filesystem::path snapshotDestinationFiles(const std::filesystem::path &data
                                                const std::string &sourceFingerprint);
 
 std::string legacySongKey(const OrderedJson &row);
+// The source rows the importer acts on: the raw listSheet rows collapsed by
+// legacySongKey, first row per key, in source order - the same dedupe
+// planLegacyImport applies with its planned set. A later duplicate was
+// counted alreadyPresent at import time and is satisfied by the surviving
+// row, so verifying an imported library must expect exactly these rows'
+// payloads in the destination, never the raw duplicates'.
+std::vector<OrderedJson> dedupedLegacyRows(const std::vector<OrderedJson> &rows);
 std::optional<LegacyInstall> inspectLegacyFolder(const std::filesystem::path &folder);
 std::vector<LegacyInstall> findLegacyInstalls(const std::filesystem::path &ownDataDirectory,
                                               const std::vector<std::filesystem::path> &searchRoots,

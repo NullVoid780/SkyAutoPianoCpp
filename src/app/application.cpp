@@ -1275,7 +1275,11 @@ void Application::onLegacyVerifyClicked()
             std::vector<std::pair<std::string, std::string>> expected;
             std::vector<std::string> referenced;
             bool complete = true;
-            for (const OrderedJson &row : plan.value().allRows) {
+            // Expect the importer's deduped rows, not the raw listSheet
+            // rows: a source-internal duplicate was counted alreadyPresent
+            // at import time and is satisfied by the surviving row, so its
+            // own payload file is never expected in this library.
+            for (const OrderedJson &row : dedupedLegacyRows(plan.value().allRows)) {
                 const auto found = existingPayloads.find(legacySongKey(row));
                 if (found == existingPayloads.end()) {
                     complete = false;

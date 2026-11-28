@@ -177,3 +177,121 @@ TEST_CASE("dry run against this machine's previous install", "[.manual]")
                     extras.theme.value_or("-").c_str(), extras.config ? "yes" : "no");
     }
 }
+
+TEST_CASE("a same-key sheet with different payload bytes is a conflict, not a duplicate")
+{
+    TempDir temp;
+    makeElectronInstall(temp.path() / "old");
+    const auto install = inspectLegacyFolder(temp.path() / "old");
+    REQUIRE(install);
+    const auto destData = temp.path() / "native";
+    writeFile(destData / "existing-rubia.json", R"({"version":2,"keyMap":{"0":["h"]},"songNotes":[]})");
+    const OrderedJson existingRow =
+        OrderedJson::parse(R"({"name":"Rubia","author":"Studio","transcribedBy":"A","keyMap":"existing-rubia.json"})");
+    const std::map<std::string, std::string> payloads{{legacySongKey(existingRow), "existing-rubia.json"}};
+    const std::set<std::string> keys{legacySongKey(existingRow)};
+    auto plan = planLegacyImport(*install, keys, {}, destData, payloads);
+    REQUIRE(plan.ok());
+    CHECK(plan.value().conflicts.size() == 1);
+    CHECK(plan.value().conflicts.front().sourceFile == "rubia.json");
+    CHECK(plan.value().conflicts.front().destinationFile == "existing-rubia.json");
+    CHECK(plan.value().rows.size() == 2);
+    CHECK(plan.value().alreadyPresent == 1);
+}
+
+TEST_CASE("a same-key sheet with identical payload bytes is already present")
+{
+    TempDir temp;
+    makeElectronInstall(temp.path() / "old");
+    const auto install = inspectLegacyFolder(temp.path() / "old");
+    REQUIRE(install);
+    const auto destData = temp.path() / "native";
+    writeFile(destData / "existing-rubia.json", R"({"version":2,"keyMap":{"0":["y"]},"songNotes":[]})");
+    const OrderedJson existingRow =
+        OrderedJson::parse(R"({"name":"Rubia","author":"Studio","transcribedBy":"A","keyMap":"existing-rubia.json"})");
+    const std::map<std::string, std::string> payloads{{legacySongKey(existingRow), "existing-rubia.json"}};
+    const std::set<std::string> keys{legacySongKey(existingRow)};
+    auto plan = planLegacyImport(*install, keys, {}, destData, payloads);
+    REQUIRE(plan.ok());
+    CHECK(plan.value().conflicts.empty());
+    CHECK(plan.value().alreadyPresent == 2);
+    CHECK(plan.value().rows.size() == 2);
+}
+
+TEST_CASE("verification validates copied payloads and referenced payloads")
+{
+    TempDir temp;
+    const auto source = temp.path() / "source";
+    const auto dest = temp.path() / "dest";
+    writeFile(source / "a.json", R"({"version":2,"keyMap":{"0":["y"]},"songNotes":[]})");
+    writeFile(dest / "a.json", R"({"version":2,"keyMap":{"0":["y"]},"songNotes":[]})");
+    const auto ok = verifyImportedSheets(source, dest, {{"a.json", "a.json"}}, {"a.json"});
+    CHECK(ok.verified);
+    CHECK(ok.checked == 2);
+    CHECK(ok.failed == 0);
+    const auto brokenRef = verifyImportedSheets(source, dest, {{"a.json", "a.json"}}, {"missing.json"});
+    CHECK_FALSE(brokenRef.verified);
+    CHECK(brokenRef.failed == 1);
+    writeFile(dest / "a.json", R"({"version":2,"keyMap":{"0":["h"]},"songNotes":[]})");
+    const auto mismatch = verifyImportedSheets(source, dest, {{"a.json", "a.json"}}, {});
+    CHECK_FALSE(mismatch.verified);
+    CHECK(mismatch.failed == 1);
+}
+
+TEST_CASE("the destination snapshot keeps the first pre-import state for a source")
+{
+    TempDir temp;
+    const auto data = temp.path() / "native-data";
+    const auto config = temp.path() / "native-config";
+    writeFile(data / "listSheet.json", "v1");
+    writeFile(config / "config.json", "c1");
+    const auto first = snapshotDestinationFiles(data, config, "source-1");
+    REQUIRE_FALSE(first.empty());
+    CHECK(readTextFile(first / "listSheet.json").value() == "v1");
+    CHECK(readTextFile(first / "config.json").value() == "c1");
+    writeFile(data / "listSheet.json", "v2");
+    const auto sameSource = snapshotDestinationFiles(data, config, "source-1");
+    CHECK(readTextFile(sameSource / "listSheet.json").value() == "v1");
+    const auto otherSource = snapshotDestinationFiles(data, config, "source-2");
+    CHECK(readTextFile(otherSource / "listSheet.json").value() == "v2");
+}
+
+TEST_CASE("import leaves every source fixture byte-for-byte unchanged")
+{
+    ensureCoreApp();
+    TempDir temp;
+    const auto data = makeElectronInstall(temp.path() / "old");
+    const auto beforeList = readTextFile(data / "listSheet.json").value();
+    const auto beforePayload = readTextFile(data / "rubia.json").value();
+    const auto nativeData = temp.path() / "native";
+    PlaylistService playlists(nativeData);
+    LibraryService library(nativeData, playlists);
+    playlists.load();
+    library.load();
+    auto plan = planLegacyImport(*inspectLegacyFolder(temp.path() / "old"), library.legacySongKeys());
+    REQUIRE(plan.ok());
+    bool finished = false;
+    library.importLegacyRows(plan.value().install.dataDirectory, plan.value().rows, plan.value().alreadyPresent,
+                             [&](LegacyImportSummary) { finished = true; });
+    REQUIRE(waitUntil([&] { return finished; }));
+    CHECK(readTextFile(data / "listSheet.json").value() == beforeList);
+    CHECK(readTextFile(data / "rubia.json").value() == beforePayload);
+}
+
+TEST_CASE("the structured import result serializes honest counts")
+{
+    LegacyImportResult result;
+    result.sourceFingerprint = "1.3.13:4:12345";
+    result.sheets.planned = 4;
+    result.sheets.copied = 2;
+    result.sheets.conflicts = 1;
+    result.sheets.failed = 1;
+    result.verificationStatus = "needs_review";
+    const OrderedJson json = result.toJson();
+    CHECK(json["version"] == 1);
+    CHECK(json["sheets"]["copied"] == 2);
+    CHECK(json["sheets"]["conflicts"] == 1);
+    CHECK(json["verification"]["status"] == "needs_review");
+    CHECK(json["sourceAccess"] == "read-only");
+    CHECK(legacySourceFingerprint(LegacyInstall{{}, {}, "1.3.13", 4}).rfind("1.3.13:4:", 0) == 0);
+}

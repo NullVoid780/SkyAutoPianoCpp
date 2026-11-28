@@ -40,6 +40,14 @@ public:
     bool legacyImportOffered() const;
     void setLegacyImportOffered();
 
+    // Versioned legacy-migration state stored under "legacyMigration" in
+    // ui-state.json. Status is one of: not_detected, available, importing,
+    // needs_review, verified. A status left at "importing" by a crash is
+    // downgraded to "needs_review" on load, never treated as success.
+    OrderedJson legacyMigration() const;
+    std::string legacyMigrationStatus() const;
+    void setLegacyMigration(const std::string &status, const std::string &sourceFingerprint, OrderedJson result);
+
     bool editorAdvancedView() const;
     void setEditorAdvancedView(bool advanced);
 

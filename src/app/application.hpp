@@ -1,6 +1,8 @@
 #pragma once
 
+#include <map>
 #include <memory>
+#include <string>
 
 #include <QObject>
 #include <QPointer>
@@ -79,7 +81,25 @@ private:
     OrderedJson diagnostics() const;
     void applyStartupLayout();
     void tell(const Toast &toast);
-    std::string applyLegacyExtras(const LegacyImportPlan &plan, const LegacyImportSummary &summary);
+    // Per-category outcome of applying the non-sheet legacy extras, so the
+    // import can build an honest LegacyImportResult instead of a bare count.
+    struct LegacyExtrasOutcome {
+        std::string text;
+        int playlistsCreated = 0;
+        int playlistsMerged = 0;
+        int playlistReferencesRemapped = 0;
+        int playlistMissingReferences = 0;
+        int favoritesImported = 0;
+        int favoritesAlreadyPresent = 0;
+        bool recentImported = false;
+        bool recentSkipped = false;
+        bool settingsApplied = false;
+        bool settingsRejected = false;
+        bool themeApplied = false;
+        bool themeSkipped = false;
+    };
+    LegacyExtrasOutcome applyLegacyExtras(const LegacyImportPlan &plan, const LegacyImportSummary &summary);
+    std::map<std::string, std::string> legacyExistingPayloads() const;
 
     std::unique_ptr<ConfigService> m_config;
     std::unique_ptr<UiStateService> m_uiState;

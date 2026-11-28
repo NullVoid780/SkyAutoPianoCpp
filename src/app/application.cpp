@@ -1,5 +1,8 @@
 #include "app/application.hpp"
 
+#include <algorithm>
+#include <utility>
+
 #include <QApplication>
 #include <QDateTime>
 #include <QDir>
@@ -616,6 +619,15 @@ void Application::notifyLegacy(bool manual, const Toast &toast)
     }
 }
 
+std::map<std::string, std::string> Application::legacyExistingPayloads() const
+{
+    std::map<std::string, std::string> payloads;
+    for (const SheetEntry &entry : m_library->entries()) {
+        payloads.emplace(legacySongKey(entry.json()), entry.payloadFile());
+    }
+    return payloads;
+}
+
 void Application::detectLegacyLibrary(bool manual)
 {
     if (m_legacyBusy) {
@@ -623,12 +635,13 @@ void Application::detectLegacyLibrary(bool manual)
     }
     m_legacyBusy = true;
     const std::set<std::string> keys = m_library->legacySongKeys();
+    const std::map<std::string, std::string> existingPayloads = legacyExistingPayloads();
     const std::filesystem::path own = Paths::dataDirectory();
     QPointer<Application> self(this);
-    QThreadPool::globalInstance()->start([self, keys, own, manual] {
+    QThreadPool::globalInstance()->start([self, keys, existingPayloads, own, manual] {
         std::optional<LegacyImportPlan> best;
         for (const LegacyInstall &install : findLegacyInstalls(own, defaultLegacySearchRoots())) {
-            auto plan = planLegacyImport(install, keys, electronLocalStorageDirectory());
+            auto plan = planLegacyImport(install, keys, electronLocalStorageDirectory(), own, existingPayloads);
             if (plan && (!best || plan.value().rows.size() > best->rows.size())) {
                 best = plan.value();
             }
@@ -680,6 +693,7 @@ void Application::onLegacyDetected(std::optional<LegacyImportPlan> plan, bool ma
         }
         return;
     }
+    m_uiState->setLegacyMigration("available", legacySourceFingerprint(plan->install), {});
     if (manual) {
         importLegacy(*plan, true);
         return;
@@ -710,11 +724,13 @@ void Application::pickLegacyFolder()
     }
     m_legacyBusy = true;
     const std::set<std::string> keys = m_library->legacySongKeys();
+    const std::map<std::string, std::string> existingPayloads = legacyExistingPayloads();
+    const std::filesystem::path own = Paths::dataDirectory();
     QPointer<Application> self(this);
-    QThreadPool::globalInstance()->start([self, keys, folder = *folder] {
+    QThreadPool::globalInstance()->start([self, keys, existingPayloads, own, folder = *folder] {
         std::optional<LegacyImportPlan> plan;
         if (const auto install = inspectLegacyFolder(folder)) {
-            if (auto planned = planLegacyImport(*install, keys, electronLocalStorageDirectory())) {
+            if (auto planned = planLegacyImport(*install, keys, electronLocalStorageDirectory(), own, existingPayloads)) {
                 plan = planned.value();
             }
         }
@@ -747,23 +763,101 @@ void Application::pickLegacyFolder()
 void Application::importLegacy(const LegacyImportPlan &plan, bool manual)
 {
     m_legacyBusy = true;
+    const std::string fingerprint = legacySourceFingerprint(plan.install);
+    m_uiState->setLegacyMigration("importing", fingerprint, {});
+    // Snapshot the pre-existing destination files before anything mutates
+    // them, so a partial merge stays recoverable. The legacy source itself
+    // is only ever read.
+    (void)snapshotDestinationFiles(Paths::dataDirectory(), Paths::configDirectory(), fingerprint);
     QPointer<Application> self(this);
     m_library->importLegacyRows(plan.install.dataDirectory, plan.rows, plan.alreadyPresent,
-                                [self, manual, plan](LegacyImportSummary summary) {
+                                [self, manual, plan, fingerprint](LegacyImportSummary summary) {
                                     if (!self) {
                                         return;
                                     }
                                     self->m_legacyBusy = false;
-                                    QString message = tr("Imported %1 from the previous version.")
-                                                          .arg(toQString(self->applyLegacyExtras(plan, summary)));
+                                    const LegacyExtrasOutcome outcome = self->applyLegacyExtras(plan, summary);
+
+                                    LegacyImportResult result;
+                                    result.sourceFingerprint = fingerprint;
+                                    result.sheets.planned = static_cast<int>(plan.rows.size()) +
+                                                            summary.alreadyPresent +
+                                                            static_cast<int>(plan.conflicts.size());
+                                    result.sheets.copied = summary.imported;
+                                    result.sheets.alreadyPresent = summary.alreadyPresent;
+                                    result.sheets.conflicts = static_cast<int>(plan.conflicts.size());
+                                    result.sheets.failed = summary.failed + plan.missingPayloads;
+                                    result.playlists.created = outcome.playlistsCreated;
+                                    result.playlists.merged = outcome.playlistsMerged;
+                                    result.playlists.referencesRemapped = outcome.playlistReferencesRemapped;
+                                    result.playlists.missingReferences = outcome.playlistMissingReferences;
+                                    result.config.applied = outcome.settingsApplied;
+                                    result.config.rejected = outcome.settingsRejected;
+                                    result.extras.favoritesImported = outcome.favoritesImported;
+                                    result.extras.favoritesAlreadyPresent = outcome.favoritesAlreadyPresent;
+                                    result.extras.recentImported = outcome.recentImported;
+                                    result.extras.recentSkipped = outcome.recentSkipped;
+                                    result.extras.themeApplied = outcome.themeApplied;
+                                    result.extras.themeSkipped = outcome.themeSkipped;
+
+                                    std::vector<std::pair<std::string, std::string>> expected;
+                                    std::vector<std::string> referenced;
+                                    for (const auto &[sourceFile, destFile] : summary.payloadMap) {
+                                        expected.emplace_back(sourceFile, destFile);
+                                        referenced.push_back(destFile);
+                                    }
+                                    const LegacyVerification payloadsCheck = verifyImportedSheets(
+                                        plan.install.dataDirectory, Paths::dataDirectory(), expected, {});
+                                    const LegacyVerification referencesCheck = verifyImportedSheets(
+                                        plan.install.dataDirectory, Paths::dataDirectory(), {}, referenced);
+                                    result.sheets.validated =
+                                        std::max(0, static_cast<int>(expected.size()) - payloadsCheck.failed);
+                                    result.verificationChecked = payloadsCheck.checked + referencesCheck.checked;
+                                    result.verificationFailed = payloadsCheck.failed + referencesCheck.failed;
+                                    for (const std::string &failure : payloadsCheck.failures) {
+                                        result.warnings.push_back(failure);
+                                    }
+                                    for (const std::string &failure : referencesCheck.failures) {
+                                        result.warnings.push_back(failure);
+                                    }
+                                    if (result.sheets.conflicts > 0) {
+                                        result.warnings.push_back("sheets skipped as conflicts: " +
+                                                                  std::to_string(result.sheets.conflicts));
+                                    }
+                                    const bool verified = payloadsCheck.verified && referencesCheck.verified &&
+                                                          summary.failed == 0 && plan.missingPayloads == 0 &&
+                                                          plan.conflicts.empty() &&
+                                                          outcome.playlistMissingReferences == 0 &&
+                                                          !outcome.settingsRejected;
+                                    result.verificationStatus = verified ? "verified" : "needs_review";
+                                    self->m_uiState->setLegacyMigration(result.verificationStatus, fingerprint,
+                                                                        result.toJson());
+                                    Logger::info("app", "legacy import result status=" + result.verificationStatus +
+                                                            " copied=" + std::to_string(result.sheets.copied) +
+                                                            " conflicts=" + std::to_string(result.sheets.conflicts) +
+                                                            " failed=" + std::to_string(result.sheets.failed) +
+                                                            " validated=" + std::to_string(result.sheets.validated));
+
+                                    QString message = tr("Imported %1 from the previous version.").arg(toQString(outcome.text));
                                     if (summary.failed > 0) {
                                         message += QLatin1Char(' ') + (summary.failed == 1
                                                                            ? tr("1 song could not be copied.")
                                                                            : tr("%1 songs could not be copied.")
                                                                                  .arg(summary.failed));
                                     }
+                                    if (!plan.conflicts.empty()) {
+                                        message += QLatin1Char(' ') +
+                                                   tr("%1 song(s) share a name with a different song already in "
+                                                      "your library and were skipped.")
+                                                       .arg(static_cast<int>(plan.conflicts.size()));
+                                    }
+                                    if (!verified) {
+                                        message += QLatin1Char(' ') +
+                                                   tr("Some items need attention - you can retry the import from Settings.");
+                                    }
                                     const std::string text = fromQString(message);
-                                    self->notifyLegacy(manual, Toast{ToastType::Success, {}, text, kDefaultToastMs});
+                                    self->notifyLegacy(manual, Toast{verified ? ToastType::Success : ToastType::Warning,
+                                                                     {}, text, kDefaultToastMs});
                                     if (self->m_quickStart &&
                                         self->m_quickStart->legacyState() == QuickStart::LegacyState::Importing) {
                                         self->m_quickStart->setLegacyState(QuickStart::LegacyState::Imported, 0, 0,
@@ -775,8 +869,10 @@ void Application::importLegacy(const LegacyImportPlan &plan, bool manual)
                                 });
 }
 
-std::string Application::applyLegacyExtras(const LegacyImportPlan &plan, const LegacyImportSummary &summary)
+Application::LegacyExtrasOutcome Application::applyLegacyExtras(const LegacyImportPlan &plan,
+                                                                const LegacyImportSummary &summary)
 {
+    LegacyExtrasOutcome outcome;
     const LegacyExtras &extras = plan.extras;
     std::map<std::string, std::string> nativeByKey;
     for (const SheetEntry &entry : m_library->entries()) {
@@ -798,15 +894,19 @@ std::string Application::applyLegacyExtras(const LegacyImportPlan &plan, const L
             continue;
         }
         std::vector<std::string> keys;
+        int legacyKeys = 0;
         if (legacy.contains("sheetKeys") && legacy["sheetKeys"].is_array()) {
             for (const OrderedJson &key : legacy["sheetKeys"]) {
                 if (key.is_string()) {
+                    ++legacyKeys;
                     if (const auto mapped = payloadFor.find(key.get<std::string>()); mapped != payloadFor.end()) {
                         keys.push_back(mapped->second);
                     }
                 }
             }
         }
+        outcome.playlistReferencesRemapped += static_cast<int>(keys.size());
+        outcome.playlistMissingReferences += legacyKeys - static_cast<int>(keys.size());
         const std::string name = PlaylistService::normalizeName(legacy["name"].get<std::string>());
         std::string id;
         for (const Playlist &existing : m_playlists->playlists()) {
@@ -820,6 +920,9 @@ std::string Application::applyLegacyExtras(const LegacyImportPlan &plan, const L
                 continue;
             }
             id = created.value().id;
+            ++outcome.playlistsCreated;
+        } else {
+            ++outcome.playlistsMerged;
         }
         if (!keys.empty()) {
             (void)m_playlists->addSheets(id, keys);
@@ -827,44 +930,58 @@ std::string Application::applyLegacyExtras(const LegacyImportPlan &plan, const L
         ++playlists;
     }
 
-    int favorites = 0;
     for (const std::string &name : extras.favorites) {
         if (!m_favorites->isFavorite(name)) {
             m_favorites->toggle(name);
-            ++favorites;
+            ++outcome.favoritesImported;
+        } else {
+            ++outcome.favoritesAlreadyPresent;
         }
     }
-    if (m_recent->names().empty()) {
-        for (auto it = extras.recentPlays.rbegin(); it != extras.recentPlays.rend(); ++it) {
-            m_recent->add(*it);
+    if (!extras.recentPlays.empty()) {
+        if (m_recent->names().empty()) {
+            for (auto it = extras.recentPlays.rbegin(); it != extras.recentPlays.rend(); ++it) {
+                m_recent->add(*it);
+            }
+            outcome.recentImported = true;
+        } else {
+            outcome.recentSkipped = true;
         }
     }
 
-    bool settings = false;
     if (extras.config) {
+        outcome.settingsRejected = true;
         if (auto merged = ConfigService::normalizeImported(m_config->raw(), *extras.config)) {
             if (ConfigService::validateShortcuts(ConfigService::fromJson(merged.value()).shortcut) &&
                 m_config->replace(merged.value())) {
-                settings = true;
+                outcome.settingsApplied = true;
+                outcome.settingsRejected = false;
                 m_shortcuts->registerAll();
             }
         }
     }
-    if (extras.theme && !m_themes->followsSystem()) {
-        applyTheme(*extras.theme == "dark" ? AppTheme::Dark : AppTheme::Light);
+    if (extras.theme) {
+        if (!m_themes->followsSystem()) {
+            applyTheme(*extras.theme == "dark" ? AppTheme::Dark : AppTheme::Light);
+            outcome.themeApplied = true;
+        } else {
+            outcome.themeSkipped = true;
+        }
     }
 
     QStringList parts = {songCount(static_cast<std::size_t>(summary.imported))};
     if (playlists > 0) {
         parts << playlistCount(static_cast<std::size_t>(playlists));
     }
-    if (favorites > 0) {
-        parts << (favorites == 1 ? tr("1 favorite") : tr("%1 favorites").arg(favorites));
+    if (outcome.favoritesImported > 0) {
+        parts << (outcome.favoritesImported == 1 ? tr("1 favorite")
+                                                 : tr("%1 favorites").arg(outcome.favoritesImported));
     }
-    if (settings) {
+    if (outcome.settingsApplied) {
         parts << tr("your settings");
     }
-    return fromQString(joinList(parts));
+    outcome.text = fromQString(joinList(parts));
+    return outcome;
 }
 
 void Application::toggleTheme()

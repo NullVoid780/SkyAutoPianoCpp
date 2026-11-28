@@ -55,6 +55,14 @@ void UiStateService::load()
     m_theme = m_raw.value("theme", OrderedJson()) == "dark" ? AppTheme::Dark : AppTheme::Light;
     m_favorites = stringList(m_raw, "favorites");
     m_recentPlays = stringList(m_raw, "recentPlays");
+    if (legacyMigrationStatus() == "importing") {
+        // The previous run stopped mid-import: the outcome is unknown, so the
+        // persisted state must ask for a review instead of claiming success.
+        OrderedJson migration = legacyMigration();
+        migration["status"] = "needs_review";
+        m_raw["legacyMigration"] = std::move(migration);
+        save();
+    }
 }
 
 void UiStateService::save()
@@ -222,6 +230,29 @@ bool UiStateService::legacyImportOffered() const
 void UiStateService::setLegacyImportOffered()
 {
     m_raw["legacyImportOffered"] = true;
+    save();
+}
+
+OrderedJson UiStateService::legacyMigration() const
+{
+    const auto found = m_raw.find("legacyMigration");
+    return found != m_raw.end() && found->is_object() ? *found : OrderedJson::object();
+}
+
+std::string UiStateService::legacyMigrationStatus() const
+{
+    return legacyMigration().value("status", std::string("not_detected"));
+}
+
+void UiStateService::setLegacyMigration(const std::string &status, const std::string &sourceFingerprint,
+                                        OrderedJson result)
+{
+    OrderedJson migration = OrderedJson::object();
+    migration["version"] = 1;
+    migration["status"] = status;
+    migration["sourceFingerprint"] = sourceFingerprint;
+    migration["result"] = std::move(result);
+    m_raw["legacyMigration"] = std::move(migration);
     save();
 }
 

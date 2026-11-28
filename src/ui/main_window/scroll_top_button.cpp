@@ -1,5 +1,6 @@
 #include "ui/main_window/scroll_top_button.hpp"
 
+#include "core/translator.hpp"
 #include "ui/theme_manager.hpp"
 #include "ui/widgets/icon_button.hpp"
 
@@ -13,7 +14,7 @@ IconButton *createScrollTopButton(QWidget *parent)
                                                   [] { return currentTheme().background; },
                                                   [] { return currentTheme().neutralBorder; }, 8, 0, kHoverMs},
                                   parent);
-    button->setToolTip(QStringLiteral("Back to top"));
+    button->setToolTip(tr("Back to top"));
     button->hide();
     return button;
 }

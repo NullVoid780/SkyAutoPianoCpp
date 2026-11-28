@@ -2,6 +2,7 @@
 
 #include <QVBoxLayout>
 
+#include "core/translator.hpp"
 #include "ui/settings_window/action_button.hpp"
 #include "ui/settings_window/settings_row.hpp"
 #include "ui/settings_window/tab_header.hpp"
@@ -22,24 +23,24 @@ UpdatesTab::UpdatesTab(const QString &currentVersion, QWidget *parent)
     : QWidget(parent),
       m_overview(new UpdateOverviewCard(currentVersion, this)),
       m_automatic(new ToggleSwitch(this)),
-      m_check(new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("play-fill"), QStringLiteral("Check Now"), this))
+      m_check(new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("play-fill"), tr("Check Now"), this))
 {
     auto *header = new TabHeader(QStringLiteral("update"), [] { return currentTheme().settings.navIconRefresh; },
-                                 QStringLiteral("Updates"),
-                                 QStringLiteral("Manage application updates and version information"), this);
+                                 tr("Updates"),
+                                 tr("Manage application updates and version information"), this);
 
-    auto *automatic = new SettingsRow(QStringLiteral("lightning"), QStringLiteral("Automatic Updates"),
-                                      QStringLiteral("Automatically check for updates when the app starts."),
+    auto *automatic = new SettingsRow(QStringLiteral("lightning"), tr("Automatic Updates"),
+                                      tr("Automatically check for updates when the app starts."),
                                       m_automatic, this);
-    auto *check = new SettingsRow(QStringLiteral("update"), QStringLiteral("Check for Updates"),
-                                  QStringLiteral("Manually check for new updates."), m_check, this);
-    auto *whatsNewButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("list"), QStringLiteral("Show"));
-    auto *whatsNew = new SettingsRow(QStringLiteral("info-circle"), QStringLiteral("What's New"),
-                                     QStringLiteral("See what changed in this version."), whatsNewButton, this);
+    auto *check = new SettingsRow(QStringLiteral("update"), tr("Check for Updates"),
+                                  tr("Manually check for new updates."), m_check, this);
+    auto *whatsNewButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("list"), tr("Show"));
+    auto *whatsNew = new SettingsRow(QStringLiteral("info-circle"), tr("What's New"),
+                                     tr("See what changed in this version."), whatsNewButton, this);
     auto *join = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("box-arrow-up-right"),
-                                  QStringLiteral("Join Discord"));
-    auto *community = new SettingsRow(QStringLiteral("discord"), QStringLiteral("Community & Bug Reports"),
-                                      QStringLiteral("Join our Discord server to report bugs and connect with other users."),
+                                  tr("Join Discord"));
+    auto *community = new SettingsRow(QStringLiteral("discord"), tr("Community & Bug Reports"),
+                                      tr("Join our Discord server to report bugs and connect with other users."),
                                       join, this);
     community->setIconTile([] { return currentTheme().settings.discordFill; },
                            [] { return currentTheme().accent.white; });
@@ -88,7 +89,7 @@ void UpdatesTab::setBlockUpdates(bool blocked)
 void UpdatesTab::setChecking(bool checking)
 {
     m_checking = checking;
-    m_check->setBusy(checking, QStringLiteral("Checking..."));
+    m_check->setBusy(checking, tr("Checking..."));
     if (checking) {
         m_overview->setState(UpdateOverviewCard::State::Checking);
     }

@@ -17,6 +17,7 @@ public:
     };
 
     static bool install(const Options &options);
+    static void setLanguage(const char *code) noexcept;
     static void startReporter() noexcept;
     static void breadcrumb(const char *category, const char *message) noexcept;
     static CrashState *state() noexcept;

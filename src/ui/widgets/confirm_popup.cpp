@@ -9,6 +9,7 @@
 
 #include <algorithm>
 
+#include "core/translator.hpp"
 #include "ui/render/paint_utils.hpp"
 #include "ui/theme_manager.hpp"
 
@@ -25,8 +26,8 @@ ConfirmPopup::ConfirmPopup(QWidget *window)
     : Overlay(window),
       m_panel(new QWidget(this)),
       m_message(new QLabel(m_panel)),
-      m_confirm(new QPushButton(QStringLiteral("OK"), m_panel)),
-      m_cancel(new QPushButton(QStringLiteral("Cancel"), m_panel))
+      m_confirm(new QPushButton(tr("OK"), m_panel)),
+      m_cancel(new QPushButton(tr("Cancel"), m_panel))
 {
     m_message->setObjectName(QStringLiteral("ConfirmMessage"));
     m_message->setAlignment(Qt::AlignCenter);

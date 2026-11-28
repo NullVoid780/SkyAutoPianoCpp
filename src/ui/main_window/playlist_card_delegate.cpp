@@ -3,6 +3,7 @@
 #include <QFontMetricsF>
 #include <QPainter>
 
+#include "core/translator.hpp"
 #include "ui/render/font_loader.hpp"
 #include "ui/render/icon_cache.hpp"
 #include "ui/render/paint_utils.hpp"
@@ -78,7 +79,7 @@ void PlaylistCardDelegate::paint(QPainter *p, const QStyleOptionViewItem &option
     painter.setFont(countFont);
     painter.setOpacity(0.75);
     painter.drawText(QRectF(textLeft, top, textWidth, countMetrics.height()), Qt::AlignLeft | Qt::AlignVCenter,
-                     QStringLiteral("%1 sheets").arg(index.data(CountRole).toInt()));
+                     trCount(index.data(CountRole).toInt(), trNoop("1 sheet"), trNoop("%1 sheets")));
     painter.setOpacity(1.0);
 
     const bool open = index.row() == m_openMenuRow;

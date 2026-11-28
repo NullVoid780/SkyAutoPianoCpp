@@ -85,3 +85,23 @@ TEST_CASE("the sheet editor remembers its view and note colors")
     CHECK(reloaded.editorAdvancedView());
     CHECK_FALSE(reloaded.editorColorfulNotes());
 }
+
+TEST_CASE("the chosen language persists and follows Windows when cleared")
+{
+    ensureCoreApp();
+    TempDir dir;
+    {
+        UiStateService state(dir.path());
+        state.load();
+        CHECK(state.language().empty());
+        state.setLanguage("ja");
+    }
+    CHECK(UiStateService::readLanguage(dir.path()) == "ja");
+    {
+        UiStateService state(dir.path());
+        state.load();
+        CHECK(state.language() == "ja");
+        state.setLanguage("");
+    }
+    CHECK(UiStateService::readLanguage(dir.path()).empty());
+}

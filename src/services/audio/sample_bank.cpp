@@ -15,6 +15,7 @@
 #define DR_FLAC_IMPLEMENTATION
 #include <dr_flac.h>
 
+#include "core/translator.hpp"
 #include "core/string_utils.hpp"
 
 namespace sky {
@@ -141,7 +142,7 @@ Result<SampleBank> loadSampleBank(const std::filesystem::path &folder, int targe
     bank.sampleRate = targetRate;
     std::error_code error;
     if (!std::filesystem::is_directory(folder, error)) {
-        return Error{"SOUND_FOLDER_MISSING", "The soundpack folder was not found.", fromWide(folder.wstring())};
+        return Error{"SOUND_FOLDER_MISSING", trUtf8("The soundpack folder was not found."), fromWide(folder.wstring())};
     }
     for (int key = 0; key < SampleBank::kKeyCount; ++key) {
         for (const char *extension : kExtensions) {
@@ -153,7 +154,7 @@ Result<SampleBank> loadSampleBank(const std::filesystem::path &folder, int targe
         }
     }
     if (bank.loadedKeys() == 0) {
-        return Error{"SOUND_FOLDER_EMPTY", "The soundpack folder has no notes in it.", fromWide(folder.wstring())};
+        return Error{"SOUND_FOLDER_EMPTY", trUtf8("The soundpack folder has no notes in it."), fromWide(folder.wstring())};
     }
     normalize(bank);
     return bank;
@@ -180,7 +181,7 @@ Result<SampleBank> loadBuiltInSoundpack(const std::string &instrument, int targe
         }
     }
     if (bank.loadedKeys() == 0) {
-        return Error{"SOUNDPACK_MISSING", "The built-in soundpack was not found.", instrument};
+        return Error{"SOUNDPACK_MISSING", trUtf8("The built-in soundpack was not found."), instrument};
     }
     normalize(bank);
     return bank;

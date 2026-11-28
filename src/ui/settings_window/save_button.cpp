@@ -4,6 +4,7 @@
 #include <QKeyEvent>
 #include <QPainter>
 
+#include "core/translator.hpp"
 #include "ui/core/hover_tracker.hpp"
 #include "ui/render/icon_cache.hpp"
 #include "ui/render/paint_utils.hpp"
@@ -22,8 +23,8 @@ SaveButton::SaveButton(QWidget *parent) : QAbstractButton(parent), m_hover(new H
     setFixedSize(kDiameter, kDiameter + kLift);
     setCursor(Qt::PointingHandCursor);
     setFocusPolicy(Qt::StrongFocus);
-    setToolTip(QStringLiteral("Save"));
-    setAccessibleName(QStringLiteral("Save"));
+    setToolTip(tr("Save"));
+    setAccessibleName(tr("Save"));
     connect(m_hover, &HoverTracker::changed, this, [this] {
         update();
         emit bodyMoved();

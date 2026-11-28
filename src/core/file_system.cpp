@@ -5,6 +5,7 @@
 #include <fstream>
 #include <system_error>
 
+#include "core/translator.hpp"
 #include "core/string_utils.hpp"
 
 namespace sky {
@@ -15,7 +16,8 @@ namespace {
 
 Error fileError(std::string code, const fs::path &path, const std::error_code &ec)
 {
-    return Error{std::move(code), "Unable to access " + fromWide(path.filename().wstring()) + ".",
+    return Error{std::move(code),
+                 fromQString(tr("Unable to access %1.").arg(toQString(fromWide(path.filename().wstring())))),
                  fromWide(path.wstring()) + ": " + ec.message()};
 }
 

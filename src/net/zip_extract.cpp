@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "core/translator.hpp"
 #include "core/file_system.hpp"
 #include "core/string_utils.hpp"
 
@@ -16,7 +17,7 @@ namespace {
 
 Error zipError(const std::string &details)
 {
-    return Error{"ZIP_FAILED", "Unable to complete update.", details};
+    return Error{"ZIP_FAILED", trUtf8("Unable to complete update."), details};
 }
 
 std::size_t writeChunk(void *opaque, mz_uint64, const void *buffer, std::size_t size)

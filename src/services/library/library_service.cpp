@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstring>
 
+#include "core/translator.hpp"
 #include "codec/sheet_exporter.hpp"
 #include "core/base64.hpp"
 #include "core/file_system.hpp"
@@ -21,13 +22,13 @@ namespace sky {
 
 namespace {
 
-constexpr const char *kImportFallback = "The selected sheet could not be imported.";
-constexpr const char *kInvalidSheetFile = "The sheet file is not valid, please try again with another file!";
+constexpr const char *kImportFallback = trNoop("The selected sheet could not be imported.");
+constexpr const char *kInvalidSheetFile = trNoop("The sheet file is not valid, please try again with another file!");
 
 std::string importMessage(const Error &error)
 {
     const std::string message(trimJs(error.userMessage));
-    return message.empty() ? std::string(kImportFallback) : message;
+    return message.empty() ? trUtf8(kImportFallback) : message;
 }
 
 Error importError(std::string message)
@@ -147,7 +148,7 @@ Result<std::shared_ptr<const StoredSheet>> LibraryService::payload(int index)
 {
     const SheetEntry *row = entry(index);
     if (!row) {
-        return Error{"SHEET_NOT_FOUND", "Sheet not found.", {}};
+        return Error{"SHEET_NOT_FOUND", trUtf8("Sheet not found."), {}};
     }
     auto &cached = m_payloads[static_cast<std::size_t>(index)];
     if (cached) {
@@ -164,7 +165,7 @@ void LibraryService::loadPayloadAsync(int index, PayloadCallback done)
 {
     const SheetEntry *row = entry(index);
     if (!row) {
-        done(Error{"SHEET_NOT_FOUND", "Sheet not found.", {}});
+        done(Error{"SHEET_NOT_FOUND", trUtf8("Sheet not found."), {}});
         return;
     }
     if (const auto &cached = m_payloads[static_cast<std::size_t>(index)]) {
@@ -311,21 +312,21 @@ void LibraryService::importFiles(std::vector<std::filesystem::path> files)
 void LibraryService::importStoreSheet(OrderedJson sheet, StoreSource source, ImportCallback done)
 {
     if (containsStoreSheet(source.source, source.sourceId)) {
-        done(importError("This sheet is already in your library."));
+        done(importError(trUtf8("This sheet is already in your library.")));
         return;
     }
     const auto encrypted = sheet.find("isEncrypted");
     if (encrypted != sheet.end() && jsTruthy(*encrypted)) {
-        done(importError("Sheet has been encrypted!"));
+        done(importError(trUtf8("Sheet has been encrypted!")));
         return;
     }
     const auto notes = sheet.find("songNotes");
     if (notes == sheet.end() || !jsTruthy(*notes)) {
-        done(importError(kInvalidSheetFile));
+        done(importError(trUtf8(kInvalidSheetFile)));
         return;
     }
     if (!notes->is_array() || notes->empty() || !(*notes)[0].is_object()) {
-        done(importError("Sheet format is incorrect or still encrypted!"));
+        done(importError(trUtf8("Sheet format is incorrect or still encrypted!")));
         return;
     }
 
@@ -349,7 +350,7 @@ void LibraryService::importStoreSheet(OrderedJson sheet, StoreSource source, Imp
                 }
                 if (containsStoreSheet(source.source, source.sourceId)) {
                     (void)safeDelete(m_dataDirectory / toWide(prepared.row.value()["keyMap"].get<std::string>()));
-                    done(importError("This sheet is already in your library."));
+                    done(importError(trUtf8("This sheet is already in your library.")));
                     return;
                 }
                 m_entries.emplace_back(prepared.row.value());
@@ -419,11 +420,11 @@ DeleteSummary LibraryService::deleteSheets(const std::set<std::string> &payloadF
 Result<void> LibraryService::updateEntryField(int index, const std::string &field, OrderedJson value)
 {
     if (!entry(index)) {
-        return Error{"SHEET_NOT_FOUND", "Failed to save changes to the sheet", {}};
+        return Error{"SHEET_NOT_FOUND", trUtf8("Failed to save changes to the sheet"), {}};
     }
     m_entries[static_cast<std::size_t>(index)].set(field.c_str(), std::move(value));
     if (auto saved = saveList(); !saved) {
-        return Error{"SHEET_SAVE_FAILED", "Failed to save changes to the sheet", saved.error().details};
+        return Error{"SHEET_SAVE_FAILED", trUtf8("Failed to save changes to the sheet"), saved.error().details};
     }
     emit changed();
     return {};
@@ -433,10 +434,10 @@ Result<void> LibraryService::saveEditedNotes(int index, const SheetPayload &payl
 {
     const SheetEntry *row = entry(index);
     if (!row) {
-        return Error{"SHEET_NOT_FOUND", "Failed to save changes to the music sheet", {}};
+        return Error{"SHEET_NOT_FOUND", trUtf8("Failed to save changes to the music sheet"), {}};
     }
     if (auto written = atomicWrite(payloadPath(*row), dumpJson(payload.toJson())); !written) {
-        return Error{"PAYLOAD_SAVE_FAILED", "Failed to save changes to the music sheet", written.error().details};
+        return Error{"PAYLOAD_SAVE_FAILED", trUtf8("Failed to save changes to the music sheet"), written.error().details};
     }
     SheetEntry &stored = m_entries[static_cast<std::size_t>(index)];
     const bool rowChanged = stored.hasHoldNotes() != hasHoldNotes || stored.bitsPerPage() < kSkyKeyCount;
@@ -446,7 +447,7 @@ Result<void> LibraryService::saveEditedNotes(int index, const SheetPayload &payl
             stored.set("bitsPerPage", kSkyKeyCount);
         }
         if (auto saved = saveList(); !saved) {
-            return Error{"SHEET_SAVE_FAILED", "Failed to save changes to the music sheet", saved.error().details};
+            return Error{"SHEET_SAVE_FAILED", trUtf8("Failed to save changes to the music sheet"), saved.error().details};
         }
     }
     invalidatePayload(index);
@@ -460,10 +461,12 @@ Result<void> LibraryService::saveEditedNotes(int index, const SheetPayload &payl
 Toast LibraryService::importToast(const ImportSummary &summary)
 {
     if (summary.total > 1) {
-        std::string text = "Import complete. Success: " + std::to_string(summary.succeeded) + ".";
+        std::string text = fromQString(tr("Import complete. Success: %1.").arg(summary.succeeded));
         if (!summary.failures.empty()) {
-            text += " Failed: " + std::to_string(summary.failures.size()) + ". " + summary.failures.front().fileName +
-                    ": " + summary.failures.front().message;
+            text += " " + fromQString(tr("Failed: %1. %2: %3")
+                                          .arg(QString::number(summary.failures.size()),
+                                               toQString(summary.failures.front().fileName),
+                                               toQString(summary.failures.front().message)));
         }
         return Toast{summary.succeeded > 0 ? ToastType::Success : ToastType::Error, {}, text, kDefaultToastMs};
     }
@@ -471,7 +474,7 @@ Toast LibraryService::importToast(const ImportSummary &summary)
         return Toast{ToastType::Error, {}, summary.failures.front().message, kDefaultToastMs};
     }
     if (summary.succeeded > 0) {
-        return Toast{ToastType::Success, {}, "Sheet imported successfully.", kDefaultToastMs};
+        return Toast{ToastType::Success, {}, trUtf8("Sheet imported successfully."), kDefaultToastMs};
     }
     return Toast{ToastType::Neutral, {}, {}, 0};
 }
@@ -480,8 +483,9 @@ Toast LibraryService::deleteToast(const DeleteSummary &summary)
 {
     const std::size_t deleted = summary.deletedKeys.size();
     if (deleted == 0) {
-        std::string text = "Unable to delete the selected sheets. " +
-                           (summary.failedNames.empty() ? std::string() : summary.failedNames.front());
+        std::string text = fromQString(
+            tr("Unable to delete the selected sheets. %1")
+                .arg(summary.failedNames.empty() ? QString() : toQString(summary.failedNames.front())));
         return Toast{ToastType::Error, {}, std::string(trimJs(text)), kDefaultToastMs};
     }
     if (!summary.failedNames.empty()) {
@@ -490,22 +494,26 @@ Toast LibraryService::deleteToast(const DeleteSummary &summary)
             names += (i ? ", " : "") + summary.failedNames[i];
         }
         return Toast{ToastType::Warning, {},
-                     "Deleted " + std::to_string(deleted) + " sheet(s). Failed: " + names + ".", kDefaultToastMs};
+                     fromQString(tr("Deleted %1 sheet(s). Failed: %2.").arg(QString::number(deleted), toQString(names))),
+                     kDefaultToastMs};
     }
     return Toast{ToastType::Success, {},
-                 "Deleted " + std::to_string(deleted) + (deleted == 1 ? " sheet." : " sheets."), kDefaultToastMs};
+                 fromQString(trCount(static_cast<long long>(deleted), trNoop("Deleted 1 sheet."),
+                                     trNoop("Deleted %1 sheets."))),
+                 kDefaultToastMs};
 }
 
 std::string LibraryService::deleteConfirmation(std::size_t count)
 {
-    return "Delete " + std::to_string(count) + " selected sheet" + (count == 1 ? "" : "s") + "? This cannot be undone.";
+    return fromQString(trCount(static_cast<long long>(count), trNoop("Delete 1 selected sheet? This cannot be undone."),
+                               trNoop("Delete %1 selected sheets? This cannot be undone.")));
 }
 
 
 Result<void> LibraryService::writeExportFile(const std::filesystem::path &file, const std::string &content)
 {
     if (auto written = atomicWrite(file, content); !written) {
-        return Error{"EXPORT_FAILED", "Failed to export the sheet.", written.error().details};
+        return Error{"EXPORT_FAILED", trUtf8("Failed to export the sheet."), written.error().details};
     }
     return {};
 }

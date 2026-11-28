@@ -1,5 +1,7 @@
 #include "platform/file_dialog.hpp"
 
+#include "core/translator.hpp"
+
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QStringList>
@@ -9,7 +11,7 @@ namespace sky {
 std::vector<std::filesystem::path> chooseSheetFiles(QWidget *parent)
 {
     const QStringList chosen = QFileDialog::getOpenFileNames(
-        parent, QString(), QString(), QStringLiteral("Sky sheets (*.json *.txt *.skysheet *.mid *.midi)"));
+        parent, QString(), QString(), tr("Sky sheets (*.json *.txt *.skysheet *.mid *.midi)"));
     std::vector<std::filesystem::path> files;
     files.reserve(static_cast<std::size_t>(chosen.size()));
     for (const QString &file : chosen) {
@@ -21,7 +23,7 @@ std::vector<std::filesystem::path> chooseSheetFiles(QWidget *parent)
 std::optional<std::filesystem::path> chooseSettingsExportPath(QWidget *parent, const QString &defaultName)
 {
     const QString chosen =
-        QFileDialog::getSaveFileName(parent, QString(), defaultName, QStringLiteral("JSON File (*.json)"));
+        QFileDialog::getSaveFileName(parent, QString(), defaultName, tr("JSON File (*.json)"));
     if (chosen.isEmpty()) {
         return std::nullopt;
     }
@@ -31,7 +33,7 @@ std::optional<std::filesystem::path> chooseSettingsExportPath(QWidget *parent, c
 std::optional<std::filesystem::path> chooseSettingsImportFile(QWidget *parent)
 {
     const QString chosen =
-        QFileDialog::getOpenFileName(parent, QString(), QString(), QStringLiteral("JSON File (*.json)"));
+        QFileDialog::getOpenFileName(parent, QString(), QString(), tr("JSON File (*.json)"));
     if (chosen.isEmpty()) {
         return std::nullopt;
     }
@@ -39,8 +41,8 @@ std::optional<std::filesystem::path> chooseSettingsImportFile(QWidget *parent)
 }
 std::optional<std::filesystem::path> chooseThemeExportPath(QWidget *parent, const QString &defaultName)
 {
-    const QString chosen = QFileDialog::getSaveFileName(parent, QStringLiteral("Export Theme"), defaultName,
-                                                        QStringLiteral("Sky Auto Piano Theme (*.json)"));
+    const QString chosen = QFileDialog::getSaveFileName(parent, tr("Export Theme"), defaultName,
+                                                        tr("Sky Auto Piano Theme (*.json)"));
     if (chosen.isEmpty()) {
         return std::nullopt;
     }
@@ -50,10 +52,10 @@ std::optional<std::filesystem::path> chooseThemeExportPath(QWidget *parent, cons
 std::optional<std::filesystem::path> chooseReportSavePath(QWidget *parent, const QString &defaultName, bool crashReport)
 {
     const QString folder = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
-    const QString filter = crashReport ? QStringLiteral("Sky Auto Piano Crash Report (*.sapcr)")
-                                       : QStringLiteral("Sky Auto Piano Report (*.sapr)");
+    const QString filter = crashReport ? tr("Sky Auto Piano Crash Report (*.sapcr)")
+                                       : tr("Sky Auto Piano Report (*.sapr)");
     const QString chosen = QFileDialog::getSaveFileName(
-        parent, crashReport ? QStringLiteral("Save crash report") : QStringLiteral("Save report"),
+        parent, crashReport ? tr("Save crash report") : tr("Save report"),
         folder + QLatin1Char('/') + defaultName, filter);
     if (chosen.isEmpty()) {
         return std::nullopt;
@@ -63,8 +65,8 @@ std::optional<std::filesystem::path> chooseReportSavePath(QWidget *parent, const
 
 std::optional<std::filesystem::path> chooseThemeImportFile(QWidget *parent)
 {
-    const QString chosen = QFileDialog::getOpenFileName(parent, QStringLiteral("Import Theme"), QString(),
-                                                        QStringLiteral("Sky Auto Piano Theme (*.json)"));
+    const QString chosen = QFileDialog::getOpenFileName(parent, tr("Import Theme"), QString(),
+                                                        tr("Sky Auto Piano Theme (*.json)"));
     if (chosen.isEmpty()) {
         return std::nullopt;
     }
@@ -75,7 +77,7 @@ std::optional<std::filesystem::path> chooseSheetExportPath(QWidget *parent, cons
 {
     const QString chosen = QFileDialog::getSaveFileName(
         parent, QString(), defaultName,
-        QStringLiteral("Text File (*.txt);;JSON File (*.json);;SkySheet File (*.skysheet)"));
+        tr("Text File (*.txt);;JSON File (*.json);;SkySheet File (*.skysheet)"));
     if (chosen.isEmpty()) {
         return std::nullopt;
     }

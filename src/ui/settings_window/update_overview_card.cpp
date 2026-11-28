@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QVBoxLayout>
 
+#include "core/translator.hpp"
 #include "ui/render/font_loader.hpp"
 #include "ui/render/icon_cache.hpp"
 #include "ui/render/paint_utils.hpp"
@@ -46,9 +47,9 @@ UpdateOverviewCard::UpdateOverviewCard(const QString &currentVersion, QWidget *p
     m_tileSpace->setAttribute(Qt::WA_TransparentForMouseEvents);
     m_pillSpace->setAttribute(Qt::WA_TransparentForMouseEvents);
 
-    auto *title = new QLabel(QStringLiteral("Update"), this);
+    auto *title = new QLabel(tr("Update"), this);
     title->setObjectName(QStringLiteral("OverviewTitle"));
-    auto *text = new QLabel(QStringLiteral("Keep your app up to date for the latest features and improvements."), this);
+    auto *text = new QLabel(tr("Keep your app up to date for the latest features and improvements."), this);
     text->setObjectName(QStringLiteral("SettingsRowDescription"));
     text->setWordWrap(true);
     m_version->setObjectName(QStringLiteral("OverviewVersion"));
@@ -86,17 +87,17 @@ QString UpdateOverviewCard::pillText() const
 {
     switch (m_state) {
     case State::Checking:
-        return QStringLiteral("Checking...");
+        return tr("Checking...");
     case State::UpToDate:
-        return QStringLiteral("Up to date");
+        return tr("Up to date");
     case State::Available:
-        return QStringLiteral("Update available");
+        return tr("Update available");
     case State::Failed:
-        return QStringLiteral("Couldn't check");
+        return tr("Couldn't check");
     case State::Unknown:
         break;
     }
-    return QStringLiteral("Not checked yet");
+    return tr("Not checked yet");
 }
 
 void UpdateOverviewCard::refresh()
@@ -104,9 +105,9 @@ void UpdateOverviewCard::refresh()
     const int width = kPillPadX * 2 + kDot + kDotGap + QFontMetrics(pillFont()).horizontalAdvance(pillText());
     m_pillSpace->setFixedSize(width, kPillHeight);
     if (m_state == State::Available && !m_latestVersion.isEmpty()) {
-        m_version->setText(QStringLiteral("Version %1  ·  New %2").arg(m_currentVersion, m_latestVersion));
+        m_version->setText(tr("Version %1  ·  New %2").arg(m_currentVersion, m_latestVersion));
     } else {
-        m_version->setText(QStringLiteral("Version %1").arg(m_currentVersion));
+        m_version->setText(tr("Version %1").arg(m_currentVersion));
     }
     update();
 }

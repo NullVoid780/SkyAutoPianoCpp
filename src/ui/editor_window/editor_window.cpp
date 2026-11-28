@@ -21,6 +21,7 @@
 #include <cctype>
 #include <cmath>
 
+#include "core/translator.hpp"
 #include "codec/sheet_exporter.hpp"
 #include "core/logger.hpp"
 #include "core/string_utils.hpp"
@@ -87,7 +88,7 @@ constexpr std::array<int, 6> kSubdivisions = {1, 2, 3, 4, 6, 8};
 
 constexpr std::array<const char *, 4> kFieldKeys = {"name", "author", "transcribedBy", "bpm"};
 
-const QString kDiscardPrompt = QStringLiteral("Discard changes to the music sheet?");
+constexpr const char *kDiscardPrompt = trNoop("Discard changes to the music sheet?");
 
 std::optional<long long> parseLeadingInt(const QString &text)
 {
@@ -122,8 +123,7 @@ QString clockText(double timeMs)
 
 QString countText(int count, const char *one, const char *many)
 {
-    return count == 1 ? QStringLiteral("1 %1").arg(QLatin1String(one))
-                      : QStringLiteral("%1 %2").arg(count).arg(QLatin1String(many));
+    return count == 1 ? tr(one) : tr(many).arg(count);
 }
 
 QPushButton *makeButton(const QString &text, const QString &objectName, QWidget *parent)
@@ -157,42 +157,42 @@ EditorWindow::EditorWindow(LibraryService &library, UiStateService &uiState, std
                          Qt::WindowMaximizeButtonHint | Qt::WindowCloseButtonHint),
       m_library(library),
       m_uiState(uiState),
-      m_undo(new ToolButton(QStringLiteral("arrow-counterclockwise"), QStringLiteral("Undo (Ctrl+Z)"), this)),
-      m_redo(new ToolButton(QStringLiteral("arrow-clockwise"), QStringLiteral("Redo (Ctrl+Y)"), this)),
+      m_undo(new ToolButton(QStringLiteral("arrow-counterclockwise"), tr("Undo (Ctrl+Z)"), this)),
+      m_redo(new ToolButton(QStringLiteral("arrow-clockwise"), tr("Redo (Ctrl+Y)"), this)),
       m_insert(new ToolButton(QStringLiteral("plus-square"),
-                              QStringLiteral("Add column: insert an empty column after the selection (E)"), this)),
+                              tr("Add column: insert an empty column after the selection (E)"), this)),
       m_delete(new ToolButton(QStringLiteral("dash-square"),
-                              QStringLiteral("Remove column: delete the selected columns and pull the rest forward (Q)"),
+                              tr("Remove column: delete the selected columns and pull the rest forward (Q)"),
                               this)),
       m_erase(new ToolButton(QStringLiteral("eraser"),
-                             QStringLiteral("Clear notes: remove the notes but keep the time (Backspace)"), this)),
-      m_copy(new ToolButton(QStringLiteral("copy"), QStringLiteral("Copy columns (Ctrl+C)"), this)),
-      m_cut(new ToolButton(QStringLiteral("scissors"), QStringLiteral("Cut columns (Ctrl+X)"), this)),
+                             tr("Clear notes: remove the notes but keep the time (Backspace)"), this)),
+      m_copy(new ToolButton(QStringLiteral("copy"), tr("Copy columns (Ctrl+C)"), this)),
+      m_cut(new ToolButton(QStringLiteral("scissors"), tr("Cut columns (Ctrl+X)"), this)),
       m_paste(new ToolButton(QStringLiteral("clipboard"),
-                             QStringLiteral("Paste at the cursor (Ctrl+V). Ctrl+Shift+V pastes on top of what is there."),
+                             tr("Paste at the cursor (Ctrl+V). Ctrl+Shift+V pastes on top of what is there."),
                              this)),
-      m_keyUp(new ToolButton(QStringLiteral("arrow-up"), QStringLiteral("Key up: move the notes one key higher (Alt+Up)"),
+      m_keyUp(new ToolButton(QStringLiteral("arrow-up"), tr("Key up: move the notes one key higher (Alt+Up)"),
                              this)),
       m_keyDown(new ToolButton(QStringLiteral("arrow-down"),
-                               QStringLiteral("Key down: move the notes one key lower (Alt+Down)"), this)),
+                               tr("Key down: move the notes one key lower (Alt+Down)"), this)),
       m_snap(new ToolButton(QStringLiteral("magnet"),
-                            QStringLiteral("Snap to grid: move notes onto the columns. Works on the selection, or the "
+                            tr("Snap to grid: move notes onto the columns. Works on the selection, or the "
                                            "whole sheet when one column is selected."),
                             this)),
       m_earlier(new ToolButton(QStringLiteral("chevron-bar-left"),
-                               QStringLiteral("Earlier: play the notes one column sooner (Alt+Left)"), this)),
+                               tr("Earlier: play the notes one column sooner (Alt+Left)"), this)),
       m_later(new ToolButton(QStringLiteral("chevron-bar-right"),
-                             QStringLiteral("Later: play the notes one column later (Alt+Right)"), this)),
+                             tr("Later: play the notes one column later (Alt+Right)"), this)),
       m_holdLess(new ToolButton(QStringLiteral("arrows-collapse-vertical"),
-                                QStringLiteral("Shorter hold: hold the notes one column less ([)"), this)),
+                                tr("Shorter hold: hold the notes one column less ([)"), this)),
       m_holdMore(new ToolButton(QStringLiteral("arrows-expand-vertical"),
-                                QStringLiteral("Longer hold: hold the notes one column more (])"), this)),
+                                tr("Longer hold: hold the notes one column more (])"), this)),
       m_simpleView(new ToolButton(QStringLiteral("grid-3x3-gap"),
-                                  QStringLiteral("Simple view: tiles laid out like Sky's keyboard"), this)),
+                                  tr("Simple view: tiles laid out like Sky's keyboard"), this)),
       m_advancedView(new ToolButton(QStringLiteral("bar-chart-steps"),
-                                    QStringLiteral("Advanced view: a timeline with every key on its own row"), this)),
-      m_zoomOut(new ToolButton(QStringLiteral("zoom-out"), QStringLiteral("Zoom out (Ctrl+-, Ctrl+wheel)"), this)),
-      m_zoomIn(new ToolButton(QStringLiteral("zoom-in"), QStringLiteral("Zoom in (Ctrl+=, Ctrl+wheel)"), this)),
+                                    tr("Advanced view: a timeline with every key on its own row"), this)),
+      m_zoomOut(new ToolButton(QStringLiteral("zoom-out"), tr("Zoom out (Ctrl+-, Ctrl+wheel)"), this)),
+      m_zoomIn(new ToolButton(QStringLiteral("zoom-in"), tr("Zoom in (Ctrl+=, Ctrl+wheel)"), this)),
       m_gridSelect(new SelectBox(this)),
       m_timeline(new TimelineView(this)),
       m_title(makeLabel(QStringLiteral("EditorTitle"), this)),
@@ -204,9 +204,9 @@ EditorWindow::EditorWindow(LibraryService &library, UiStateService &uiState, std
       m_status(makeLabel(QStringLiteral("EditorStatus"), this)),
       m_meta(new MetaPanel(this)),
       m_pad(new KeyPad(this)),
-      m_save(makeButton(QStringLiteral("Save"), QStringLiteral("EditorSave"), this)),
-      m_cancel(makeButton(QStringLiteral("Discard"), QStringLiteral("EditorCancel"), this)),
-      m_export(makeButton(QStringLiteral("Export"), QStringLiteral("EditorExport"), this)),
+      m_save(makeButton(tr("Save"), QStringLiteral("EditorSave"), this)),
+      m_cancel(makeButton(tr("Discard"), QStringLiteral("EditorCancel"), this)),
+      m_export(makeButton(tr("Export"), QStringLiteral("EditorExport"), this)),
       m_shadows(new ElevationLayer(this)),
       m_confirm(new ConfirmPopup(this)),
       m_toasts(new ToastHost(this))
@@ -214,11 +214,11 @@ EditorWindow::EditorWindow(LibraryService &library, UiStateService &uiState, std
     setObjectName(QStringLiteral("EditorWindow"));
     setAttribute(Qt::WA_StyledBackground);
     setAttribute(Qt::WA_DeleteOnClose);
-    setWindowTitle(QStringLiteral("Sheet Editor[*]"));
+    setWindowTitle(tr("Sheet Editor[*]"));
     setWindowIcon(QIcon(QStringLiteral(":/icon/Icon9.ico")));
     setFocusPolicy(Qt::StrongFocus);
 
-    m_play = new ToolButton(QStringLiteral("play-fill"), QStringLiteral("Play from the selected column (Space)"), this);
+    m_play = new ToolButton(QStringLiteral("play-fill"), tr("Play from the selected column (Space)"), this);
     m_sound = new ToolButton(QStringLiteral("volume-up"), QString(), this);
     m_audio = std::make_unique<SheetAudio>();
     m_audio->setMuted(m_uiState.editorSoundMuted());
@@ -229,8 +229,8 @@ EditorWindow::EditorWindow(LibraryService &library, UiStateService &uiState, std
     m_idleTimer = new QTimer(this);
     m_idleTimer->setInterval(kAudioIdleMs);
     refreshSoundButton();
-    m_simpleView->setLabel(QStringLiteral("Simple"));
-    m_advancedView->setLabel(QStringLiteral("Advanced"));
+    m_simpleView->setLabel(tr("Simple"));
+    m_advancedView->setLabel(tr("Advanced"));
     m_simpleView->setCheckable(true);
     m_advancedView->setCheckable(true);
     m_steps = new StepGridView();
@@ -248,17 +248,16 @@ EditorWindow::EditorWindow(LibraryService &library, UiStateService &uiState, std
     m_views->addWidget(m_timeline);
 
     for (int subdivision : kSubdivisions) {
-        m_gridSelect->addOption(subdivision == 1 ? QStringLiteral("1 beat")
-                                                 : QStringLiteral("1/%1 beat").arg(subdivision),
-                                QStringLiteral("One column is %1 of a beat").arg(subdivision == 1
-                                                                                     ? QStringLiteral("all")
-                                                                                     : QStringLiteral("1/%1").arg(subdivision)));
+        m_gridSelect->addOption(subdivision == 1 ? tr("1 beat")
+                                                 : tr("1/%1 beat").arg(subdivision),
+                                subdivision == 1 ? tr("One column is all of a beat")
+                                                 : tr("One column is 1/%1 of a beat").arg(subdivision));
     }
     m_gridSelect->setCurrentIndex(0);
     m_gridSelect->setFocusPolicy(Qt::NoFocus);
-    m_gridSelect->setToolTip(QStringLiteral("How much time one column holds"));
+    m_gridSelect->setToolTip(tr("How much time one column holds"));
     m_status->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-    m_status->setToolTip(QStringLiteral(
+    m_status->setToolTip(tr(
         "Click a cell to add or remove a note. Drag a note to move it (hold Alt to leave the grid), drag its tail or "
         "Shift+drag it to hold it longer. Drag across empty cells or the ruler to select columns."));
     m_title->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
@@ -267,9 +266,9 @@ EditorWindow::EditorWindow(LibraryService &library, UiStateService &uiState, std
     m_selectionDetail->setWordWrap(true);
     m_hint->setWordWrap(true);
     m_hint->setVisible(false);
-    m_save->setToolTip(QStringLiteral("Save the notes (Ctrl+S)"));
-    m_cancel->setToolTip(QStringLiteral("Throw away the changes since the last save"));
-    m_export->setToolTip(QStringLiteral("Save a copy as a .txt, .json or .skysheet file"));
+    m_save->setToolTip(tr("Save the notes (Ctrl+S)"));
+    m_cancel->setToolTip(tr("Throw away the changes since the last save"));
+    m_export->setToolTip(tr("Save a copy as a .txt, .json or .skysheet file"));
 
     auto *titles = new QVBoxLayout();
     titles->setSpacing(2);
@@ -321,7 +320,7 @@ EditorWindow::EditorWindow(LibraryService &library, UiStateService &uiState, std
     group({m_keyUp, m_keyDown, m_snap});
     tools->addWidget(editTools, 1);
     QLabel *gridLabel = makeLabel(QStringLiteral("EditorCaption"), toolbar);
-    gridLabel->setText(QStringLiteral("GRID"));
+    gridLabel->setText(tr("GRID"));
     group({gridLabel, m_gridSelect, m_zoomOut, m_zoomIn});
 
     auto *main = new QVBoxLayout();
@@ -338,7 +337,7 @@ EditorWindow::EditorWindow(LibraryService &library, UiStateService &uiState, std
     infoLayout->setContentsMargins(0, 0, 0, 0);
     infoLayout->setSpacing(kSideGap);
     QLabel *selectionCaption = makeLabel(QStringLiteral("EditorCaption"), info);
-    selectionCaption->setText(QStringLiteral("SELECTED"));
+    selectionCaption->setText(tr("SELECTED"));
     infoLayout->addWidget(selectionCaption);
     infoLayout->addWidget(m_selectionTitle);
     infoLayout->addWidget(m_selectionDetail);
@@ -540,7 +539,7 @@ void EditorWindow::setDetailsOpen(bool open)
 {
     m_detailsOpen = open;
     m_meta->setVisible(open);
-    m_detailsToggle->setText(open ? QStringLiteral("Hide song details") : QStringLiteral("Show song details"));
+    m_detailsToggle->setText(open ? tr("Hide song details") : tr("Show song details"));
 }
 
 void EditorWindow::elideTitle()
@@ -592,7 +591,7 @@ void EditorWindow::openSheet(int index)
     if (m_document.isDirty() || m_editingField >= 0) {
         QPointer<EditorWindow> self(this);
         const std::string key = row->payloadFile();
-        m_confirm->ask(kDiscardPrompt, [self, key] {
+        m_confirm->ask(tr(kDiscardPrompt), [self, key] {
             if (!self) {
                 return;
             }
@@ -627,11 +626,11 @@ void EditorWindow::load(int index)
     m_pad->showKeys({});
 
     const auto text = [](const std::string &value, const char *fallback) {
-        return toQString(value.empty() ? std::string(fallback) : value);
+        return value.empty() ? tr(fallback) : toQString(value);
     };
-    m_meta->field(MetaPanel::Name)->setValue(text(row->name(), "Untitled"));
-    m_meta->field(MetaPanel::Author)->setValue(text(row->author(), "Unknown"));
-    m_meta->field(MetaPanel::TranscribedBy)->setValue(text(row->transcribedBy(), "Unknown"));
+    m_meta->field(MetaPanel::Name)->setValue(text(row->name(), trNoop("Untitled")));
+    m_meta->field(MetaPanel::Author)->setValue(text(row->author(), trNoop("Unknown")));
+    m_meta->field(MetaPanel::TranscribedBy)->setValue(text(row->transcribedBy(), trNoop("Unknown")));
     const double bpm = row->bpm();
     m_meta->field(MetaPanel::Bpm)->setValue(std::isfinite(bpm) && bpm != 0 ? toQString(formatJsNumber(bpm))
                                                                            : QStringLiteral("120"));
@@ -748,7 +747,7 @@ void EditorWindow::moveNote(qint64 time, int key, qint64 newTime, int newKey)
         return;
     }
     if (!m_document.moveNote(time, key, newTime, newKey)) {
-        notify(ToastType::Warning, "There is already a note there.", kErrorToastMs);
+        notify(ToastType::Warning, trUtf8("There is already a note there."), kErrorToastMs);
         return;
     }
     refreshViews();
@@ -813,16 +812,18 @@ void EditorWindow::copyColumns(bool cut)
         return;
     }
     m_clip = m_document.copyColumns(first, last, m_grid);
-    const std::string what = fromQString(countText(m_clip.columns, "column", "columns"));
+    const int columns = m_clip.columns;
     if (cut) {
         m_document.deleteColumns(first, last, m_grid);
         refreshViews();
         moveCursorTo(first, false);
-        notify(ToastType::Info, what + " cut", kInfoToastMs);
+        notify(ToastType::Info, fromQString(columns == 1 ? tr("1 column cut") : tr("%1 columns cut").arg(columns)),
+               kInfoToastMs);
         return;
     }
     refreshActions();
-    notify(ToastType::Info, what + " copied", kInfoToastMs);
+    notify(ToastType::Info, fromQString(columns == 1 ? tr("1 column copied") : tr("%1 columns copied").arg(columns)),
+           kInfoToastMs);
 }
 
 void EditorWindow::pasteColumns(bool insert)
@@ -864,7 +865,8 @@ void EditorWindow::shiftKeys(int delta)
     }
     if (!m_document.copyColumns(first, last, m_grid).notes.empty()) {
         notify(ToastType::Warning,
-               delta > 0 ? "A note is already on the highest key." : "A note is already on the lowest key.",
+               delta > 0 ? trUtf8("A note is already on the highest key.")
+                         : trUtf8("A note is already on the lowest key."),
                kErrorToastMs);
     }
 }
@@ -881,9 +883,9 @@ void EditorWindow::snapToGrid()
     }
     if (m_document.snapColumns(first, last, m_grid)) {
         afterEdit();
-        notify(ToastType::Success, "Notes moved onto the grid.", kSavedToastMs);
+        notify(ToastType::Success, trUtf8("Notes moved onto the grid."), kSavedToastMs);
     } else {
-        notify(ToastType::Info, "Every note is already on the grid.", kInfoToastMs);
+        notify(ToastType::Info, trUtf8("Every note is already on the grid."), kInfoToastMs);
     }
 }
 
@@ -894,7 +896,7 @@ void EditorWindow::moveSelection(int delta)
         return;
     }
     if (first + delta < 0) {
-        notify(ToastType::Info, "The notes are already at the start of the song.", kInfoToastMs);
+        notify(ToastType::Info, trUtf8("The notes are already at the start of the song."), kInfoToastMs);
         return;
     }
     if (!m_document.moveColumns(first, last, delta, m_grid)) {
@@ -999,7 +1001,7 @@ void EditorWindow::togglePlayback()
 void EditorWindow::startPlayback(int column)
 {
     if (!m_loaded || m_document.empty()) {
-        notify(ToastType::Info, "Add some notes first, then press play.", kInfoToastMs);
+        notify(ToastType::Info, trUtf8("Add some notes first, then press play."), kInfoToastMs);
         return;
     }
     const double from = static_cast<double>(m_grid.columnBegin(std::max(0, column)));
@@ -1010,13 +1012,13 @@ void EditorWindow::startPlayback(int column)
     }
     if (!m_audio->play(std::move(notes), from)) {
         stopPlayback();
-        notify(ToastType::Warning, "Nothing to play from here, or no sound output was found.", kErrorToastMs);
+        notify(ToastType::Warning, trUtf8("Nothing to play from here, or no sound output was found."), kErrorToastMs);
         return;
     }
     m_playing = true;
     m_playColumn = -1;
     m_play->setIconId(QStringLiteral("pause-fill"));
-    m_play->setToolTip(QStringLiteral("Pause (Space)"));
+    m_play->setToolTip(tr("Pause (Space)"));
     m_playTimer->start();
     m_idleTimer->start();
 }
@@ -1030,7 +1032,7 @@ void EditorWindow::stopPlayback()
     m_timeline->setPlayhead(-1);
     m_steps->setPlayhead(-1);
     m_play->setIconId(QStringLiteral("play-fill"));
-    m_play->setToolTip(QStringLiteral("Play from the selected column (Space)"));
+    m_play->setToolTip(tr("Play from the selected column (Space)"));
 }
 
 void EditorWindow::playbackTick()
@@ -1063,10 +1065,10 @@ void EditorWindow::toggleSound()
 void EditorWindow::refreshSoundButton()
 {
     const bool muted = m_audio->muted();
-    const QString source = m_audio->hasSamples() ? QStringLiteral("Sky piano") : QStringLiteral("built-in sound");
+    const QString source = m_audio->hasSamples() ? tr("Sky piano") : tr("built-in sound");
     m_sound->setIconId(muted ? QStringLiteral("volume-mute") : QStringLiteral("volume-up"));
-    m_sound->setToolTip(muted ? QStringLiteral("Sound is off. Click to turn it on.")
-                              : QStringLiteral("Playing with the %1. Click to mute.").arg(source));
+    m_sound->setToolTip(muted ? tr("Sound is off. Click to turn it on.")
+                              : tr("Playing with the %1. Click to mute.").arg(source));
 }
 
 void EditorWindow::loadSounds()
@@ -1148,7 +1150,7 @@ void EditorWindow::commitEditing()
     if (bpmField) {
         const auto bpm = parseLeadingInt(text);
         if (!bpm || *bpm <= 0) {
-            notify(ToastType::Error, "Please enter a valid BPM number (must be greater than 0)", kErrorToastMs);
+            notify(ToastType::Error, trUtf8("Please enter a valid BPM number (must be greater than 0)"), kErrorToastMs);
             cancelEditing();
             return;
         }
@@ -1158,12 +1160,12 @@ void EditorWindow::commitEditing()
     }
     if (auto saved = m_library.updateEntryField(index, kFieldKeys[static_cast<std::size_t>(m_editingField)], value);
         !saved) {
-        notify(ToastType::Error, "Failed to save changes to the sheet", kErrorToastMs);
+        notify(ToastType::Error, trUtf8("Failed to save changes to the sheet"), kErrorToastMs);
         cancelEditing();
         return;
     }
     field->setValue(value.is_string() ? toQString(value.get<std::string>()) : toQString(formatJsNumber(value.get<double>())));
-    notify(ToastType::Success, "Changes saved successfully!", kSavedToastMs);
+    notify(ToastType::Success, trUtf8("Changes saved successfully!"), kSavedToastMs);
     cancelEditing();
     refreshHeader();
     if (bpmField && m_loaded) {
@@ -1178,21 +1180,21 @@ void EditorWindow::saveNotes()
         return;
     }
     if (m_document.empty()) {
-        notify(ToastType::Warning, "Add at least one note before saving.", kErrorToastMs);
+        notify(ToastType::Warning, trUtf8("Add at least one note before saving."), kErrorToastMs);
         return;
     }
     auto payload = payloadFromSongNotes(m_document.songNotes());
     if (!payload) {
-        notify(ToastType::Error, "Failed to save changes to the music sheet", kErrorToastMs);
+        notify(ToastType::Error, trUtf8("Failed to save changes to the music sheet"), kErrorToastMs);
         Logger::error("editor", payload.error().details);
         return;
     }
     if (auto saved = m_library.saveEditedNotes(libraryIndex(), payload.value(), m_document.hasHoldNotes()); !saved) {
-        notify(ToastType::Error, "Failed to save changes to the music sheet", kErrorToastMs);
+        notify(ToastType::Error, trUtf8("Failed to save changes to the music sheet"), kErrorToastMs);
         return;
     }
     m_document.markSaved();
-    notify(ToastType::Success, "Sheet saved successfully!", kSavedToastMs);
+    notify(ToastType::Success, trUtf8("Sheet saved successfully!"), kSavedToastMs);
     refreshActions();
 }
 
@@ -1215,7 +1217,7 @@ void EditorWindow::onCancel()
         return;
     }
     QPointer<EditorWindow> self(this);
-    m_confirm->ask(kDiscardPrompt, [self] {
+    m_confirm->ask(tr(kDiscardPrompt), [self] {
         if (self) {
             self->m_document.discard();
             self->afterEdit();
@@ -1227,17 +1229,17 @@ void EditorWindow::exportSheet()
 {
     const SheetEntry *row = m_library.entry(libraryIndex());
     if (!row || !m_loaded || m_document.empty()) {
-        notify(ToastType::Warning, "No notes to export.", kErrorToastMs);
+        notify(ToastType::Warning, trUtf8("No notes to export."), kErrorToastMs);
         return;
     }
     auto payload = payloadFromSongNotes(m_document.songNotes());
     if (!payload) {
-        notify(ToastType::Error, "The sheet could not be exported.", kErrorToastMs);
+        notify(ToastType::Error, trUtf8("The sheet could not be exported."), kErrorToastMs);
         Logger::error("editor", payload.error().details);
         return;
     }
     const OrderedJson document = buildExportDocument(*row, payload.value().songNotes, payload.value().keyMap);
-    const QString name = toQString(row->name().empty() ? std::string("Sheet") : row->name());
+    const QString name = row->name().empty() ? tr("Sheet") : toQString(row->name());
     const auto path = chooseSheetExportPath(this, name + QStringLiteral(".txt"));
     if (!path) {
         return;
@@ -1267,7 +1269,7 @@ void EditorWindow::refreshActions()
     m_cancel->setEnabled(dirty || m_editingField >= 0);
     m_export->setEnabled(m_loaded && !m_document.empty());
     m_saveState->setText(!m_loaded ? QString()
-                                   : (dirty ? QStringLiteral("Unsaved changes") : QStringLiteral("All changes saved")));
+                                   : (dirty ? tr("Unsaved changes") : tr("All changes saved")));
     m_saveState->setProperty("dirty", dirty);
     m_saveState->style()->unpolish(m_saveState);
     m_saveState->style()->polish(m_saveState);
@@ -1278,7 +1280,7 @@ void EditorWindow::refreshActions()
 void EditorWindow::refreshStatus()
 {
     if (!m_loaded) {
-        m_status->setText(QStringLiteral("Loading the sheet…"));
+        m_status->setText(tr("Loading the sheet…"));
         m_selectionTitle->setText(QStringLiteral("—"));
         m_selectionDetail->clear();
         m_hint->setVisible(false);
@@ -1286,54 +1288,54 @@ void EditorWindow::refreshStatus()
     }
     const auto [first, last] = selection();
     if (first >= 0 && first != last) {
-        m_selectionTitle->setText(QStringLiteral("Columns %1 – %2").arg(first + 1).arg(last + 1));
+        m_selectionTitle->setText(tr("Columns %1 – %2").arg(first + 1).arg(last + 1));
         const auto range = m_document.indexRange(m_grid.columnBegin(first), m_grid.columnBegin(last + 1));
         const int notes = range.second - range.first;
-        m_selectionDetail->setText(QStringLiteral("%1 to %2\n%3 in %4")
+        m_selectionDetail->setText(tr("%1 to %2\n%3 in %4")
                                        .arg(clockText(static_cast<double>(m_grid.timeOf(first))),
                                             clockText(static_cast<double>(m_grid.timeOf(last))),
-                                            countText(notes, "note", "notes"),
-                                            countText(last - first + 1, "column", "columns")));
+                                            countText(notes, trNoop("1 note"), trNoop("%1 notes")),
+                                            countText(last - first + 1, trNoop("1 column"), trNoop("%1 columns"))));
     } else if (m_cursor >= 0) {
         const int bar = m_cursor / (m_grid.subdivision() * kBeatsPerBar) + 1;
         const int beat = (m_cursor / m_grid.subdivision()) % kBeatsPerBar + 1;
-        m_selectionTitle->setText(QStringLiteral("Column %1").arg(m_cursor + 1));
+        m_selectionTitle->setText(tr("Column %1").arg(m_cursor + 1));
         const std::vector<int> keys = m_document.keysInColumn(m_cursor, m_grid);
         QStringList names;
         for (int key : keys) {
             const std::string_view name = kAutoKeys[static_cast<std::size_t>(key)];
             names << QString::fromLatin1(name.data(), static_cast<qsizetype>(name.size())).toUpper();
         }
-        QString notesLine = keys.empty() ? QStringLiteral("Rest. Click a key below to add a note.")
-                                         : QStringLiteral("Notes: %1").arg(names.join(QStringLiteral("  ")));
+        QString notesLine = keys.empty() ? tr("Rest. Click a key below to add a note.")
+                                         : tr("Notes: %1").arg(names.join(QStringLiteral("  ")));
         if (const std::int64_t hold = m_document.longestHold(m_cursor, m_cursor, m_grid); hold > 0) {
             const long long columns = std::max(1LL, std::llround(static_cast<double>(hold) / m_grid.slotMs()));
-            notesLine += QStringLiteral("\nHeld for %1").arg(countText(static_cast<int>(columns), "column", "columns"));
+            notesLine += tr("\nHeld for %1").arg(countText(static_cast<int>(columns), trNoop("1 column"), trNoop("%1 columns")));
         }
-        m_selectionDetail->setText(QStringLiteral("%1  ·  bar %2, beat %3\n%4")
+        m_selectionDetail->setText(tr("%1  ·  bar %2, beat %3\n%4")
                                        .arg(clockText(static_cast<double>(m_grid.timeOf(m_cursor))))
                                        .arg(bar)
                                        .arg(beat)
                                        .arg(notesLine));
     }
     m_hint->setVisible(!m_steady && !m_document.empty() && m_hintRoom);
-    m_hint->setText(QStringLiteral("No steady beat: this sheet was probably recorded live, so notes sit at their "
+    m_hint->setText(tr("No steady beat: this sheet was probably recorded live, so notes sit at their "
                                    "exact times. Snap to grid lines them up."));
 
     QStringList parts;
     if (!m_side->isVisibleTo(this)) {
         parts << selectionSummary();
     }
-    parts << QStringLiteral("%1, %2 long").arg(countText(static_cast<int>(m_document.notes().size()), "note", "notes"),
+    parts << tr("%1, %2 long").arg(countText(static_cast<int>(m_document.notes().size()), trNoop("1 note"), trNoop("%1 notes")),
                                                 clockText(static_cast<double>(m_document.endTime())));
     if (m_steady) {
-        parts << QStringLiteral("Tempo %1 BPM").arg(std::llround(m_grid.bpm()));
+        parts << tr("Tempo %1 BPM").arg(std::llround(m_grid.bpm()));
     } else {
-        parts << QStringLiteral("No steady beat");
+        parts << tr("No steady beat");
     }
-    parts << QStringLiteral("1 column = %1 ms").arg(m_grid.slotMs(), 0, 'f', 0);
+    parts << tr("1 column = %1 ms").arg(m_grid.slotMs(), 0, 'f', 0);
     if (const int offGrid = m_document.offGridCount(m_grid); m_steady && offGrid > 0) {
-        parts << QStringLiteral("%1 between columns").arg(countText(offGrid, "note", "notes"));
+        parts << tr("%1 between columns").arg(countText(offGrid, trNoop("1 note"), trNoop("%1 notes")));
     }
     m_status->setText(parts.join(QStringLiteral("   ·   ")));
 }
@@ -1345,17 +1347,17 @@ QString EditorWindow::selectionSummary() const
         return QString();
     }
     if (first != last) {
-        return QStringLiteral("Columns %1 – %2").arg(first + 1).arg(last + 1);
+        return tr("Columns %1 – %2").arg(first + 1).arg(last + 1);
     }
     QStringList names;
     for (int key : m_document.keysInColumn(m_cursor, m_grid)) {
         const std::string_view name = kAutoKeys[static_cast<std::size_t>(key)];
         names << QString::fromLatin1(name.data(), static_cast<qsizetype>(name.size())).toUpper();
     }
-    return QStringLiteral("Column %1 at %2: %3")
+    return tr("Column %1 at %2: %3")
         .arg(m_cursor + 1)
         .arg(clockText(static_cast<double>(m_grid.timeOf(m_cursor))))
-        .arg(names.isEmpty() ? QStringLiteral("rest") : names.join(QLatin1Char(' ')));
+        .arg(names.isEmpty() ? tr("rest") : names.join(QLatin1Char(' ')));
 }
 
 void EditorWindow::refreshButtonIcons()
@@ -1374,20 +1376,20 @@ void EditorWindow::refreshHeader()
 {
     const SheetEntry *row = m_library.entry(libraryIndex());
     if (!row) {
-        m_fullTitle = QStringLiteral("Sheet Editor");
+        m_fullTitle = tr("Sheet Editor");
         elideTitle();
         m_subtitle->clear();
         return;
     }
-    const QString name = toQString(row->name().empty() ? std::string("Untitled") : row->name());
+    const QString name = row->name().empty() ? tr("Untitled") : toQString(row->name());
     m_fullTitle = name;
     elideTitle();
-    setWindowTitle(QStringLiteral("%1[*] — Sheet Editor").arg(name));
+    setWindowTitle(tr("%1[*] — Sheet Editor").arg(name));
     QStringList details;
-    details << QStringLiteral("by %1").arg(toQString(row->author().empty() ? std::string("Unknown") : row->author()));
+    details << tr("by %1").arg(row->author().empty() ? tr("Unknown") : toQString(row->author()));
     const double bpm = row->bpm();
     if (std::isfinite(bpm) && bpm > 0) {
-        details << QStringLiteral("%1 BPM").arg(toQString(formatJsNumber(bpm)));
+        details << tr("%1 BPM").arg(toQString(formatJsNumber(bpm)));
     }
     m_subtitle->setText(details.join(QStringLiteral("  ·  ")));
 }
@@ -1405,7 +1407,7 @@ void EditorWindow::closeEvent(QCloseEvent *event)
     }
     event->ignore();
     QPointer<EditorWindow> self(this);
-    m_confirm->ask(kDiscardPrompt, [self] {
+    m_confirm->ask(tr(kDiscardPrompt), [self] {
         if (self) {
             self->m_closeConfirmed = true;
             self->close();

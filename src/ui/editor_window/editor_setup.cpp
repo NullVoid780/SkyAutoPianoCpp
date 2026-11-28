@@ -13,6 +13,7 @@
 #include <array>
 #include <functional>
 
+#include "core/translator.hpp"
 #include "model/key_table.hpp"
 #include "ui/core/hover_tracker.hpp"
 #include "ui/editor_window/key_colors.hpp"
@@ -112,7 +113,7 @@ void paintSimplePreview(QPainter &painter, const QRectF &area, bool colorful)
         painter.setPen(blend(theme.background, theme.fontColor, 0.6));
         painter.setFont(FontLoader::font(9, i % columns == 0 ? QFont::Bold : QFont::Normal));
         painter.drawText(QRectF(tile.left(), tile.bottom() + 1, tile.width(), caption), Qt::AlignLeft | Qt::AlignVCenter,
-                         i % columns == 0 ? QStringLiteral("Bar %1").arg(i / columns + 1)
+                         i % columns == 0 ? tr("Bar %1").arg(i / columns + 1)
                                           : QStringLiteral("0:0%1.%2").arg(i / 2).arg(i * 25 % 100, 2, 10, QLatin1Char('0')));
     }
 }
@@ -329,39 +330,39 @@ EditorSetup::EditorSetup(QWidget *window)
       m_panel(new QWidget(this)),
       m_stack(new QStackedWidget(m_panel)),
       m_dots(new StepDots(m_panel)),
-      m_back(new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("arrow-left"), QStringLiteral("Back"), m_panel)),
-      m_next(new ActionButton(ActionButton::Kind::Primary, QString(), QStringLiteral("Next"), m_panel))
+      m_back(new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("arrow-left"), tr("Back"), m_panel)),
+      m_next(new ActionButton(ActionButton::Kind::Primary, QString(), tr("Next"), m_panel))
 {
-    m_simple = new PreviewCard(QStringLiteral("Simple"),
-                               QStringLiteral("One tile for each moment, laid out like Sky's keyboard. Easy to read and "
+    m_simple = new PreviewCard(tr("Simple"),
+                               tr("One tile for each moment, laid out like Sky's keyboard. Easy to read and "
                                               "great for quick fixes."),
                                [this](QPainter &painter, const QRectF &area) {
                                    paintSimplePreview(painter, area, m_colorful->isChecked());
                                },
                                nullptr);
-    m_advanced = new PreviewCard(QStringLiteral("Advanced"),
-                                 QStringLiteral("A timeline with every key on its own row. Best for precise timing and "
+    m_advanced = new PreviewCard(tr("Advanced"),
+                                 tr("A timeline with every key on its own row. Best for precise timing and "
                                                 "long songs."),
                                  [this](QPainter &painter, const QRectF &area) {
                                      paintAdvancedPreview(painter, area, m_colorful->isChecked());
                                  },
                                  nullptr);
-    m_colorful = new PreviewCard(QStringLiteral("Colorful"),
-                                 QStringLiteral("Each keyboard row has its own color, so you can tell notes apart at a "
+    m_colorful = new PreviewCard(tr("Colorful"),
+                                 tr("Each keyboard row has its own color, so you can tell notes apart at a "
                                                 "glance."),
                                  [](QPainter &painter, const QRectF &area) { paintColorPreview(painter, area, true); },
                                  nullptr);
-    m_plain = new PreviewCard(QStringLiteral("Plain"),
-                              QStringLiteral("Every note in one calm color. Clean and easy on the eyes, the letter tells "
+    m_plain = new PreviewCard(tr("Plain"),
+                              tr("Every note in one calm color. Clean and easy on the eyes, the letter tells "
                                              "you the key."),
                               [](QPainter &painter, const QRectF &area) { paintColorPreview(painter, area, false); },
                               nullptr);
-    m_stack->addWidget(buildStep(QStringLiteral("STEP 1 OF 2"), QStringLiteral("How do you want to edit?"),
-                                 QStringLiteral("Pick the view that feels right. You can switch any time with the "
+    m_stack->addWidget(buildStep(tr("STEP 1 OF 2"), tr("How do you want to edit?"),
+                                 tr("Pick the view that feels right. You can switch any time with the "
                                                 "Simple / Advanced buttons at the top."),
                                  m_simple, m_advanced));
-    m_stack->addWidget(buildStep(QStringLiteral("STEP 2 OF 2"), QStringLiteral("How should notes look?"),
-                                 QStringLiteral("This changes the note colors in both views and on the key pad."),
+    m_stack->addWidget(buildStep(tr("STEP 2 OF 2"), tr("How should notes look?"),
+                                 tr("This changes the note colors in both views and on the key pad."),
                                  m_colorful, m_plain));
     for (PreviewCard *card : {m_simple, m_advanced, m_colorful, m_plain}) {
         card->onDoubleClick = [this] { next(); };
@@ -437,7 +438,7 @@ void EditorSetup::showStep(int index)
     m_stack->setCurrentIndex(m_step);
     const bool last = m_step == m_stack->count() - 1;
     m_back->setVisible(m_step > 0);
-    m_next->setText(last ? QStringLiteral("Start editing") : QStringLiteral("Next"));
+    m_next->setText(last ? tr("Start editing") : tr("Next"));
     m_next->updateGeometry();
     m_dots->set(m_stack->count(), m_step);
     relayout();

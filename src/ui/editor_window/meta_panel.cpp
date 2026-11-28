@@ -3,6 +3,7 @@
 #include <QPainter>
 #include <QVBoxLayout>
 
+#include "core/translator.hpp"
 #include "ui/editor_window/editable_field.hpp"
 #include "ui/render/paint_utils.hpp"
 #include "ui/theme_manager.hpp"
@@ -19,9 +20,9 @@ constexpr qreal kRadius = 12;
 
 MetaPanel::MetaPanel(QWidget *parent) : QWidget(parent)
 {
-    const std::array<QString, 4> labels = {QStringLiteral("Name:"), QStringLiteral("Author:"),
-                                           QStringLiteral("Transcribed by:"),
-                                           QStringLiteral("BPM:")};
+    const std::array<QString, 4> labels = {tr("Name:"), tr("Author:"),
+                                           tr("Transcribed by:"),
+                                           tr("BPM:")};
     auto *column = new QVBoxLayout(this);
     column->setContentsMargins(kPadding, kPadding, kPadding, kPadding);
     column->setSpacing(kRowGap);

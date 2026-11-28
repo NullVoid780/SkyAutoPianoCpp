@@ -8,6 +8,7 @@
 #include <QSlider>
 #include <QVBoxLayout>
 
+#include "core/translator.hpp"
 #include "ui/core/hover_tracker.hpp"
 #include "ui/render/icon_cache.hpp"
 #include "ui/render/paint_utils.hpp"
@@ -22,7 +23,7 @@ constexpr qreal kOffOpacity = 0.45;
 
 QString captionText(int seconds)
 {
-    return QStringLiteral("Delay next: %1s").arg(seconds);
+    return tr("Delay next: %1s").arg(seconds);
 }
 
 }  // namespace

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "core/translator.hpp"
 #include "core/json.hpp"
 #include "core/string_utils.hpp"
 #include "services/library/favorites_service.hpp"
@@ -29,7 +30,7 @@ QString bpmText(const SheetEntry &entry)
 
 QString orUnknown(const std::string &value)
 {
-    return value.empty() ? QStringLiteral("Unknown") : toQString(value);
+    return value.empty() || value == "Unknown" ? tr("Unknown") : toQString(value);
 }
 
 }  // namespace
@@ -47,11 +48,11 @@ QString LibraryModel::tabTitle(LibraryTab tab)
 {
     switch (tab) {
     case LibraryTab::Favorite:
-        return QStringLiteral("Favorite");
+        return tr("Favorite");
     case LibraryTab::RecentPlay:
-        return QStringLiteral("Recent Play");
+        return tr("Recent Play");
     default:
-        return QStringLiteral("All Songs");
+        return tr("All Songs");
     }
 }
 
@@ -191,7 +192,7 @@ QVariant LibraryModel::data(const QModelIndex &index, int role) const
     switch (role) {
     case Qt::DisplayRole:
     case NameRole:
-        return toQString(entry->name());
+        return entry->name() == "Untitled" ? tr("Untitled") : toQString(entry->name());
     case AuthorRole:
         return orUnknown(entry->author());
     case TranscriberRole:

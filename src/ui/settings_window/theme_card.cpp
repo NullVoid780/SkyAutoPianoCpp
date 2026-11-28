@@ -4,6 +4,7 @@
 #include <QFontMetricsF>
 #include <QPainter>
 
+#include "core/translator.hpp"
 #include "ui/core/hover_tracker.hpp"
 #include "ui/render/font_loader.hpp"
 #include "ui/render/icon_cache.hpp"
@@ -33,7 +34,7 @@ ThemeCard::ThemeCard(const ThemeDefinition &definition, QWidget *parent)
     : QAbstractButton(parent),
       m_id(definition.id),
       m_name(definition.name),
-      m_subtitle(definition.builtIn ? QStringLiteral("Built-in") : QStringLiteral("Custom")),
+      m_subtitle(definition.builtIn ? tr("Built-in") : tr("Custom")),
       m_light(composeTheme(definition, AppTheme::Light)),
       m_dark(composeTheme(definition, AppTheme::Dark)),
       m_hover(new HoverTracker(this, kHoverSlowMs))
@@ -42,15 +43,15 @@ ThemeCard::ThemeCard(const ThemeDefinition &definition, QWidget *parent)
     setFocusPolicy(Qt::StrongFocus);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     setAccessibleName(definition.name);
-    setToolTip(QStringLiteral("Use %1").arg(definition.name));
+    setToolTip(tr("Use %1").arg(definition.name));
     if (definition.builtIn) {
-        addAction(QStringLiteral("pencil"), QStringLiteral("Customize a copy"), Action::Duplicate);
-        addAction(QStringLiteral("download"), QStringLiteral("Export"), Action::Export);
+        addAction(QStringLiteral("pencil"), tr("Customize a copy"), Action::Duplicate);
+        addAction(QStringLiteral("download"), tr("Export"), Action::Export);
     } else {
-        addAction(QStringLiteral("pencil"), QStringLiteral("Edit"), Action::Edit);
-        addAction(QStringLiteral("collection-plus"), QStringLiteral("Duplicate"), Action::Duplicate);
-        addAction(QStringLiteral("download"), QStringLiteral("Export"), Action::Export);
-        addAction(QStringLiteral("trash3"), QStringLiteral("Delete"), Action::Delete);
+        addAction(QStringLiteral("pencil"), tr("Edit"), Action::Edit);
+        addAction(QStringLiteral("collection-plus"), tr("Duplicate"), Action::Duplicate);
+        addAction(QStringLiteral("download"), tr("Export"), Action::Export);
+        addAction(QStringLiteral("trash3"), tr("Delete"), Action::Delete);
     }
     connect(m_hover, &HoverTracker::changed, this, [this] { update(); });
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this, [this] {
@@ -149,7 +150,7 @@ void ThemeCard::paintEvent(QPaintEvent *)
     painter.drawPixmap(preview.topLeft(), m_previewCache);
 
     if (m_active) {
-        const QString label = QStringLiteral("Active");
+        const QString label = tr("Active");
         const QFont font = FontLoader::font(12, QFont::DemiBold);
         const qreal textWidth = QFontMetricsF(font).horizontalAdvance(label);
         const qreal badgeWidth = textWidth + 14 + 8 + 20;

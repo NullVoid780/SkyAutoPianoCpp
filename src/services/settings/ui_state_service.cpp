@@ -172,6 +172,32 @@ void UiStateService::setEditorSoundMuted(bool muted)
     save();
 }
 
+std::string UiStateService::language() const
+{
+    const auto found = m_raw.find("language");
+    return found != m_raw.end() && found->is_string() ? found->get<std::string>() : std::string();
+}
+
+void UiStateService::setLanguage(const std::string &code)
+{
+    if (language() == code) {
+        return;
+    }
+    if (code.empty()) {
+        m_raw.erase("language");
+    } else {
+        m_raw["language"] = code;
+    }
+    save();
+}
+
+std::string UiStateService::readLanguage(const std::filesystem::path &dataDirectory)
+{
+    UiStateService state(dataDirectory);
+    state.load();
+    return state.language();
+}
+
 bool UiStateService::followSystemTheme() const
 {
     const auto found = m_raw.find("followSystemTheme");

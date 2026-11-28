@@ -155,7 +155,7 @@ core      logging, files, text, timing     (src/core)</code></pre></div>
 
         <h3 id="folders">Folders</h3>
         <div class="code code-plain"><pre><code>SkyAutoPianoCpp/
-├── assets/           fonts, icons, the app icon and the soundpack
+├── assets/           fonts, icons, app icon, soundpack, translations
 ├── cmake/            helper CMake scripts
 ├── docs/             install, user and release guides
 ├── libs/skyinput/    sends key presses to the game
@@ -213,6 +213,17 @@ build\win-x64-release\bin\SkyAutoPiano.exe</code></pre></div>
           <li>Paste the notes into the release description. <strong>This is what users see in the update window.</strong> Add <code>&lt;!-- critical --&gt;</code> for an important fix. Anything after a <code>---</code> line only shows on GitHub.</li>
           <li>Publish it as a normal release, not a draft or pre-release.</li>
         </ol>
+      </section>
+
+      <section id="translations">
+        <h2>Translations</h2>
+        <p>The app comes in English, Vietnamese, Simplified Chinese, Japanese and Spanish. By default it follows the Windows language, and <span class="path">Settings → General → Language</span> picks one by hand.</p>
+        <ul>
+          <li>Put every text people see through <code>tr("…")</code>. Use <code>trUtf8("…")</code> where the code needs a <code>std::string</code>, and <code>trNoop("…")</code> for text in a table that is translated where it's shown.</li>
+          <li>Write whole sentences with <code>%1</code>, <code>%2</code> for the parts that change, never glue pieces together. Counts get one text for 1 and one for more, for example <code>trCount(n, trNoop("1 song"), trNoop("%1 songs"))</code>.</li>
+          <li>Add each new text with its translation to every file in <code>assets/i18n/</code>. The English text is the key.</li>
+        </ul>
+        <p class="tip">The tests list any text that is missing from a language file, any unused entry, any translation that lost a <code>%1</code>, and any visible text that skips <code>tr()</code>.</p>
       </section>
 
       <section id="website">
@@ -281,6 +292,7 @@ build\win-x64-release\bin\SkyAutoPiano.exe</code></pre></div>
         <li class="level-3"><a href="#using-a-test-library">Using a test library</a></li>
         <li class="level-2"><a href="#tests">Running tests</a></li>
         <li class="level-2"><a href="#publishing">Publishing a new version</a></li>
+        <li class="level-2"><a href="#translations">Translations</a></li>
         <li class="level-2"><a href="#website">The website</a></li>
         <li class="level-2"><a href="#problems">Problems while building</a></li>
       </ol>

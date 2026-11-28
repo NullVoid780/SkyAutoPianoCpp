@@ -7,6 +7,7 @@
 #include <QPlainTextEdit>
 #include <QVBoxLayout>
 
+#include "core/translator.hpp"
 #include "platform/window_attributes.hpp"
 #include "ui/settings_window/action_button.hpp"
 #include "ui/settings_window/settings_row.hpp"
@@ -49,29 +50,29 @@ IssueReportWindow::IssueReportWindow(QWidget *owner)
     setObjectName(QStringLiteral("IssueReportWindow"));
     setAttribute(Qt::WA_StyledBackground);
     setAttribute(Qt::WA_DeleteOnClose);
-    setWindowTitle(QStringLiteral("Report an Issue"));
+    setWindowTitle(tr("Report an Issue"));
     setWindowIcon(QIcon(QStringLiteral(":/icon/Icon9.ico")));
     resize(560, 560);
     setMinimumSize(480, 460);
 
     m_description->setObjectName(QStringLiteral("IssueDescription"));
     m_description->setPlaceholderText(
-        QStringLiteral("What went wrong? For example: \"The Import button does nothing after I pick a MIDI file.\""));
-    m_description->setAccessibleName(QStringLiteral("Describe the problem"));
+        tr("What went wrong? For example: \"The Import button does nothing after I pick a MIDI file.\""));
+    m_description->setAccessibleName(tr("Describe the problem"));
 
-    auto *library = new SettingsRow(QStringLiteral("music-note-list"), QStringLiteral("Song list"),
-                                    QStringLiteral("Names and authors of your songs, so the developer sees the same library."),
+    auto *library = new SettingsRow(QStringLiteral("music-note-list"), tr("Song list"),
+                                    tr("Names and authors of your songs, so the developer sees the same library."),
                                     m_library, this);
-    m_failedRow = new SettingsRow(QStringLiteral("upload"), QStringLiteral("Files that failed to import"),
-                                  QStringLiteral("A copy of the song files that showed an error."), m_failedFiles, this);
-    auto *note = label(QStringLiteral("Always included: screenshots of Sky Auto Piano's windows, your clicks and "
+    m_failedRow = new SettingsRow(QStringLiteral("upload"), tr("Files that failed to import"),
+                                  tr("A copy of the song files that showed an error."), m_failedFiles, this);
+    auto *note = label(tr("Always included: screenshots of Sky Auto Piano's windows, your clicks and "
                                       "keys, the app log, your settings, themes, playlists, window layout and PC details "
                                       "(Windows version, screens, memory). Nothing is sent by itself: you save a file "
                                       "and share it yourself."),
                        "SettingsRowDescription", this);
 
-    auto *discard = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("trash3"), QStringLiteral("Discard"));
-    auto *save = new ActionButton(ActionButton::Kind::Primary, QStringLiteral("floppy"), QStringLiteral("Save report"));
+    auto *discard = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("trash3"), tr("Discard"));
+    auto *save = new ActionButton(ActionButton::Kind::Primary, QStringLiteral("floppy"), tr("Save report"));
     auto *buttons = new QDialogButtonBox(this);
     buttons->addButton(save, QDialogButtonBox::AcceptRole);
     buttons->addButton(discard, QDialogButtonBox::RejectRole);
@@ -79,15 +80,15 @@ IssueReportWindow::IssueReportWindow(QWidget *owner)
     auto *column = new QVBoxLayout(this);
     column->setContentsMargins(kPadding, kPadding, kPadding, kPadding);
     column->setSpacing(0);
-    column->addWidget(label(QStringLiteral("Report an Issue"), "ReportWindowTitle", this));
+    column->addWidget(label(tr("Report an Issue"), "ReportWindowTitle", this));
     column->addSpacing(4);
     column->addWidget(m_summary);
     column->addSpacing(kSectionGap);
-    column->addWidget(label(QStringLiteral("Describe the problem"), "ColorPickerCaption", this));
+    column->addWidget(label(tr("Describe the problem"), "ColorPickerCaption", this));
     column->addSpacing(4);
     column->addWidget(m_description, 1);
     column->addSpacing(kSectionGap);
-    column->addWidget(label(QStringLiteral("Include"), "ColorPickerCaption", this));
+    column->addWidget(label(tr("Include"), "ColorPickerCaption", this));
     column->addSpacing(4);
     for (SettingsRow *row : {library, m_failedRow}) {
         column->addWidget(row);
@@ -117,7 +118,7 @@ IssueReportWindow::IssueReportWindow(QWidget *owner)
 void IssueReportWindow::setSummary(qint64 durationMs, int events, int screenshots, int failedFiles)
 {
     const qint64 seconds = durationMs / 1000;
-    m_summary->setText(QStringLiteral("Recorded %1:%2 with %3 steps and %4 screenshots.")
+    m_summary->setText(tr("Recorded %1:%2 with %3 steps and %4 screenshots.")
                            .arg(seconds / 60)
                            .arg(seconds % 60, 2, 10, QLatin1Char('0'))
                            .arg(events)

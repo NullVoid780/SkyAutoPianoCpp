@@ -1,5 +1,6 @@
 #include "ui/main_window/nav_toggle.hpp"
 
+#include "core/translator.hpp"
 #include "ui/theme_manager.hpp"
 #include "ui/widgets/icon_button.hpp"
 
@@ -11,8 +12,8 @@ IconButton *createNavToggle(QWidget *parent)
                                   IconButtonStyle{[] { return currentTheme().fontColor; },
                                                   [] { return currentTheme().hoverColor; }, {}, {}, 8, 0, kHoverSlowMs},
                                   parent);
-    button->setToolTip(QStringLiteral("Open navigation"));
-    button->setAccessibleName(QStringLiteral("Open navigation"));
+    button->setToolTip(tr("Open navigation"));
+    button->setAccessibleName(tr("Open navigation"));
     return button;
 }
 

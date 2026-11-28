@@ -11,8 +11,10 @@
 #include "app/single_instance.hpp"
 #include "app/version.hpp"
 #include "core/logger.hpp"
+#include "core/translator.hpp"
 #include "crash/crash_handler.hpp"
 #include "crash/pending_reports.hpp"
+#include "services/settings/ui_state_service.hpp"
 #include "skyinput/panic_release.hpp"
 #include "ui/render/font_loader.hpp"
 
@@ -42,6 +44,11 @@ int main(int argc, char *argv[])
     if (auto ensured = sky::Paths::ensureDirectories(); !ensured) {
         sky::Logger::error("app", ensured.error().details);
     }
+
+    const QString language =
+        sky::installLanguage(QString::fromStdString(sky::UiStateService::readLanguage(sky::Paths::dataDirectory())));
+    sky::CrashHandler::setLanguage(language.toLatin1().constData());
+    sky::Logger::info("app", "language " + language.toStdString());
 
     QApplication::setStyle(QStyleFactory::create(QStringLiteral("Fusion")));
     sky::FontLoader::registerBundledFonts();

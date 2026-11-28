@@ -13,6 +13,7 @@
 
 #include <algorithm>
 
+#include "core/translator.hpp"
 #include "app/theme_controller.hpp"
 #include "core/json.hpp"
 #include "core/string_utils.hpp"
@@ -212,9 +213,9 @@ QuickStart::QuickStart(ThemeController &themes, ConfigService &config, QWidget *
       m_panel(new QWidget(this)),
       m_stack(new QStackedWidget(m_panel)),
       m_dots(new StepDots(m_panel)),
-      m_back(new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("arrow-left"), QStringLiteral("Back"), m_panel)),
-      m_skip(new ActionButton(ActionButton::Kind::Subtle, QString(), QStringLiteral("Skip setup"), m_panel)),
-      m_next(new ActionButton(ActionButton::Kind::Primary, QString(), QStringLiteral("Next"), m_panel))
+      m_back(new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("arrow-left"), tr("Back"), m_panel)),
+      m_skip(new ActionButton(ActionButton::Kind::Subtle, QString(), tr("Skip setup"), m_panel)),
+      m_next(new ActionButton(ActionButton::Kind::Primary, QString(), tr("Next"), m_panel))
 {
     m_welcome = buildWelcome();
     m_look = buildLook();
@@ -277,13 +278,13 @@ QWidget *QuickStart::page(const QString &iconId, const QString &title, const QSt
 
 QWidget *QuickStart::buildWelcome()
 {
-    QWidget *widget = page(QStringLiteral("music-note-beamed"), QStringLiteral("Welcome to Sky Auto Piano"),
-                           QStringLiteral("Let's set things up. It takes less than a minute, and you can change "
+    QWidget *widget = page(QStringLiteral("music-note-beamed"), tr("Welcome to Sky Auto Piano"),
+                           tr("Let's set things up. It takes less than a minute, and you can change "
                                           "everything later in Settings."));
     auto *column = static_cast<QVBoxLayout *>(widget->layout());
-    const QStringList points = {QStringLiteral("Pick light or dark and a theme you like"),
-                                QStringLiteral("Bring your songs over from the previous version"),
-                                QStringLiteral("Choose how songs play and learn the shortcuts")};
+    const QStringList points = {tr("Pick light or dark and a theme you like"),
+                                tr("Bring your songs over from the previous version"),
+                                tr("Choose how songs play and learn the shortcuts")};
     for (const QString &point : points) {
         auto *row = new QHBoxLayout();
         row->setSpacing(10);
@@ -301,25 +302,25 @@ QWidget *QuickStart::buildWelcome()
 
 QWidget *QuickStart::buildLook()
 {
-    QWidget *widget = page(QStringLiteral("palette"), QStringLiteral("Pick a look"),
-                           QStringLiteral("Changes show right away. You can build your own theme later in "
+    QWidget *widget = page(QStringLiteral("palette"), tr("Pick a look"),
+                           tr("Changes show right away. You can build your own theme later in "
                                           "Settings → Themes."));
     auto *column = static_cast<QVBoxLayout *>(widget->layout());
     auto *modeBox = new QWidget(widget);
     auto *modes = new QHBoxLayout(modeBox);
     modes->setContentsMargins(0, 0, 0, 0);
     modes->setSpacing(10);
-    auto *follow = new ChoiceTile(QStringLiteral("window"), QStringLiteral("Follow Windows"),
-                                  QStringLiteral("Changes with Windows"), modeBox);
-    auto *light = new ChoiceTile(QStringLiteral("sun"), QStringLiteral("Light"), QStringLiteral("Always light"), modeBox);
-    auto *dark = new ChoiceTile(QStringLiteral("moon"), QStringLiteral("Dark"), QStringLiteral("Always dark"), modeBox);
+    auto *follow = new ChoiceTile(QStringLiteral("window"), tr("Follow Windows"),
+                                  tr("Changes with Windows"), modeBox);
+    auto *light = new ChoiceTile(QStringLiteral("sun"), tr("Light"), tr("Always light"), modeBox);
+    auto *dark = new ChoiceTile(QStringLiteral("moon"), tr("Dark"), tr("Always dark"), modeBox);
     m_modeTiles = {follow, light, dark};
     for (ChoiceTile *tile : m_modeTiles) {
         modes->addWidget(tile, 1);
     }
     column->addWidget(modeBox);
     column->addSpacing(14);
-    column->addWidget(text(QStringLiteral("Theme"), "ColorPickerCaption", widget));
+    column->addWidget(text(tr("Theme"), "ColorPickerCaption", widget));
     column->addSpacing(6);
     auto *chipBox = new QWidget(widget);
     auto *grid = new QGridLayout(chipBox);
@@ -345,26 +346,26 @@ QWidget *QuickStart::buildLook()
 
 QWidget *QuickStart::buildLegacy()
 {
-    QWidget *widget = page(QStringLiteral("download"), QStringLiteral("Bring your songs over"), QString());
+    QWidget *widget = page(QStringLiteral("download"), tr("Bring your songs over"), QString());
     auto *column = static_cast<QVBoxLayout *>(widget->layout());
     m_legacyBody = widget->findChildren<QLabel *>(QStringLiteral("QuickStartBody")).value(0);
     m_legacyChoices = new QWidget(widget);
     auto *choices = new QHBoxLayout(m_legacyChoices);
     choices->setContentsMargins(0, 0, 0, 0);
     choices->setSpacing(10);
-    m_importTile = new ChoiceTile(QStringLiteral("download"), QStringLiteral("Import them"),
-                                  QStringLiteral("Songs, playlists, favorites, settings"), m_legacyChoices);
-    auto *skip = new ChoiceTile(QStringLiteral("x-lg"), QStringLiteral("Not now"),
-                                QStringLiteral("Import later in Settings → General"), m_legacyChoices);
+    m_importTile = new ChoiceTile(QStringLiteral("download"), tr("Import them"),
+                                  tr("Songs, playlists, favorites, settings"), m_legacyChoices);
+    auto *skip = new ChoiceTile(QStringLiteral("x-lg"), tr("Not now"),
+                                tr("Import later in Settings → General"), m_legacyChoices);
     m_importTile->setChecked(true);
     choices->addWidget(m_importTile, 1);
     choices->addWidget(skip, 1);
     column->addWidget(m_legacyChoices);
     m_folderButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("folder2"),
-                                      QStringLiteral("Choose folder"), widget);
+                                      tr("Choose folder"), widget);
     column->addWidget(m_folderButton, 0, Qt::AlignLeft);
     column->addSpacing(14);
-    m_legacyNote = text(QStringLiteral("Nothing in the previous version is changed. Your songs are copied."),
+    m_legacyNote = text(tr("Nothing in the previous version is changed. Your songs are copied."),
                         "SettingsRowDescription", widget, true);
     column->addWidget(m_legacyNote);
     column->addStretch();
@@ -374,17 +375,17 @@ QWidget *QuickStart::buildLegacy()
 
 QWidget *QuickStart::buildPlayback()
 {
-    QWidget *widget = page(QStringLiteral("music-note-beamed"), QStringLiteral("How should songs play?"),
-                           QStringLiteral("Lite is right for most PCs. Pick Strict if notes sound out of time."));
+    QWidget *widget = page(QStringLiteral("music-note-beamed"), tr("How should songs play?"),
+                           tr("Lite is right for most PCs. Pick Strict if notes sound out of time."));
     auto *column = static_cast<QVBoxLayout *>(widget->layout());
     auto *modeBox = new QWidget(widget);
     auto *modes = new QHBoxLayout(modeBox);
     modes->setContentsMargins(0, 0, 0, 0);
     modes->setSpacing(10);
-    m_liteTile = new ChoiceTile(QStringLiteral("lightning"), QStringLiteral("Lite"),
-                                QStringLiteral("Lighter on weak PCs, may drift a few ms"), modeBox);
-    m_strictTile = new ChoiceTile(QStringLiteral("metronome"), QStringLiteral("Strict"),
-                                  QStringLiteral("Most accurate timing, uses more CPU"), modeBox);
+    m_liteTile = new ChoiceTile(QStringLiteral("lightning"), tr("Lite"),
+                                tr("Lighter on weak PCs, may drift a few ms"), modeBox);
+    m_strictTile = new ChoiceTile(QStringLiteral("metronome"), tr("Strict"),
+                                  tr("Most accurate timing, uses more CPU"), modeBox);
     modes->addWidget(m_liteTile, 1);
     modes->addWidget(m_strictTile, 1);
     column->addWidget(modeBox);
@@ -394,11 +395,11 @@ QWidget *QuickStart::buildPlayback()
     row->setSpacing(12);
     auto *copy = new QVBoxLayout();
     copy->setSpacing(2);
-    copy->addWidget(text(QStringLiteral("Minimize on Play"), "SettingsRowTitle", widget));
-    copy->addWidget(text(QStringLiteral("Hide this window when a song starts, so you can see Sky."),
+    copy->addWidget(text(tr("Minimize on Play"), "SettingsRowTitle", widget));
+    copy->addWidget(text(tr("Hide this window when a song starts, so you can see Sky."),
                          "SettingsRowDescription", widget, true));
     m_minimize = new ToggleSwitch(widget);
-    m_minimize->setAccessibleName(QStringLiteral("Minimize on Play"));
+    m_minimize->setAccessibleName(tr("Minimize on Play"));
     row->addLayout(copy, 1);
     row->addWidget(m_minimize, 0, Qt::AlignVCenter);
     column->addLayout(row);
@@ -414,15 +415,15 @@ QWidget *QuickStart::buildPlayback()
 
 QWidget *QuickStart::buildControls()
 {
-    QWidget *widget = page(QStringLiteral("keyboard"), QStringLiteral("Play from anywhere"),
-                           QStringLiteral("These shortcuts work even while Sky is in front. Change them in "
+    QWidget *widget = page(QStringLiteral("keyboard"), tr("Play from anywhere"),
+                           tr("These shortcuts work even while Sky is in front. Change them in "
                                           "Settings → Shortcuts."));
     auto *column = static_cast<QVBoxLayout *>(widget->layout());
     auto *grid = new QGridLayout();
     grid->setHorizontalSpacing(16);
     grid->setVerticalSpacing(10);
-    const QStringList actions = {QStringLiteral("Play / Pause"), QStringLiteral("Previous song"),
-                                 QStringLiteral("Next song"), QStringLiteral("Faster"), QStringLiteral("Slower")};
+    const QStringList actions = {tr("Play / Pause"), tr("Previous song"),
+                                 tr("Next song"), tr("Faster"), tr("Slower")};
     for (int i = 0; i < actions.size(); ++i) {
         grid->addWidget(text(actions[i], "QuickStartPoint", widget), i, 0);
         auto *keys = text(QString(), "QuickStartKeys", widget);
@@ -432,7 +433,7 @@ QWidget *QuickStart::buildControls()
     grid->setColumnStretch(1, 1);
     column->addLayout(grid);
     column->addSpacing(16);
-    column->addWidget(text(QStringLiteral("Changed Sky's own keys? Set the same 15 keys in Settings → Keyboard."),
+    column->addWidget(text(tr("Changed Sky's own keys? Set the same 15 keys in Settings → Keyboard."),
                            "SettingsRowDescription", widget, true));
     column->addStretch();
     return widget;
@@ -440,13 +441,13 @@ QWidget *QuickStart::buildControls()
 
 QWidget *QuickStart::buildDone()
 {
-    QWidget *widget = page(QStringLiteral("check-circle-fill"), QStringLiteral("You're all set"),
-                           QStringLiteral("A few tips before you start:"));
+    QWidget *widget = page(QStringLiteral("check-circle-fill"), tr("You're all set"),
+                           tr("A few tips before you start:"));
     auto *column = static_cast<QVBoxLayout *>(widget->layout());
-    const QStringList tips = {QStringLiteral("Press + at the bottom right to add song files."),
-                              QStringLiteral("Open the menu at the top left to find songs in the Store."),
-                              QStringLiteral("Open Sky first, then press Play. The app types the notes for you."),
-                              QStringLiteral("Run this setup again any time from Settings → General.")};
+    const QStringList tips = {tr("Press + at the bottom right to add song files."),
+                              tr("Open the menu at the top left to find songs in the Store."),
+                              tr("Open Sky first, then press Play. The app types the notes for you."),
+                              tr("Run this setup again any time from Settings → General.")};
     for (const QString &tip : tips) {
         auto *row = new QHBoxLayout();
         row->setSpacing(10);
@@ -490,28 +491,28 @@ void QuickStart::setLegacyState(LegacyState state, int songs, int playlists, con
     QString body;
     switch (state) {
     case LegacyState::Searching:
-        body = QStringLiteral("Looking for the previous version of Sky Auto Piano on this PC…");
+        body = tr("Looking for the previous version of Sky Auto Piano on this PC…");
         break;
     case LegacyState::Found: {
-        const QString songText = songs == 1 ? QStringLiteral("1 song") : QStringLiteral("%1 songs").arg(songs);
+        const QString songText = songs == 1 ? tr("1 song") : tr("%1 songs").arg(songs);
         const QString playlistText =
-            playlists == 1 ? QStringLiteral("1 playlist") : QStringLiteral("%1 playlists").arg(playlists);
-        body = playlists > 0 ? QStringLiteral("We found %1 and %2 from the previous version of Sky Auto Piano.")
+            playlists == 1 ? tr("1 playlist") : tr("%1 playlists").arg(playlists);
+        body = playlists > 0 ? tr("We found %1 and %2 from the previous version of Sky Auto Piano.")
                                    .arg(songText, playlistText)
-                             : QStringLiteral("We found %1 from the previous version of Sky Auto Piano.").arg(songText);
+                             : tr("We found %1 from the previous version of Sky Auto Piano.").arg(songText);
         m_importTile->setChecked(true);
         break;
     }
     case LegacyState::NotFound:
-        body = detail.isEmpty() ? QStringLiteral("No previous version of Sky Auto Piano was found. If you used it "
+        body = detail.isEmpty() ? tr("No previous version of Sky Auto Piano was found. If you used it "
                                                  "before, choose its folder.")
                                 : detail;
         break;
     case LegacyState::UpToDate:
-        body = QStringLiteral("All songs from the previous version are already in your library.");
+        body = tr("All songs from the previous version are already in your library.");
         break;
     case LegacyState::Importing:
-        body = QStringLiteral("Copying your songs from the previous version…");
+        body = tr("Copying your songs from the previous version…");
         break;
     case LegacyState::Imported:
         body = detail;
@@ -572,7 +573,7 @@ void QuickStart::showStep(int index)
     const bool last = m_current == static_cast<int>(m_steps.size()) - 1;
     m_skip->setVisible(first);
     m_back->setVisible(!first);
-    m_next->setText(first ? QStringLiteral("Get started") : (last ? QStringLiteral("Start playing") : QStringLiteral("Next")));
+    m_next->setText(first ? tr("Get started") : (last ? tr("Start playing") : tr("Next")));
     m_next->updateGeometry();
     m_dots->set(static_cast<int>(m_steps.size()), m_current);
     relayout();

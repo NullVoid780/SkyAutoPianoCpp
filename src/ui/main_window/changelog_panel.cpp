@@ -13,6 +13,7 @@
 
 #include <algorithm>
 
+#include "core/translator.hpp"
 #include "ui/render/paint_utils.hpp"
 #include "ui/render/shadow_painter.hpp"
 #include "ui/theme_manager.hpp"
@@ -43,14 +44,14 @@ constexpr qreal kPillRadius = 25;
 ChangelogPanel::ChangelogPanel(QWidget *window)
     : Overlay(window),
       m_panel(new QWidget(this)),
-      m_title(new QLabel(QStringLiteral("What's New!"), m_panel)),
+      m_title(new QLabel(tr("What's New!"), m_panel)),
       m_pill(new QLabel(m_panel)),
       m_notes(new MarkdownView(MarkdownView::Style{14, [] { return currentTheme().fontColor; },
                                                    [] { return currentTheme().hoverColor; },
                                                    [] { return currentTheme().update.codeFill; }},
                                m_panel)),
-      m_readMore(new QPushButton(QStringLiteral("Read in browser"), m_panel)),
-      m_gotIt(new QPushButton(QStringLiteral("Got it!"), m_panel))
+      m_readMore(new QPushButton(tr("Read in browser"), m_panel)),
+      m_gotIt(new QPushButton(tr("Got it!"), m_panel))
 {
     m_readMore->setObjectName(QStringLiteral("ChangelogSecondaryButton"));
     m_readMore->setCursor(Qt::PointingHandCursor);
@@ -97,7 +98,7 @@ ChangelogPanel::ChangelogPanel(QWidget *window)
 
 void ChangelogPanel::present(const QString &version, const QString &notes, const QString &pageUrl)
 {
-    m_pill->setText(QStringLiteral("V") + version.toUpper());
+    m_pill->setText(QLatin1Char('V') + version.toUpper());
     m_pageUrl = pageUrl;
     m_readMore->setVisible(!pageUrl.isEmpty());
     m_readMore->setToolTip(pageUrl);

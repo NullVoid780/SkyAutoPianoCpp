@@ -10,6 +10,7 @@
 #include <cmath>
 #include <functional>
 
+#include "core/translator.hpp"
 #include "core/json.hpp"
 #include "core/string_utils.hpp"
 
@@ -47,12 +48,12 @@ QString format(double value)
 
 SpeedControl::SpeedControl(QWidget *parent) : QWidget(parent)
 {
-    auto *label = new QLabel(QStringLiteral("Speed:"), this);
+    auto *label = new QLabel(tr("Speed:"), this);
     label->setObjectName(QStringLiteral("SpeedLabel"));
     auto *field = new SpeedField(this);
     m_field = field;
     m_field->setObjectName(QStringLiteral("SpeedField"));
-    m_field->setAccessibleName(QStringLiteral("Speed"));
+    m_field->setAccessibleName(tr("Speed"));
     m_field->setFixedSize(40, 20);
     m_field->setValidator(new QDoubleValidator(0, kMax, 2, m_field));
 

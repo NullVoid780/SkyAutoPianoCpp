@@ -3,6 +3,7 @@
 #include <QPainter>
 #include <QVariantAnimation>
 
+#include "core/translator.hpp"
 #include "ui/core/hover_tracker.hpp"
 #include "ui/render/icon_cache.hpp"
 #include "ui/render/paint_utils.hpp"
@@ -22,7 +23,7 @@ ThemeToggle::ThemeToggle(QWidget *parent)
     setFixedSize(kSize, kSize);
     setCursor(Qt::PointingHandCursor);
     setFocusPolicy(Qt::TabFocus);
-    setAccessibleName(QStringLiteral("Switch light or dark mode"));
+    setAccessibleName(tr("Switch light or dark mode"));
     m_fade->setDuration(kHoverSlowMs);
     connect(m_fade, &QVariantAnimation::valueChanged, this, [this](const QVariant &value) {
         m_darkness = value.toReal();

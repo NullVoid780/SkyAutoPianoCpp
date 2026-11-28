@@ -8,6 +8,7 @@
 
 #include <algorithm>
 
+#include "core/translator.hpp"
 #include "ui/render/icon_cache.hpp"
 #include "ui/render/paint_utils.hpp"
 #include "ui/theme_manager.hpp"
@@ -48,8 +49,8 @@ ConfirmDialog::ConfirmDialog(QWidget *window, Content content)
 {
     m_iconSpace->setFixedSize(kIconCircle, kIconCircle);
     m_iconSpace->setAttribute(Qt::WA_TransparentForMouseEvents);
-    m_close->setToolTip(QStringLiteral("Close"));
-    m_close->setAccessibleName(QStringLiteral("Close"));
+    m_close->setToolTip(tr("Close"));
+    m_close->setAccessibleName(tr("Close"));
     m_secondary->setMinimumWidth(m_primary->sizeHint().width());
 
     auto *title = new QLabel(content.title, m_panel);

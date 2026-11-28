@@ -1,3 +1,4 @@
+#include "core/translator.hpp"
 #include "services/report/report_writer.hpp"
 
 #include <miniz.h>
@@ -15,7 +16,7 @@ namespace {
 
 Error writeError(const std::string &details)
 {
-    return Error{"REPORT_WRITE_FAILED", "The report could not be saved.", details};
+    return Error{"REPORT_WRITE_FAILED", trUtf8("The report could not be saved."), details};
 }
 
 bool alreadyCompressed(const std::string &name)

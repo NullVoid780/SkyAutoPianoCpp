@@ -2,6 +2,7 @@
 
 #include <QVBoxLayout>
 
+#include "core/translator.hpp"
 #include "ui/settings_window/action_button.hpp"
 #include "ui/settings_window/app_info_card.hpp"
 #include "ui/settings_window/settings_row.hpp"
@@ -26,22 +27,22 @@ ActionButton *linkButton(const QString &iconId, const QString &label)
 AboutTab::AboutTab(const QString &version, QWidget *parent) : QWidget(parent)
 {
     auto *header = new TabHeader(QStringLiteral("info-circle"), [] { return currentTheme().hoverColor; },
-                                 QStringLiteral("About"), QStringLiteral("Information about Sky Auto Piano"), this);
+                                 tr("About"), tr("Information about Sky Auto Piano"), this);
     auto *card = new AppInfoCard(version, this);
 
-    auto *originalButton = linkButton(QStringLiteral("box-arrow-up-right"), QStringLiteral("Open"));
-    auto *sourceButton = linkButton(QStringLiteral("box-arrow-up-right"), QStringLiteral("Open"));
-    auto *dataButton = linkButton(QStringLiteral("folder2"), QStringLiteral("Open folder"));
-    auto *licensesButton = linkButton(QStringLiteral("folder2"), QStringLiteral("Open folder"));
+    auto *originalButton = linkButton(QStringLiteral("box-arrow-up-right"), tr("Open"));
+    auto *sourceButton = linkButton(QStringLiteral("box-arrow-up-right"), tr("Open"));
+    auto *dataButton = linkButton(QStringLiteral("folder2"), tr("Open folder"));
+    auto *licensesButton = linkButton(QStringLiteral("folder2"), tr("Open folder"));
 
-    auto *original = new SettingsRow(QStringLiteral("lightbulb"), QStringLiteral("Original App"),
-                                     QStringLiteral("Based on Sky Auto Piano by HerokeyVN."), originalButton, this);
-    auto *source = new SettingsRow(QStringLiteral("edit-note"), QStringLiteral("Source Code"),
-                                   QStringLiteral("SkyAutoPianoCpp, rewritten in C++ and Qt."), sourceButton, this);
-    auto *dataRow = new SettingsRow(QStringLiteral("folder2"), QStringLiteral("Data Folder"),
-                                 QStringLiteral("Where your songs and settings are saved."), dataButton, this);
-    auto *licenses = new SettingsRow(QStringLiteral("shield-check"), QStringLiteral("Licenses"),
-                                     QStringLiteral("Qt, Roboto, Bootstrap Icons and other open-source parts."),
+    auto *original = new SettingsRow(QStringLiteral("lightbulb"), tr("Original App"),
+                                     tr("Based on Sky Auto Piano by HerokeyVN."), originalButton, this);
+    auto *source = new SettingsRow(QStringLiteral("edit-note"), tr("Source Code"),
+                                   tr("SkyAutoPianoCpp, rewritten in C++ and Qt."), sourceButton, this);
+    auto *dataRow = new SettingsRow(QStringLiteral("folder2"), tr("Data Folder"),
+                                 tr("Where your songs and settings are saved."), dataButton, this);
+    auto *licenses = new SettingsRow(QStringLiteral("shield-check"), tr("Licenses"),
+                                     tr("Qt, Roboto, Bootstrap Icons and other open-source parts."),
                                      licensesButton, this);
 
     auto *column = new QVBoxLayout(this);

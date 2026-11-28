@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "core/translator.hpp"
 #include "core/file_system.hpp"
 #include "core/json.hpp"
 #include "core/logger.hpp"
@@ -37,7 +38,7 @@ bool sameNameIgnoringCase(const std::string &a, const std::string &b)
 
 Error warning(const char *code, const char *message)
 {
-    return Error{code, message, {}};
+    return Error{code, trUtf8(message), {}};
 }
 
 }  // namespace
@@ -54,10 +55,14 @@ std::string PlaylistService::normalizeName(std::string_view rawName)
 
 std::string PlaylistService::bulkAddMessage(int added, const std::string &playlistName)
 {
-    if (added > 0) {
-        return "Added " + std::to_string(added) + (added == 1 ? " sheet" : " sheets") + " to " + playlistName + ".";
+    const QString name = toQString(playlistName);
+    if (added == 1) {
+        return fromQString(tr("Added 1 sheet to %1.").arg(name));
     }
-    return "All selected sheets are already in " + playlistName + ".";
+    if (added > 1) {
+        return fromQString(tr("Added %1 sheets to %2.").arg(QString::number(added), name));
+    }
+    return fromQString(tr("All selected sheets are already in %1.").arg(name));
 }
 
 void PlaylistService::load()
@@ -153,10 +158,10 @@ Result<Playlist> PlaylistService::create(std::string_view rawName)
 {
     const std::string name = normalizeName(rawName);
     if (name.empty()) {
-        return warning("PLAYLIST_NAME_EMPTY", "Enter a playlist name.");
+        return warning("PLAYLIST_NAME_EMPTY", trNoop("Enter a playlist name."));
     }
     if (nameTaken(name, {})) {
-        return warning("PLAYLIST_NAME_DUPLICATE", "A playlist with this name already exists.");
+        return warning("PLAYLIST_NAME_DUPLICATE", trNoop("A playlist with this name already exists."));
     }
     Playlist playlist{"playlist-" + std::to_string(epochMillis()) + "-" + randomBase36(6), name, {}};
     m_playlists.push_back(playlist);
@@ -172,7 +177,7 @@ Result<void> PlaylistService::rename(std::string_view id, std::string_view rawNa
     }
     const std::string name = normalizeName(rawName);
     if (name.empty() || nameTaken(name, id)) {
-        return warning("PLAYLIST_NAME_INVALID", "Enter a unique playlist name.");
+        return warning("PLAYLIST_NAME_INVALID", trNoop("Enter a unique playlist name."));
     }
     playlist->name = name;
     save();
@@ -197,7 +202,7 @@ Result<void> PlaylistService::addSheet(std::string_view id, const std::string &s
         return {};
     }
     if (std::find(playlist->sheetKeys.begin(), playlist->sheetKeys.end(), sheetKey) != playlist->sheetKeys.end()) {
-        return warning("PLAYLIST_SHEET_EXISTS", "This sheet is already in the playlist.");
+        return warning("PLAYLIST_SHEET_EXISTS", trNoop("This sheet is already in the playlist."));
     }
     playlist->sheetKeys.push_back(sheetKey);
     save();
@@ -208,7 +213,7 @@ Result<int> PlaylistService::addSheets(std::string_view id, const std::vector<st
 {
     Playlist *playlist = findMutable(id);
     if (!playlist) {
-        return warning("PLAYLIST_NOT_SELECTED", "Create or select a playlist first.");
+        return warning("PLAYLIST_NOT_SELECTED", trNoop("Create or select a playlist first."));
     }
     int added = 0;
     for (const std::string &key : sheetKeys) {

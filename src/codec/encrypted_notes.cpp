@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <string>
 
+#include "core/translator.hpp"
 #include "core/string_utils.hpp"
 
 namespace sky {
@@ -50,7 +51,7 @@ bool hasEncryptedNotes(const OrderedJson &rawSheet)
 Result<OrderedJson> decodeEncryptedNotes(const OrderedJson &numbers)
 {
     if (!numbers.is_array()) {
-        return Error{"DECRYPT_INPUT", "Encrypted notes must be an array.", {}};
+        return Error{"DECRYPT_INPUT", trUtf8("Encrypted notes must be an array."), {}};
     }
     std::u16string decoded;
     decoded.reserve(numbers.size());

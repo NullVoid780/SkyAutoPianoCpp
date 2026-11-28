@@ -2,6 +2,7 @@
 
 #include <QAction>
 
+#include "core/translator.hpp"
 #include "ui/render/icon_cache.hpp"
 #include "ui/theme_manager.hpp"
 
@@ -10,10 +11,10 @@ namespace sky {
 SearchField::SearchField(QWidget *parent) : QLineEdit(parent), m_icon(new QAction(this))
 {
     setObjectName(QStringLiteral("SearchField"));
-    setPlaceholderText(QStringLiteral("Search the music sheet or author name..."));
+    setPlaceholderText(tr("Search the music sheet or author name..."));
     setClearButtonEnabled(false);
-    setAccessibleName(QStringLiteral("Search"));
-    m_icon->setText(QStringLiteral("Search"));
+    setAccessibleName(tr("Search"));
+    m_icon->setText(tr("Search"));
     addAction(m_icon, QLineEdit::TrailingPosition);
     applyTheme();
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this, &SearchField::applyTheme);

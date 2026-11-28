@@ -3,6 +3,8 @@
 #include <QFontDatabase>
 #include <QStringList>
 
+#include "core/translator.hpp"
+
 namespace sky {
 
 int FontLoader::registerBundledFonts()
@@ -16,10 +18,24 @@ int FontLoader::registerBundledFonts()
     return loaded;
 }
 
+QStringList FontLoader::families()
+{
+    const QString language = currentLanguage();
+    if (language == QLatin1String("ja")) {
+        return {QStringLiteral("Roboto"), QStringLiteral("Yu Gothic UI"), QStringLiteral("Meiryo UI"),
+                QStringLiteral("Segoe UI")};
+    }
+    if (language == QLatin1String("zh_CN")) {
+        return {QStringLiteral("Roboto"), QStringLiteral("Microsoft YaHei UI"), QStringLiteral("Microsoft YaHei"),
+                QStringLiteral("Segoe UI")};
+    }
+    return {QStringLiteral("Roboto"), QStringLiteral("Segoe UI")};
+}
+
 QFont FontLoader::font(int pixelSize, int weight)
 {
     QFont font;
-    font.setFamilies({QStringLiteral("Roboto"), QStringLiteral("Segoe UI")});
+    font.setFamilies(families());
     font.setPixelSize(pixelSize);
     font.setWeight(static_cast<QFont::Weight>(weight));
     font.setHintingPreference(QFont::PreferNoHinting);

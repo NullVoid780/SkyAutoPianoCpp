@@ -7,6 +7,7 @@ add_library(sky_core STATIC
     core/string_utils.cpp
     core/text_file.cpp
     core/time_utils.cpp
+    core/translator.cpp
 )
 target_include_directories(sky_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(sky_core
@@ -240,6 +241,9 @@ file(GLOB_RECURSE SKY_SOUNDPACK_FILES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/asse
      ${CMAKE_SOURCE_DIR}/assets/soundpack/*.wav ${CMAKE_SOURCE_DIR}/assets/soundpack/*.flac)
 qt_add_resources(skyautopiano sky_soundpack PREFIX "/soundpack" BASE ${CMAKE_SOURCE_DIR}/assets/soundpack
                  FILES ${SKY_SOUNDPACK_FILES})
+
+file(GLOB SKY_I18N_FILES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/assets/i18n/*.json)
+qt_add_resources(skyautopiano sky_i18n PREFIX "/i18n" BASE ${CMAKE_SOURCE_DIR}/assets/i18n FILES ${SKY_I18N_FILES})
 
 get_target_property(SKY_QMAKE Qt6::qmake IMPORTED_LOCATION)
 get_filename_component(SKY_QT_BIN ${SKY_QMAKE} DIRECTORY)

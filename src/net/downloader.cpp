@@ -7,6 +7,7 @@
 
 #include <memory>
 
+#include "core/translator.hpp"
 #include "core/logger.hpp"
 #include "core/string_utils.hpp"
 #include "net/url.hpp"
@@ -19,7 +20,7 @@ constexpr int kTransferTimeoutMs = 60000;
 
 Error downloadError(const QString &details)
 {
-    return Error{"DOWNLOAD_FAILED", "Unable to complete update.", fromQString(details)};
+    return Error{"DOWNLOAD_FAILED", trUtf8("Unable to complete update."), fromQString(details)};
 }
 
 }  // namespace

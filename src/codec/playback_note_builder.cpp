@@ -5,6 +5,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "core/string_utils.hpp"
+#include "core/translator.hpp"
 #include "codec/note_normalizer.hpp"
 #include "codec/sheet_error.hpp"
 #include "model/key_table.hpp"
@@ -21,7 +23,7 @@ Result<std::vector<PlaybackNote>> buildPlaybackNotes(const std::vector<SongNote>
                            parts.index >= 0 && parts.index < bitsPerPage && parts.index <= 14;
         if (!valid) {
             return sheetError(SheetErrorCode::InvalidNoteKey,
-                              "Unsupported playback key “" + note.key + "”.");
+                              fromQString(tr("Unsupported playback key “%1”.").arg(toQString(note.key))));
         }
         const std::string outputKey(kAutoKeys[static_cast<std::size_t>(parts.index)]);
         const std::string id = std::to_string(note.time) + ":" + outputKey;

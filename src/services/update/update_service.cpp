@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+#include "core/translator.hpp"
 #include "core/file_system.hpp"
 #include "core/logger.hpp"
 #include "core/string_utils.hpp"
@@ -30,10 +31,10 @@ namespace {
 constexpr const char *kRepository = SKY_UPDATE_REPOSITORY;
 constexpr qint64 kMaxMetadataBytes = 4 * 1024 * 1024;
 constexpr qint64 kMaxDownloadBytes = 512LL * 1024 * 1024;
-constexpr const char *kCheckFailed = "Failed to check for updates. Please check your internet connection.";
-constexpr const char *kGithubFailed = "GitHub did not answer the update check. Please try again later.";
-constexpr const char *kNotPublished = "No release with an installer was found on GitHub yet.";
-constexpr const char *kRateLimited = "GitHub is limiting update checks right now. Please try again in a few minutes.";
+constexpr const char *kCheckFailed = trNoop("Failed to check for updates. Please check your internet connection.");
+constexpr const char *kGithubFailed = trNoop("GitHub did not answer the update check. Please try again later.");
+constexpr const char *kNotPublished = trNoop("No release with an installer was found on GitHub yet.");
+constexpr const char *kRateLimited = trNoop("GitHub is limiting update checks right now. Please try again in a few minutes.");
 constexpr qint64 kApiPauseSeconds = 15 * 60;
 constexpr qint64 kReuseAnswerSeconds = 60;
 constexpr int kReleasesToRead = 20;
@@ -41,8 +42,8 @@ constexpr const char *kReleaseCacheFile = "update-cache.json";
 constexpr const char *kUpdateInfoFile = "update-info.json";
 constexpr const char *kCleanupFile = "cleanup-files.json";
 constexpr const char *kSeenVersionFile = "seen-version.json";
-constexpr const char *kNotesMissing = "This version has no release notes on GitHub.";
-constexpr const char *kNotesFailed = "Could not load the release notes.";
+constexpr const char *kNotesMissing = trNoop("This version has no release notes on GitHub.");
+constexpr const char *kNotesFailed = trNoop("Could not load the release notes.");
 constexpr std::array<std::string_view, 3> kPreservedFolders = {"data", "config", "logs"};
 
 QString releasesApiUrl()
@@ -113,17 +114,17 @@ HttpRequest plainRequest(const QString &url, const QByteArray &method = "GET")
 Error httpError(const Result<HttpResponse> &response)
 {
     if (!response) {
-        return Error{"UPDATE_OFFLINE", kCheckFailed, response.error().details};
+        return Error{"UPDATE_OFFLINE", trUtf8(kCheckFailed), response.error().details};
     }
     const int status = response.value().status;
     const std::string details = "http " + std::to_string(status);
     if (status == 404) {
-        return Error{"UPDATE_NOT_PUBLISHED", kNotPublished, details};
+        return Error{"UPDATE_NOT_PUBLISHED", trUtf8(kNotPublished), details};
     }
     if (status == 403 || status == 429) {
-        return Error{"UPDATE_RATE_LIMITED", kRateLimited, details};
+        return Error{"UPDATE_RATE_LIMITED", trUtf8(kRateLimited), details};
     }
-    return Error{"UPDATE_CHECK_FAILED", kGithubFailed, details};
+    return Error{"UPDATE_CHECK_FAILED", trUtf8(kGithubFailed), details};
 }
 
 std::string fileSha256(const std::filesystem::path &file)
@@ -192,7 +193,7 @@ Result<VersionCheck> UpdateService::evaluateReleases(const Json &releases, std::
     const auto latest = std::find_if(parsed.begin(), parsed.end(),
                                      [kind](const ReleaseInfo &release) { return release.packageFor(kind).has_value(); });
     if (latest == parsed.end()) {
-        return Error{"UPDATE_NOT_PUBLISHED", kNotPublished,
+        return Error{"UPDATE_NOT_PUBLISHED", trUtf8(kNotPublished),
                      kind == InstallKind::Portable ? "no release has a portable zip" : "no release has an installer"};
     }
     VersionCheck check;
@@ -254,7 +255,7 @@ Result<VersionCheck> UpdateService::evaluateBody(const QByteArray &body) const
 {
     auto parsed = parseJson<Json>(std::string_view(body.constData(), static_cast<std::size_t>(body.size())));
     if (!parsed || !parsed.value().is_array()) {
-        return Error{"UPDATE_CHECK_FAILED", kGithubFailed, "invalid release list"};
+        return Error{"UPDATE_CHECK_FAILED", trUtf8(kGithubFailed), "invalid release list"};
     }
     return evaluateReleases(parsed.value(), m_currentVersion, m_installKind);
 }
@@ -367,7 +368,7 @@ void UpdateService::checkWithoutApi(std::function<void(Result<VersionCheck>)> do
         }
         const std::string version = versionFromReleaseUrl(fromQString(response.value().url.toString()));
         if (version.empty()) {
-            done(Error{"UPDATE_NOT_PUBLISHED", kNotPublished, "the repository has no releases"});
+            done(Error{"UPDATE_NOT_PUBLISHED", trUtf8(kNotPublished), "the repository has no releases"});
             return;
         }
         self->fetchChangelog([self, version, done](Result<std::vector<VersionNotes>> changelog) {
@@ -389,7 +390,7 @@ void UpdateService::fetchChangelog(std::function<void(Result<std::vector<Version
             return;
         }
         if (!response || !response.value().isSuccess()) {
-            done(Error{"CHANGELOG_FAILED", "Failed to load changelog", {}});
+            done(Error{"CHANGELOG_FAILED", trUtf8("Failed to load changelog"), {}});
             return;
         }
         const QByteArray &body = response.value().body;
@@ -420,8 +421,8 @@ void UpdateService::fetchReleaseNotes(const std::string &version, std::function<
                     return;
                 }
             }
-            done(missing ? Error{"RELEASE_NOT_FOUND", kNotesMissing, "v" + version}
-                         : Error{"RELEASE_NOTES_FAILED", kNotesFailed, "v" + version});
+            done(missing ? Error{"RELEASE_NOT_FOUND", trUtf8(kNotesMissing), "v" + version}
+                         : Error{"RELEASE_NOTES_FAILED", trUtf8(kNotesFailed), "v" + version});
         });
     };
     if (apiPaused()) {
@@ -574,7 +575,7 @@ void UpdateService::fail(const std::string &details)
         info->showChangelog = false;
         writeUpdateInfo(*info);
     }
-    emit updateFailed(QStringLiteral("The update could not be downloaded. Please try again later."));
+    emit updateFailed(tr("The update could not be downloaded. Please try again later."));
 }
 
 void UpdateService::writeUpdateInfo(const UpdateInfo &info) const
@@ -621,7 +622,7 @@ Result<std::vector<std::filesystem::path>> UpdateService::applyStagedFiles(const
     for (auto it = std::filesystem::recursive_directory_iterator(staging, error);
          it != std::filesystem::recursive_directory_iterator(); it.increment(error)) {
         if (error) {
-            return Error{"UPDATE_APPLY_FAILED", "Unable to complete update.", error.message()};
+            return Error{"UPDATE_APPLY_FAILED", trUtf8("Unable to complete update."), error.message()};
         }
         if (!it->is_regular_file(error)) {
             continue;
@@ -641,12 +642,12 @@ Result<std::vector<std::filesystem::path>> UpdateService::applyStagedFiles(const
                 parked += L".old" + std::to_wstring(n);
             }
             if (!MoveFileExW(target.c_str(), parked.c_str(), MOVEFILE_REPLACE_EXISTING)) {
-                return Error{"UPDATE_APPLY_FAILED", "Unable to complete update.", "cannot replace " + target.filename().string()};
+                return Error{"UPDATE_APPLY_FAILED", trUtf8("Unable to complete update."), "cannot replace " + target.filename().string()};
             }
             leftovers.push_back(fromWide(parked.wstring()));
         }
         if (!MoveFileExW(it->path().c_str(), target.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED)) {
-            return Error{"UPDATE_APPLY_FAILED", "Unable to complete update.", "cannot write " + target.filename().string()};
+            return Error{"UPDATE_APPLY_FAILED", trUtf8("Unable to complete update."), "cannot write " + target.filename().string()};
         }
         replaced.push_back(target);
     }

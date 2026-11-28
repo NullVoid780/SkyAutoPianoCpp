@@ -16,6 +16,7 @@
 
 #include <algorithm>
 
+#include "core/translator.hpp"
 #include "app/theme_controller.hpp"
 #include "services/settings/theme_library_service.hpp"
 #include "ui/core/hover_tracker.hpp"
@@ -65,7 +66,7 @@ QLabel *label(const QString &text, const char *objectName, QWidget *parent)
 
 QString modeName(AppTheme mode)
 {
-    return mode == AppTheme::Dark ? QStringLiteral("dark") : QStringLiteral("light");
+    return mode == AppTheme::Dark ? tr("dark") : tr("light");
 }
 
 QStringList slotIds(const ThemeSection &section)
@@ -159,8 +160,8 @@ private:
 
     static QString label(int index)
     {
-        static const QString labels[kCount] = {QStringLiteral("Songs"), QStringLiteral("Menus"), QStringLiteral("Alerts"),
-                                               QStringLiteral("Settings"), QStringLiteral("Editor")};
+        static const QString labels[kCount] = {tr("Songs"), tr("Menus"), tr("Alerts"),
+                                               tr("Settings"), tr("Editor")};
         return labels[index];
     }
 
@@ -206,8 +207,8 @@ public:
         if (!hint.isEmpty()) {
             setToolTip(hint);
         }
-        m_reset->setToolTip(QStringLiteral("Undo the change to this color"));
-        m_reset->setAccessibleName(QStringLiteral("Undo %1").arg(text));
+        m_reset->setToolTip(tr("Undo the change to this color"));
+        m_reset->setAccessibleName(tr("Undo %1").arg(text));
         m_reset->hide();
         connect(m_hover, &HoverTracker::changed, this, [this] { update(); });
         connect(m_reset, &QAbstractButton::clicked, this, [this] {
@@ -324,12 +325,12 @@ public:
     {
         m_caption->setWordWrap(true);
         m_preview->setModeBadges(false);
-        auto *legend = label(QStringLiteral("Left half: light mode  ·  Right half: dark mode"), "ColorPickerCaption", this);
+        auto *legend = label(tr("Left half: light mode  ·  Right half: dark mode"), "ColorPickerCaption", this);
         legend->setAlignment(Qt::AlignCenter);
         auto *column = new QVBoxLayout(this);
         column->setContentsMargins(kStickyPadding, kStickyPadding - 2, kStickyPadding, kStickyPadding);
         column->setSpacing(2);
-        column->addWidget(label(QStringLiteral("Live Preview"), "ThemeSectionTitle", this));
+        column->addWidget(label(tr("Live Preview"), "ThemeSectionTitle", this));
         column->addWidget(m_caption);
         column->addSpacing(8);
         column->addWidget(m_tabs);
@@ -353,7 +354,7 @@ public:
 
     void setCaption(AppTheme mode, const QString &focus)
     {
-        const QString base = QStringLiteral("Editing %1 mode").arg(modeName(mode));
+        const QString base = mode == AppTheme::Dark ? tr("Editing dark mode") : tr("Editing light mode");
         m_caption->setText(focus.isEmpty() ? base : QStringLiteral("%1 · %2").arg(base, focus));
         adjustSize();
     }
@@ -444,7 +445,7 @@ protected:
 
         qreal right = chevron.left() - 12;
         if (m_changed > 0) {
-            const QString text = m_changed == 1 ? QStringLiteral("1 changed") : QStringLiteral("%1 changed").arg(m_changed);
+            const QString text = m_changed == 1 ? tr("1 changed") : tr("%1 changed").arg(m_changed);
             const QFont font = FontLoader::font(12, QFont::DemiBold);
             const qreal width = QFontMetricsF(font).horizontalAdvance(text) + 18;
             const QRectF pill(right - width, (height() - 22) / 2.0, width, 22);
@@ -508,18 +509,18 @@ ThemeBuilder::ThemeBuilder(ThemeController &themes, QWidget *parent)
                                                 [] { return currentTheme().settings.subtleFill; },
                                                 [] { return currentTheme().settings.subtleBorder; }, 10},
                                 this);
-    back->setToolTip(QStringLiteral("Back to themes"));
-    back->setAccessibleName(QStringLiteral("Back to themes"));
+    back->setToolTip(tr("Back to themes"));
+    back->setAccessibleName(tr("Back to themes"));
     auto *resetButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("arrow-clockwise"),
-                                         QStringLiteral("Undo changes"), this);
-    resetButton->setToolTip(QStringLiteral("Undo every change to the mode you are editing"));
-    auto *cancelButton = new ActionButton(ActionButton::Kind::Subtle, QString(), QStringLiteral("Cancel"), this);
-    auto *saveButton = new ActionButton(ActionButton::Kind::Primary, QStringLiteral("floppy"), QStringLiteral("Save Theme"), this);
+                                         tr("Undo changes"), this);
+    resetButton->setToolTip(tr("Undo every change to the mode you are editing"));
+    auto *cancelButton = new ActionButton(ActionButton::Kind::Subtle, QString(), tr("Cancel"), this);
+    auto *saveButton = new ActionButton(ActionButton::Kind::Primary, QStringLiteral("floppy"), tr("Save Theme"), this);
 
     auto *titleCopy = new QVBoxLayout();
     titleCopy->setSpacing(2);
     titleCopy->addWidget(m_title);
-    auto *hint = label(QStringLiteral("Changes show across the app as you make them."), "SettingsHeaderDescription", this);
+    auto *hint = label(tr("Changes show across the app as you make them."), "SettingsHeaderDescription", this);
     hint->setWordWrap(true);
     hint->setMinimumWidth(120);
     titleCopy->addWidget(hint);
@@ -533,18 +534,18 @@ ThemeBuilder::ThemeBuilder(ThemeController &themes, QWidget *parent)
 
     m_name->setObjectName(QStringLiteral("ThemeNameField"));
     m_name->setMaxLength(ThemeLibraryService::kNameLimit);
-    m_name->setPlaceholderText(QStringLiteral("Theme name"));
-    m_name->setAccessibleName(QStringLiteral("Theme name"));
-    m_modeSelect->addOption(QStringLiteral("Light mode"), QStringLiteral("Colors used when the app is light"));
-    m_modeSelect->addOption(QStringLiteral("Dark mode"), QStringLiteral("Colors used when the app is dark"));
-    m_modeSelect->setAccessibleName(QStringLiteral("Editing"));
+    m_name->setPlaceholderText(tr("Theme name"));
+    m_name->setAccessibleName(tr("Theme name"));
+    m_modeSelect->addOption(tr("Light mode"), tr("Colors used when the app is light"));
+    m_modeSelect->addOption(tr("Dark mode"), tr("Colors used when the app is dark"));
+    m_modeSelect->setAccessibleName(tr("Editing"));
 
     auto *details = new SettingsPanel(kPanelPadding, this);
     auto *fields = new QGridLayout();
     fields->setHorizontalSpacing(16);
     fields->setVerticalSpacing(6);
-    fields->addWidget(label(QStringLiteral("Name"), "ColorPickerCaption", details), 0, 0);
-    fields->addWidget(label(QStringLiteral("Editing"), "ColorPickerCaption", details), 0, 1);
+    fields->addWidget(label(tr("Name"), "ColorPickerCaption", details), 0, 0);
+    fields->addWidget(label(tr("Editing"), "ColorPickerCaption", details), 0, 1);
     fields->addWidget(m_name, 1, 0);
     fields->addWidget(m_modeSelect, 1, 1, Qt::AlignLeft);
     fields->setColumnStretch(0, 1);
@@ -553,7 +554,7 @@ ThemeBuilder::ThemeBuilder(ThemeController &themes, QWidget *parent)
     auto *quickColumn = new QVBoxLayout(quickBox);
     quickColumn->setContentsMargins(0, 0, 0, 0);
     quickColumn->setSpacing(0);
-    m_quickTitle = label(QStringLiteral("Quick Colors"), "ThemeSectionTitle", quickBox);
+    m_quickTitle = label(tr("Quick Colors"), "ThemeSectionTitle", quickBox);
     quickColumn->addWidget(m_quickTitle);
     quickColumn->addSpacing(2);
     m_quickCaption = label(QString(), "SettingsRowDescription", quickBox);
@@ -578,9 +579,9 @@ ThemeBuilder::ThemeBuilder(ThemeController &themes, QWidget *parent)
     controls->setSpacing(0);
     controls->addWidget(details);
     controls->addSpacing(28);
-    controls->addWidget(label(QStringLiteral("All Colors"), "ThemeGroupTitle", this));
+    controls->addWidget(label(tr("All Colors"), "ThemeGroupTitle", this));
     controls->addSpacing(2);
-    controls->addWidget(label(QStringLiteral("Open a section to fine-tune one part of the app."),
+    controls->addWidget(label(tr("Open a section to fine-tune one part of the app."),
                               "SettingsRowDescription", this));
     controls->addSpacing(12);
     for (const ThemeSection &section : themeSections()) {
@@ -639,8 +640,8 @@ void ThemeBuilder::showQuickColors(PreviewScene scene)
         m_hovered.reset();
     }
     const QuickColorSet &set = quickColorSet(scene);
-    m_quickTitle->setText(scene == PreviewScene::Main ? QStringLiteral("Quick Colors")
-                                                      : QStringLiteral("Quick Colors · %1").arg(set.name));
+    m_quickTitle->setText(scene == PreviewScene::Main ? tr("Quick Colors")
+                                                      : tr("Quick Colors · %1").arg(set.name));
     m_quickCaption->setText(set.description);
     for (const QuickColor &quick : set.colors) {
         addQuickRow(quick, scene);
@@ -761,7 +762,7 @@ void ThemeBuilder::edit(const ThemeDefinition &draft, bool isNew, AppTheme mode)
     m_draft = draft;
     m_draft.builtIn = false;
     m_initial = m_draft;
-    m_title->setText(isNew ? QStringLiteral("New Theme") : QStringLiteral("Edit Theme"));
+    m_title->setText(isNew ? tr("New Theme") : tr("Edit Theme"));
     m_name->setText(m_draft.name);
     {
         const QSignalBlocker blocker(m_modeSelect);
@@ -1009,7 +1010,7 @@ void ThemeBuilder::requestClose()
         return;
     }
     QPointer<ThemeBuilder> self(this);
-    confirm()->ask(QStringLiteral("Discard your changes to this theme?"), [self] {
+    confirm()->ask(tr("Discard your changes to this theme?"), [self] {
         if (self) {
             self->discard();
             emit self->finished(QString());
@@ -1021,7 +1022,7 @@ void ThemeBuilder::save()
 {
     m_draft.name = m_name->text().simplified();
     if (m_draft.name.isEmpty()) {
-        emit toastRequested(Toast{ToastType::Warning, {}, "Enter a theme name.", kDefaultToastMs});
+        emit toastRequested(Toast{ToastType::Warning, {}, trUtf8("Enter a theme name."), kDefaultToastMs});
         m_name->setFocus(Qt::OtherFocusReason);
         return;
     }
@@ -1032,7 +1033,7 @@ void ThemeBuilder::save()
         return;
     }
     m_themes.select(saved.value());
-    emit toastRequested(Toast{ToastType::Success, {}, "Theme saved and applied.", kDefaultToastMs});
+    emit toastRequested(Toast{ToastType::Success, {}, trUtf8("Theme saved and applied."), kDefaultToastMs});
     emit finished(saved.value());
 }
 

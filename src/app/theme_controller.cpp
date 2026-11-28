@@ -3,6 +3,7 @@
 #include <QGuiApplication>
 #include <QStyleHints>
 
+#include "core/translator.hpp"
 #include "core/string_utils.hpp"
 #include "services/settings/config_service.hpp"
 #include "services/settings/theme_library_service.hpp"
@@ -236,7 +237,7 @@ Result<void> ThemeController::exportFile(const QString &id, const std::filesyste
 {
     const auto found = definition(id);
     if (!found) {
-        return Error{"THEME_EXPORT_FAILED", "The theme could not be exported.", {}};
+        return Error{"THEME_EXPORT_FAILED", trUtf8("The theme could not be exported."), {}};
     }
     return ThemeLibraryService::writeThemeFile(file, toCustom(*found));
 }

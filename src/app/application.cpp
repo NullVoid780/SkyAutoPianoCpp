@@ -15,6 +15,7 @@
 #include "app/update_controller.hpp"
 #include "app/version.hpp"
 #include "core/logger.hpp"
+#include "core/translator.hpp"
 #include "core/string_utils.hpp"
 #include "crash/crash_handler.hpp"
 #include "services/library/chromium_local_storage.hpp"
@@ -51,7 +52,30 @@ namespace sky {
 namespace {
 
 constexpr const char *kSettingsWarning =
-    "When opening the settings, you will not be able to use shortcuts, please turn off the settings to use the shortcut!";
+    trNoop("When opening the settings, you will not be able to use shortcuts, please turn off the settings to use the "
+           "shortcut!");
+
+QString songCount(std::size_t count)
+{
+    return count == 1 ? tr("1 song") : tr("%1 songs").arg(count);
+}
+
+QString playlistCount(std::size_t count)
+{
+    return count == 1 ? tr("1 playlist") : tr("%1 playlists").arg(count);
+}
+
+QString joinList(const QStringList &items)
+{
+    if (items.isEmpty()) {
+        return {};
+    }
+    QString text = items.front();
+    for (qsizetype i = 1; i < items.size(); ++i) {
+        text = (i + 1 == items.size() ? tr("%1 and %2") : tr("%1, %2")).arg(text, items[i]);
+    }
+    return text;
+}
 
 }  // namespace
 
@@ -163,20 +187,20 @@ void Application::updateSkyStatus()
     int tone = Idle;
     switch (state) {
     case SkyWindowState::Foreground:
-        text = playing ? QStringLiteral("Playing in Sky") : QStringLiteral("Sky ready");
-        tip = QStringLiteral("Sky is open and in front.");
+        text = playing ? tr("Playing in Sky") : tr("Sky ready");
+        tip = tr("Sky is open and in front.");
         tone = Good;
         break;
     case SkyWindowState::NotRunning:
-        text = playing && hold ? QStringLiteral("Waiting for Sky") : QStringLiteral("Sky not open");
-        tip = QStringLiteral("Open Sky: Children of the Light. The song starts when the game is in front.");
+        text = playing && hold ? tr("Waiting for Sky") : tr("Sky not open");
+        tip = tr("Open Sky: Children of the Light. The song starts when the game is in front.");
         tone = playing && hold ? Warning : Idle;
         break;
     case SkyWindowState::Minimized:
     case SkyWindowState::Background:
-        text = playing && hold ? QStringLiteral("Paused, switch to Sky") : QStringLiteral("Sky in background");
-        tip = pauseEnabled ? QStringLiteral("Playing pauses while another window is in front, so keys never type into it.")
-                           : QStringLiteral("Keys go to whatever window is in front.");
+        text = playing && hold ? tr("Paused, switch to Sky") : tr("Sky in background");
+        tip = pauseEnabled ? tr("Playing pauses while another window is in front, so keys never type into it.")
+                           : tr("Keys go to whatever window is in front.");
         tone = playing && hold ? Warning : Idle;
         break;
     }
@@ -186,8 +210,8 @@ void Application::updateSkyStatus()
     if (held && !m_skyHeld) {
         m_toasts->show(ToastType::Warning,
                        state == SkyWindowState::NotRunning
-                           ? "Waiting for Sky. Open the game and the song starts when it's in front."
-                           : "Paused because Sky isn't in front. Switch to the game and it carries on.",
+                           ? trUtf8("Waiting for Sky. Open the game and the song starts when it's in front.")
+                           : trUtf8("Paused because Sky isn't in front. Switch to the game and it carries on."),
                        kDefaultToastMs);
     }
     m_skyHeld = held;
@@ -271,9 +295,9 @@ bool Application::eventFilter(QObject *watched, QEvent *event)
 {
     if (watched == m_mainWindow.get() && event->type() == QEvent::Close && m_updates->isUpdating()) {
         event->ignore();
-        m_toasts->showTitled(ToastType::Error, "Update in Progress",
-                             "Cannot close - application update is running (" + std::to_string(m_updates->progress()) +
-                                 "%).");
+        m_toasts->showTitled(ToastType::Error, trUtf8("Update in Progress"),
+                             fromQString(tr("Cannot close while the update is installing (%1%).")
+                                             .arg(m_updates->progress())));
         return true;
     }
     return QObject::eventFilter(watched, event);
@@ -304,7 +328,7 @@ void Application::startIssueRecording()
         connect(m_recordingBar, &RecordingBar::cancelRequested, this, [this] {
             m_recorder->discard();
             m_recordingBar->close();
-            tell(Toast{ToastType::Info, {}, "Recording cancelled.", kDefaultToastMs});
+            tell(Toast{ToastType::Info, {}, trUtf8("Recording cancelled."), kDefaultToastMs});
         });
         connect(m_recorder, &IssueRecorder::tick, m_recordingBar, [this](qint64 elapsed) {
             m_recordingBar->setElapsed(elapsed);
@@ -314,7 +338,7 @@ void Application::startIssueRecording()
     m_recorder->start();
     if (!m_recorder->isRecording()) {
         m_recordingBar->close();
-        tell(Toast{ToastType::Error, {}, "The recording could not start.", kDefaultToastMs});
+        tell(Toast{ToastType::Error, {}, trUtf8("The recording could not start."), kDefaultToastMs});
         return;
     }
     m_recordingBar->setElapsed(0);
@@ -322,7 +346,7 @@ void Application::startIssueRecording()
     m_recordingBar->placeNear(m_settings && m_settings->isVisible() ? static_cast<QWidget *>(m_settings)
                                                                      : m_mainWindow.get());
     m_recordingBar->show();
-    tell(Toast{ToastType::Info, {}, "Recording. Show the problem, then press Finish.", kDefaultToastMs});
+    tell(Toast{ToastType::Info, {}, trUtf8("Recording. Show the problem, then press Finish."), kDefaultToastMs});
 }
 
 void Application::finishIssueRecording()
@@ -356,7 +380,8 @@ void Application::finishIssueRecording()
                 }
                 m_recorder->discard();
                 m_reportWindow->close();
-                tell(Toast{ToastType::Success, {}, "Report saved. Send the file to the developer on GitHub or Discord.",
+                tell(Toast{ToastType::Success, {},
+                           trUtf8("Report saved. Send the file to the developer on GitHub or Discord."),
                            kDefaultToastMs});
                 openLocalFolder(path->parent_path());
             });
@@ -373,29 +398,28 @@ QString crashTitle(const OrderedJson &report)
     const std::string reason = crash.is_object() ? crash.value("reason", std::string()) : std::string();
     const OrderedJson state = report.value("state", OrderedJson::object());
     const bool playing = state.is_object() && state.value("is_playing", false);
-    QString title;
     if (reason == "unexpected_exit") {
-        title = QStringLiteral("Closed unexpectedly");
-    } else if (reason == "hang") {
-        title = QStringLiteral("Stopped responding");
-    } else if (reason == "out_of_memory") {
-        title = QStringLiteral("Ran out of memory");
-    } else {
-        title = QStringLiteral("Crashed");
+        return playing ? tr("Closed unexpectedly while playing") : tr("Closed unexpectedly");
     }
-    return playing ? title + QStringLiteral(" while playing") : title;
+    if (reason == "hang") {
+        return playing ? tr("Stopped responding while playing") : tr("Stopped responding");
+    }
+    if (reason == "out_of_memory") {
+        return playing ? tr("Ran out of memory while playing") : tr("Ran out of memory");
+    }
+    return playing ? tr("Crashed while playing") : tr("Crashed");
 }
 
 QString durationWords(qint64 milliseconds)
 {
     const qint64 minutes = milliseconds / 60000;
     if (minutes >= 60) {
-        return QStringLiteral("%1 h %2 min").arg(minutes / 60).arg(minutes % 60);
+        return tr("%1 h %2 min").arg(minutes / 60).arg(minutes % 60);
     }
     if (minutes >= 1) {
-        return QStringLiteral("%1 min").arg(minutes);
+        return tr("%1 min").arg(minutes);
     }
-    return QStringLiteral("%1 s").arg(milliseconds / 1000);
+    return tr("%1 s").arg(milliseconds / 1000);
 }
 
 bool endedFromOutside(const OrderedJson &report)
@@ -454,18 +478,18 @@ void Application::refreshCrashList()
         QStringList details;
         const QDateTime when = QDateTime::fromString(id.left(15), QStringLiteral("yyyyMMdd-HHmmss"));
         if (when.isValid()) {
-            details << QLocale().toString(when, QStringLiteral("d MMM yyyy, HH:mm"));
+            details << QLocale().toString(when, tr("d MMM yyyy, HH:mm"));
         }
         const OrderedJson app = report.value("app", OrderedJson::object());
         if (app.is_object() && app.contains("version")) {
-            details << QStringLiteral("version %1").arg(toQString(app.value("version", std::string())));
+            details << tr("version %1").arg(toQString(app.value("version", std::string())));
         }
         const OrderedJson process = report.value("process", OrderedJson::object());
         if (process.is_object() && process.contains("uptime_ms")) {
-            details << QStringLiteral("ran for %1").arg(durationWords(process.value("uptime_ms", 0LL)));
+            details << tr("ran for %1").arg(durationWords(process.value("uptime_ms", 0LL)));
         }
         if (manifest->contains("dump")) {
-            details << QStringLiteral("crash dump included");
+            details << tr("crash dump included");
         }
         entries.push_back(CrashListEntry{id, crashTitle(report), details.join(QStringLiteral(" · "))});
     }
@@ -521,7 +545,7 @@ void Application::saveCrashReport(const QString &requested)
         }
     }
     if (!source) {
-        tell(Toast{ToastType::Info, {}, "That crash report is no longer on this PC.", kDefaultToastMs});
+        tell(Toast{ToastType::Info, {}, trUtf8("That crash report is no longer on this PC."), kDefaultToastMs});
         refreshCrashList();
         return;
     }
@@ -535,11 +559,11 @@ void Application::saveCrashReport(const QString &requested)
     std::error_code error;
     std::filesystem::copy_file(*source, *path, std::filesystem::copy_options::overwrite_existing, error);
     if (error) {
-        tell(Toast{ToastType::Error, {}, "The crash report could not be saved.", kDefaultToastMs});
+        tell(Toast{ToastType::Error, {}, trUtf8("The crash report could not be saved."), kDefaultToastMs});
         return;
     }
-    tell(Toast{ToastType::Success, {}, "Crash report saved. Send the file to the developer on GitHub or Discord.",
-               kDefaultToastMs});
+    tell(Toast{ToastType::Success, {},
+               trUtf8("Crash report saved. Send the file to the developer on GitHub or Discord."), kDefaultToastMs});
     openLocalFolder(path->parent_path());
 }
 
@@ -640,7 +664,7 @@ void Application::onLegacyDetected(std::optional<LegacyImportPlan> plan, bool ma
     m_legacyForQuickStart = false;
     if (!plan) {
         if (manual) {
-            notifyLegacy(true, Toast{ToastType::Warning, {}, "No previous version of Sky Auto Piano was found.",
+            notifyLegacy(true, Toast{ToastType::Warning, {}, trUtf8("No previous version of Sky Auto Piano was found."),
                                      kDefaultToastMs});
             pickLegacyFolder();
         }
@@ -649,7 +673,7 @@ void Application::onLegacyDetected(std::optional<LegacyImportPlan> plan, bool ma
     if (plan->rows.empty() && plan->extras.empty()) {
         if (manual) {
             notifyLegacy(true, Toast{ToastType::Info, {},
-                                     "All songs from the previous version are already in your library.",
+                                     trUtf8("All songs from the previous version are already in your library."),
                                      kDefaultToastMs});
         } else {
             m_uiState->setLegacyImportOffered();
@@ -665,19 +689,16 @@ void Application::onLegacyDetected(std::optional<LegacyImportPlan> plan, bool ma
     const auto songs = accepted.rows.size();
     const auto playlists = accepted.extras.playlists.size();
     m_mainWindow->confirm(
-        QStringLiteral("Found a previous version of Sky Auto Piano with %1 %2 and %3 %4. Import your songs, "
-                       "playlists, favorites and settings into this version?")
-            .arg(songs)
-            .arg(songs == 1 ? QStringLiteral("song") : QStringLiteral("songs"))
-            .arg(playlists)
-            .arg(playlists == 1 ? QStringLiteral("playlist") : QStringLiteral("playlists")),
+        tr("Found a previous version of Sky Auto Piano with %1 and %2. Import your songs, playlists, favorites and "
+           "settings into this version?")
+            .arg(songCount(songs), playlistCount(playlists)),
         [this, accepted] { importLegacy(accepted, false); });
 }
 
 void Application::pickLegacyFolder()
 {
     QWidget *parent = m_settings ? static_cast<QWidget *>(m_settings) : m_mainWindow.get();
-    const auto folder = chooseFolder(parent, QStringLiteral("Select the previous Sky Auto Piano folder"));
+    const auto folder = chooseFolder(parent, tr("Select the previous Sky Auto Piano folder"));
     if (!folder) {
         if (m_legacyForQuickStart && m_quickStart && m_quickStart->isOpen()) {
             m_legacyForQuickStart = false;
@@ -709,12 +730,11 @@ void Application::pickLegacyFolder()
                         self->m_legacyForQuickStart = false;
                         self->m_quickStart->setLegacyState(
                             QuickStart::LegacyState::NotFound, 0, 0,
-                            QStringLiteral("That folder does not contain songs from Sky Auto Piano. Try another "
-                                           "folder."));
+                            tr("That folder does not contain songs from Sky Auto Piano. Try another folder."));
                         return;
                     }
                     self->notifyLegacy(true, Toast{ToastType::Error, {},
-                                                   "That folder does not contain songs from Sky Auto Piano.",
+                                                   trUtf8("That folder does not contain songs from Sky Auto Piano."),
                                                    kDefaultToastMs});
                     return;
                 }
@@ -734,11 +754,15 @@ void Application::importLegacy(const LegacyImportPlan &plan, bool manual)
                                         return;
                                     }
                                     self->m_legacyBusy = false;
-                                    std::string text = "Imported " + self->applyLegacyExtras(plan, summary) +
-                                                       " from the previous version.";
+                                    QString message = tr("Imported %1 from the previous version.")
+                                                          .arg(toQString(self->applyLegacyExtras(plan, summary)));
                                     if (summary.failed > 0) {
-                                        text += " " + std::to_string(summary.failed) + " songs could not be copied.";
+                                        message += QLatin1Char(' ') + (summary.failed == 1
+                                                                           ? tr("1 song could not be copied.")
+                                                                           : tr("%1 songs could not be copied.")
+                                                                                 .arg(summary.failed));
                                     }
+                                    const std::string text = fromQString(message);
                                     self->notifyLegacy(manual, Toast{ToastType::Success, {}, text, kDefaultToastMs});
                                     if (self->m_quickStart &&
                                         self->m_quickStart->legacyState() == QuickStart::LegacyState::Importing) {
@@ -830,24 +854,17 @@ std::string Application::applyLegacyExtras(const LegacyImportPlan &plan, const L
         applyTheme(*extras.theme == "dark" ? AppTheme::Dark : AppTheme::Light);
     }
 
-    const auto count = [](std::size_t n, const char *one, const char *many) {
-        return std::to_string(n) + " " + (n == 1 ? one : many);
-    };
-    std::vector<std::string> parts = {count(static_cast<std::size_t>(summary.imported), "song", "songs")};
+    QStringList parts = {songCount(static_cast<std::size_t>(summary.imported))};
     if (playlists > 0) {
-        parts.push_back(count(static_cast<std::size_t>(playlists), "playlist", "playlists"));
+        parts << playlistCount(static_cast<std::size_t>(playlists));
     }
     if (favorites > 0) {
-        parts.push_back(count(static_cast<std::size_t>(favorites), "favorite", "favorites"));
+        parts << (favorites == 1 ? tr("1 favorite") : tr("%1 favorites").arg(favorites));
     }
     if (settings) {
-        parts.push_back("your settings");
+        parts << tr("your settings");
     }
-    std::string text = parts.front();
-    for (std::size_t i = 1; i < parts.size(); ++i) {
-        text += (i + 1 == parts.size() ? " and " : ", ") + parts[i];
-    }
-    return text;
+    return fromQString(joinList(parts));
 }
 
 void Application::toggleTheme()
@@ -884,7 +901,7 @@ void Application::openSettings()
         m_settings->activateWindow();
         return;
     }
-    m_toasts->show(ToastType::Warning, kSettingsWarning);
+    m_toasts->show(ToastType::Warning, trUtf8(kSettingsWarning));
     m_shortcuts->suspend();
     m_settings = new SettingsWindow(SettingsServices{*m_config, *m_updates, *m_themes}, m_mainWindow.get());
     connect(m_settings, &QObject::destroyed, this, [this] { m_shortcuts->resume(); });
@@ -897,8 +914,8 @@ void Application::openSettings()
         refreshCrashList();
         if (m_settings) {
             m_settings->showToast(Toast{ToastType::Success, {},
-                                        removed == 1 ? std::string("Deleted 1 crash report.")
-                                                     : "Deleted " + std::to_string(removed) + " crash reports.",
+                                        removed == 1 ? trUtf8("Deleted 1 crash report.")
+                                                     : fromQString(tr("Deleted %1 crash reports.").arg(removed)),
                                         kDefaultToastMs});
         }
     });
@@ -906,10 +923,14 @@ void Application::openSettings()
         std::error_code error;
         std::filesystem::create_directories(crashDirectory(), error);
         if (!openLocalFolder(crashDirectory())) {
-            tell(Toast{ToastType::Warning, {}, "The crash folder could not be opened.", kDefaultToastMs});
+            tell(Toast{ToastType::Warning, {}, trUtf8("The crash folder could not be opened."), kDefaultToastMs});
         }
     });
     refreshCrashList();
+    m_settings->setLanguage(toQString(m_uiState->language()));
+    connect(m_settings, &SettingsWindow::languageChosen, this,
+            [this](const QString &preference) { m_uiState->setLanguage(fromQString(preference)); });
+    connect(m_settings, &SettingsWindow::restartRequested, this, &Application::requestRelaunch);
     connect(m_settings, &SettingsWindow::quickStartRequested, this, [this] {
         m_mainWindow->bringToFront();
         showQuickStart();
@@ -939,8 +960,8 @@ void Application::start(bool afterCrash)
     }
     if (afterCrash) {
         m_toasts->show(ToastType::Error,
-                       "Sky Auto Piano closed unexpectedly last time. Save the crash report in Settings → Reports to send "
-                       "it to the developer.",
+                       trUtf8("Sky Auto Piano closed unexpectedly last time. Save the crash report in Settings → Reports to send "
+                       "it to the developer."),
                        kDefaultToastMs);
     }
     applyStartupLayout();

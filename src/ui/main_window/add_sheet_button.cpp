@@ -1,5 +1,6 @@
 #include "ui/main_window/add_sheet_button.hpp"
 
+#include "core/translator.hpp"
 #include "ui/theme_manager.hpp"
 #include "ui/widgets/icon_button.hpp"
 
@@ -11,8 +12,8 @@ IconButton *createAddSheetButton(QWidget *parent)
                                   IconButtonStyle{[] { return currentTheme().fontColor; },
                                                   [] { return currentTheme().hoverColor; }, {}, {}, 0, 0, kHoverFastMs},
                                   parent);
-    button->setToolTip(QStringLiteral("Add sheet"));
-    button->setAccessibleName(QStringLiteral("Add sheet"));
+    button->setToolTip(tr("Add sheet"));
+    button->setAccessibleName(tr("Add sheet"));
     return button;
 }
 

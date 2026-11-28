@@ -256,4 +256,16 @@ void UiStateService::setLegacyMigration(const std::string &status, const std::st
     save();
 }
 
+bool UiStateService::legacyRemoved() const
+{
+    const auto found = m_raw.find("legacyRemoved");
+    return found != m_raw.end() && found->is_boolean() && found->get<bool>();
+}
+
+void UiStateService::setLegacyRemoved()
+{
+    m_raw["legacyRemoved"] = true;
+    save();
+}
+
 }  // namespace sky

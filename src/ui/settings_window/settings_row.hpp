@@ -17,6 +17,7 @@ public:
                 QWidget *parent = nullptr);
 
     void setIconTile(std::function<QColor()> fill, std::function<QColor()> glyph);
+    void setDescription(const QString &description);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -28,6 +29,7 @@ private:
     std::function<QColor()> m_tileFill;
     std::function<QColor()> m_tileGlyph;
     QWidget *m_iconSpace;
+    QLabel *m_description;
     bool m_hovered = false;
 };
 

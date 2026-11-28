@@ -11,12 +11,16 @@
 
 #include "model/config.hpp"
 #include "services/library/legacy_import.hpp"
+#include "services/library/legacy_removal.hpp"
 #include "services/library/library_service.hpp"
 #include "services/notifications/toast_service.hpp"
+
+class QTimer;
 
 namespace sky {
 
 class ChangelogPanel;
+class ConfirmDialog;
 class IssueRecorder;
 class SkyWindowWatcher;
 class IssueReportWindow;
@@ -72,6 +76,13 @@ private:
     void onLegacyDetected(std::optional<LegacyImportPlan> plan, bool manual);
     void pickLegacyFolder();
     void importLegacy(const LegacyImportPlan &plan, bool manual);
+    void refreshLegacyCleanup();
+    void updateLegacyCleanupUi();
+    LegacyImportEvidence legacyRemovalEvidence(const LegacyInstallInfo &install) const;
+    void onLegacyRemovalClicked();
+    void onLegacyVerifyClicked();
+    void startLegacyRemoval();
+    void pollLegacyRemoval();
     void notifyLegacy(bool manual, const Toast &toast);
     void showQuickStart();
     void startIssueRecording();
@@ -131,6 +142,12 @@ private:
     QPointer<IssueReportWindow> m_reportWindow;
     std::optional<LegacyImportPlan> m_quickStartLegacy;
     bool m_legacyForQuickStart = false;
+    std::unique_ptr<LegacyRemovalService> m_removal;
+    std::optional<LegacyDetection> m_removalDetection;
+    std::optional<LegacyImportEvidence> m_removalEvidence;
+    QTimer *m_removalTimer = nullptr;
+    QPointer<ConfirmDialog> m_removalDialog;
+    bool m_removalVerifying = false;
 };
 
 }  // namespace sky

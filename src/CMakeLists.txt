@@ -50,6 +50,7 @@ add_library(sky_services STATIC
     services/library/chromium_local_storage.cpp
     services/library/favorites_service.cpp
     services/library/legacy_import.cpp
+    services/library/legacy_removal.cpp
     services/library/library_service.cpp
     services/library/playlist_service.cpp
     services/library/recent_service.cpp

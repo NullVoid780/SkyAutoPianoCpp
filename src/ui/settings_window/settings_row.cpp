@@ -36,14 +36,14 @@ SettingsRow::SettingsRow(const QString &iconId, const QString &title, const QStr
 
     auto *titleLabel = new QLabel(title, this);
     titleLabel->setObjectName(QStringLiteral("SettingsRowTitle"));
-    auto *descriptionLabel = new QLabel(description, this);
-    descriptionLabel->setObjectName(QStringLiteral("SettingsRowDescription"));
-    descriptionLabel->setWordWrap(true);
+    m_description = new QLabel(description, this);
+    m_description->setObjectName(QStringLiteral("SettingsRowDescription"));
+    m_description->setWordWrap(true);
 
     auto *copy = new QVBoxLayout();
     copy->setSpacing(kTitleGap);
     copy->addWidget(titleLabel);
-    copy->addWidget(descriptionLabel);
+    copy->addWidget(m_description);
 
     auto *row = new QHBoxLayout(this);
     row->setContentsMargins(kPadX, kPadY, kPadX, kPadY);
@@ -60,6 +60,11 @@ SettingsRow::SettingsRow(const QString &iconId, const QString &title, const QStr
         row->addWidget(control, 0, Qt::AlignVCenter);
     }
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this, [this] { update(); });
+}
+
+void SettingsRow::setDescription(const QString &description)
+{
+    m_description->setText(description);
 }
 
 void SettingsRow::setIconTile(std::function<QColor()> fill, std::function<QColor()> glyph)

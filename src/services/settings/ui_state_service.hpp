@@ -48,6 +48,12 @@ public:
     std::string legacyMigrationStatus() const;
     void setLegacyMigration(const std::string &status, const std::string &sourceFingerprint, OrderedJson result);
 
+    // Separate record that the legacy Electron app was removed through the
+    // Phase 2 flow. Stored apart from "legacyMigration" so the Phase 1
+    // import evidence is never erased by a removal.
+    bool legacyRemoved() const;
+    void setLegacyRemoved();
+
     bool editorAdvancedView() const;
     void setEditorAdvancedView(bool advanced);
 

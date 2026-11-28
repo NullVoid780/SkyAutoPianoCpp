@@ -149,7 +149,7 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
     row->addWidget(m_sidebar);
     row->addWidget(m_scroll, 1);
 
-    m_sidebar->addItem(QStringLiteral("sliders"), tr("General"));
+    m_generalNav = m_sidebar->addItem(QStringLiteral("sliders"), tr("General"));
     m_sidebar->addItem(QStringLiteral("keyboard"), tr("Keyboard"));
     m_sidebar->addItem(QStringLiteral("lightning"), tr("Shortcuts"));
     m_sidebar->addItem(QStringLiteral("palette"), tr("Themes"));
@@ -184,7 +184,6 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
     connect(m_general, &GeneralTab::importRequested, this, &SettingsWindow::importSettings);
     connect(m_general, &GeneralTab::importPreviousRequested, this, &SettingsWindow::importPreviousRequested);
     connect(m_general, &GeneralTab::legacyRemovalRequested, this, &SettingsWindow::legacyRemovalRequested);
-    connect(m_general, &GeneralTab::legacyVerifyRequested, this, &SettingsWindow::legacyVerifyRequested);
     connect(m_general, &GeneralTab::quickStartRequested, this, &SettingsWindow::quickStartRequested);
     connect(m_general, &GeneralTab::languageChosen, this, &SettingsWindow::languageChosen);
     connect(m_general, &GeneralTab::restartRequested, this, &SettingsWindow::restartRequested);
@@ -259,6 +258,9 @@ void SettingsWindow::showPage(int index)
     m_pageFade->setStartValue(0.0);
     m_pageFade->setEndValue(1.0);
     m_pageFade->start();
+    if (index == m_generalNav) {
+        emit legacyCleanupShown();
+    }
 }
 
 void SettingsWindow::loadForm(const Config &config)
@@ -329,10 +331,15 @@ void SettingsWindow::setLanguage(const QString &preference)
     m_general->setLanguage(preference);
 }
 
-void SettingsWindow::setLegacyCleanup(const QString &description, bool removeEnabled, bool verifyVisible,
-                                      bool busy)
+void SettingsWindow::setLegacyCleanup(const QString &title, const QString &description, bool removeEnabled,
+                                      bool busy, bool present)
 {
-    m_general->setLegacyCleanup(description, removeEnabled, verifyVisible, busy);
+    m_general->setLegacyCleanup(title, description, removeEnabled, busy, present);
+}
+
+bool SettingsWindow::isLegacyCleanupShown() const
+{
+    return isVisible() && m_sidebar->current() == m_generalNav;
 }
 
 void SettingsWindow::reloadForm()
@@ -545,6 +552,9 @@ void SettingsWindow::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
     setFocus(Qt::OtherFocusReason);
+    if (m_sidebar->current() == m_generalNav) {
+        emit legacyCleanupShown();
+    }
 }
 
 void SettingsWindow::closeEvent(QCloseEvent *event)

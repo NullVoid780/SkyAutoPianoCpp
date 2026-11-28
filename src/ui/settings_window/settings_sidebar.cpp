@@ -75,6 +75,13 @@ void SettingsSidebar::setCurrent(int index)
     emit currentChanged(index);
 }
 
+void SettingsSidebar::setItemVisible(int index, bool visible)
+{
+    if (index >= 0 && index < static_cast<int>(m_items.size())) {
+        m_items[static_cast<std::size_t>(index)]->setVisible(visible);
+    }
+}
+
 void SettingsSidebar::setBadge(int index, bool visible)
 {
     if (index >= 0 && index < static_cast<int>(m_items.size())) {

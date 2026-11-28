@@ -882,6 +882,7 @@ void Application::importLegacy(const LegacyImportPlan &plan, bool manual)
                                     if (self->m_settings) {
                                         self->m_settings->reloadForm();
                                     }
+                                    self->refreshLegacyCleanup();
                                 });
 }
 
@@ -1042,7 +1043,10 @@ void Application::openSettings()
     connect(m_settings, &SettingsWindow::themeImported, this, &Application::applyTheme);
     connect(m_settings, &SettingsWindow::importPreviousRequested, this, [this] { detectLegacyLibrary(true); });
     connect(m_settings, &SettingsWindow::legacyRemovalRequested, this, &Application::onLegacyRemovalClicked);
-    connect(m_settings, &SettingsWindow::legacyVerifyRequested, this, &Application::onLegacyVerifyClicked);
+    connect(m_settings, &SettingsWindow::legacyCleanupShown, this, [this] {
+        m_autoVerifyArmed = true;
+        maybeAutoVerify();
+    });
     connect(m_settings, &SettingsWindow::recordIssueRequested, this, &Application::startIssueRecording);
     connect(m_settings, &SettingsWindow::saveCrashReportRequested, this, &Application::saveCrashReport);
     connect(m_settings, &SettingsWindow::clearCrashReportsRequested, this, [this] {
@@ -1108,6 +1112,13 @@ void Application::showQuickStart()
 {
     if (!m_quickStart) {
         m_quickStart = new QuickStart(*m_themes, *m_config, m_mainWindow.get());
+        m_quickStart->setLanguage(toQString(m_uiState->language()));
+        connect(m_quickStart, &QuickStart::languageChosen, this, [this](const QString &preference) {
+            m_uiState->setLanguage(fromQString(preference));
+            if (m_settings) {
+                m_settings->setLanguage(preference);
+            }
+        });
         connect(m_quickStart, &QuickStart::finished, this, [this] { m_uiState->setQuickStartDone(); });
         connect(m_quickStart, &QuickStart::legacyImportRequested, this, [this] {
             if (m_quickStartLegacy) {
@@ -1124,6 +1135,11 @@ void Application::showQuickStart()
             m_quickStart->setLegacyState(QuickStart::LegacyState::Searching);
             pickLegacyFolder();
         });
+        connect(m_quickStart, &QuickStart::legacyRemovalRequested, this, &Application::onLegacyRemovalClicked);
+        connect(m_quickStart, &QuickStart::legacyCleanupShown, this, [this] {
+            m_autoVerifyArmed = true;
+            maybeAutoVerify();
+        });
     }
     if (!m_quickStart->isOpen()) {
         m_quickStart->start();
@@ -1131,6 +1147,7 @@ void Application::showQuickStart()
         m_legacyForQuickStart = true;
         detectLegacyLibrary(false);
     }
+    refreshLegacyCleanup();
 }
 
 LegacyImportEvidence Application::legacyRemovalEvidence(const LegacyInstallInfo &install) const
@@ -1167,12 +1184,37 @@ void Application::refreshLegacyCleanup()
     } else {
         m_removalEvidence.reset();
     }
+    m_autoVerifyArmed = true;
     updateLegacyCleanupUi();
+}
+
+QString Application::legacyOldVersion() const
+{
+    // Users know the old app by its own version number, not by the
+    // framework it was built with: use the detected install's version
+    // while it is still on the PC, and after a removal the version kept
+    // in the migration fingerprint ("<version>:<count>:<hash>").
+    if (m_removalDetection && m_removalDetection->install) {
+        return QString::fromStdString(m_removalDetection->install->legacy.version);
+    }
+    const std::string fingerprint = m_uiState->legacyMigration().value("sourceFingerprint", std::string());
+    const std::size_t colon = fingerprint.find(':');
+    if (colon != std::string::npos && colon > 0) {
+        return QString::fromStdString(fingerprint.substr(0, colon));
+    }
+    return QString();
+}
+
+QString Application::legacyCleanupTitle() const
+{
+    const QString version = legacyOldVersion();
+    return version.isEmpty() ? tr("Uninstall the old version")
+                             : tr("Uninstall version %1 (old version)").arg(version);
 }
 
 void Application::updateLegacyCleanupUi()
 {
-    if (!m_settings || !m_removalDetection) {
+    if (!m_removalDetection) {
         return;
     }
     const LegacyDetection &detection = *m_removalDetection;
@@ -1180,11 +1222,17 @@ void Application::updateLegacyCleanupUi()
     const bool busy = uninstalling || m_removalVerifying;
     QString description;
     bool removeEnabled = false;
-    bool verifyVisible = false;
+    const QString version = legacyOldVersion();
+    const QString alreadyRemoved = version.isEmpty() ? tr("The old version has already been removed.")
+                                                     : tr("Version %1 has already been removed.").arg(version);
     if (m_removalVerifying) {
         description = tr("Verifying that everything from the old version is complete in this library...");
+    } else if (detection.status == LegacyDetectionStatus::NotFound && m_uiState->legacyRemoved()) {
+        // The old version is gone because it was removed here; a plain
+        // "not found" would read as if it had never been installed.
+        description = alreadyRemoved;
     } else if (detection.status == LegacyDetectionStatus::NotFound) {
-        description = tr("No old Electron version was found on this PC.");
+        description = tr("No old version was found on this PC.");
     } else if (detection.status == LegacyDetectionStatus::Ambiguous) {
         description = tr("More than one old installation is registered, so automatic removal is off. You can "
                          "remove the old version in Windows Settings > Apps.");
@@ -1192,7 +1240,8 @@ void Application::updateLegacyCleanupUi()
         description = tr("The old version's uninstaller could not be validated, so automatic removal is off. "
                          "You can remove the old version in Windows Settings > Apps.");
     } else if (uninstalling) {
-        description = tr("Uninstalling the old Electron version...");
+        description = version.isEmpty() ? tr("Uninstalling the old version...")
+                                        : tr("Uninstalling version %1...").arg(version);
     } else if (m_removalEvidence) {
         const RemovalGate gate = m_removal->canOfferRemoval(*m_removalEvidence, detection);
         removeEnabled = gate.allowed;
@@ -1202,7 +1251,7 @@ void Application::updateLegacyCleanupUi()
         } else {
             switch (gate.blockers.front()) {
                 case RemovalBlocker::AlreadyRemoved:
-                    description = tr("The old Electron version has already been removed.");
+                    description = alreadyRemoved;
                     break;
                 case RemovalBlocker::ImportNotVerified:
                     description = tr("Removal unlocks after your data from the old version has been imported "
@@ -1222,22 +1271,55 @@ void Application::updateLegacyCleanupUi()
                     description = tr("The old and new versions share folders, so removal is off for safety.");
                     break;
                 case RemovalBlocker::LegacyRunning:
-                    description = tr("The old Electron version is still running. Close it, then try again.");
+                    description = version.isEmpty()
+                                      ? tr("The old version is still running. Close it, then try again.")
+                                      : tr("Version %1 is still running. Close it, then try again.").arg(version);
                     break;
                 default:
                     description = tr("The old version could not be validated for removal.");
                     break;
             }
-            verifyVisible =
-                m_removalEvidence->migrationStatus == "verified" &&
-                std::find(gate.blockers.begin(), gate.blockers.end(), RemovalBlocker::ReverificationRequired) !=
-                    gate.blockers.end();
         }
     }
-    m_settings->setLegacyCleanup(description, removeEnabled, verifyVisible, busy);
+    const bool present = detection.status != LegacyDetectionStatus::NotFound || m_removalEvidence.has_value() ||
+                         m_uiState->legacyRemoved() || m_uiState->legacyMigrationStatus() != "not_detected";
+    const QString title = legacyCleanupTitle();
+    if (m_settings) {
+        m_settings->setLegacyCleanup(title, description, removeEnabled, busy, present);
+    }
+    if (m_quickStart) {
+        m_quickStart->setLegacyCleanup(title, description, removeEnabled, busy, present);
+    }
+    maybeAutoVerify();
 }
 
-void Application::onLegacyVerifyClicked()
+void Application::maybeAutoVerify()
+{
+    // Verification of the imported data runs on its own when the cleanup
+    // page or step is on screen and the removal gate still needs it: users
+    // should not have to find a Verify button. It is armed when the cleanup
+    // state refreshes and whenever the cleanup surface becomes visible, and
+    // disarmed as soon as it fires, so a failed verification is retried on
+    // the next visit rather than in a loop.
+    if (!m_autoVerifyArmed || m_removalVerifying || m_legacyBusy || !m_removal || m_removal->removalInProgress() ||
+        !m_removalDetection || !m_removalDetection->install || !m_removalEvidence) {
+        return;
+    }
+    const bool shown = (m_settings && m_settings->isLegacyCleanupShown()) ||
+                       (m_quickStart && m_quickStart->isLegacyCleanupShown());
+    if (!shown || m_removalEvidence->migrationStatus != "verified") {
+        return;
+    }
+    const auto gate = m_removal->canOfferRemoval(*m_removalEvidence, *m_removalDetection);
+    if (std::find(gate.blockers.begin(), gate.blockers.end(), RemovalBlocker::ReverificationRequired) ==
+        gate.blockers.end()) {
+        return;
+    }
+    m_autoVerifyArmed = false;
+    startLegacyVerification();
+}
+
+void Application::startLegacyVerification()
 {
     if (!m_removalDetection || !m_removalDetection->install || m_removalVerifying || m_legacyBusy) {
         return;
@@ -1259,7 +1341,11 @@ void Application::onLegacyVerifyClicked()
             std::vector<std::pair<std::string, std::string>> expected;
             std::vector<std::string> referenced;
             bool complete = true;
-            for (const OrderedJson &row : plan.value().allRows) {
+            // Expect the importer's deduped rows, not the raw listSheet
+            // rows: a source-internal duplicate was counted alreadyPresent
+            // at import time and is satisfied by the surviving row, so its
+            // own payload file is never expected in this library.
+            for (const OrderedJson &row : dedupedLegacyRows(plan.value().allRows)) {
                 const auto found = existingPayloads.find(legacySongKey(row));
                 if (found == existingPayloads.end()) {
                     complete = false;
@@ -1310,11 +1396,21 @@ void Application::onLegacyRemovalClicked()
                    kDefaultToastMs});
         return;
     }
-    QWidget *window = m_settings ? static_cast<QWidget *>(m_settings) : static_cast<QWidget *>(m_mainWindow.get());
+    QWidget *window = m_quickStart && m_quickStart->isOpen()
+                          ? static_cast<QWidget *>(m_mainWindow.get())
+                          : (m_settings ? static_cast<QWidget *>(m_settings)
+                                        : static_cast<QWidget *>(m_mainWindow.get()));
+    if (m_removalDialog && m_removalDialog->parentWidget() != window) {
+        m_removalDialog->deleteLater();
+        m_removalDialog = nullptr;
+    }
     if (!m_removalDialog) {
+        const QString version = legacyOldVersion();
+        const QString dialogTitle = version.isEmpty() ? tr("Uninstall the old version?")
+                                                      : tr("Uninstall version %1 (old version)?").arg(version);
         m_removalDialog = new ConfirmDialog(
             window,
-            {QStringLiteral("trash3"), tr("Remove the old Electron version?"),
+            {QStringLiteral("trash3"), dialogTitle,
              tr("The old version's own uninstaller will open and remove it. Your songs and settings in this "
                 "version stay untouched - this library is independent and does not sync back. Leftover data "
                 "files of the old version are not deleted, but its .myp file association will go away."),
@@ -1359,8 +1455,11 @@ void Application::pollLegacyRemoval()
     m_removalTimer->stop();
     if (outcome->status == RemovalStatus::Completed) {
         m_uiState->setLegacyRemoved();
+        const QString version = legacyOldVersion();
         tell(Toast{ToastType::Success, {},
-                   trUtf8("The old Electron version was removed. Your library here is unchanged."),
+                   version.isEmpty()
+                       ? trUtf8("The old version was removed. Your library here is unchanged.")
+                       : tr("Version %1 was removed. Your library here is unchanged.").arg(version).toStdString(),
                    kDefaultToastMs});
     } else if (outcome->status == RemovalStatus::Incomplete) {
         tell(Toast{ToastType::Warning, {},

@@ -20,6 +20,7 @@ public:
     void addSeparator();
     void setCurrent(int index);
     void setBadge(int index, bool visible);
+    void setItemVisible(int index, bool visible);
     int current() const { return m_current; }
 
 signals:

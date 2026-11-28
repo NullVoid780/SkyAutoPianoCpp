@@ -52,13 +52,15 @@ public:
     int currentPage() const;
     void openPage(int index);
     void setCrashReports(const std::vector<CrashListEntry> &crashes);
-    void setLegacyCleanup(const QString &description, bool removeEnabled, bool verifyVisible, bool busy);
+    void setLegacyCleanup(const QString &title, const QString &description, bool removeEnabled, bool busy,
+                          bool present);
+    bool isLegacyCleanupShown() const;
 
 signals:
     void themeImported(sky::AppTheme theme);
     void importPreviousRequested();
     void legacyRemovalRequested();
-    void legacyVerifyRequested();
+    void legacyCleanupShown();
     void quickStartRequested();
     void languageChosen(const QString &preference);
     void restartRequested();
@@ -105,6 +107,7 @@ private:
     ReportsTab *m_reports;
     AboutTab *m_about;
     int m_updatesNav = -1;
+    int m_generalNav = -1;
     std::vector<QWidget *> m_pages;
     SaveButton *m_save;
     ElevationLayer *m_shadows;

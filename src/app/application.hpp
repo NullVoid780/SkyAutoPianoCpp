@@ -78,9 +78,12 @@ private:
     void importLegacy(const LegacyImportPlan &plan, bool manual);
     void refreshLegacyCleanup();
     void updateLegacyCleanupUi();
+    QString legacyOldVersion() const;
+    QString legacyCleanupTitle() const;
     LegacyImportEvidence legacyRemovalEvidence(const LegacyInstallInfo &install) const;
     void onLegacyRemovalClicked();
-    void onLegacyVerifyClicked();
+    void startLegacyVerification();
+    void maybeAutoVerify();
     void startLegacyRemoval();
     void pollLegacyRemoval();
     void notifyLegacy(bool manual, const Toast &toast);
@@ -148,6 +151,7 @@ private:
     QTimer *m_removalTimer = nullptr;
     QPointer<ConfirmDialog> m_removalDialog;
     bool m_removalVerifying = false;
+    bool m_autoVerifyArmed = false;
 };
 
 }  // namespace sky

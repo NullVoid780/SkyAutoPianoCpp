@@ -80,19 +80,12 @@ GeneralTab::GeneralTab(QWidget *parent)
                                         this);
     auto *importPrevious = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("download"), tr("Import"));
     auto *previous = new SettingsRow(QStringLiteral("music-note-list"), tr("Import Previous Songs"),
-                                     tr("Copy all songs from the Electron version of Sky Auto Piano into this library."),
+                                     tr("Copy all songs from the old version of Sky Auto Piano into this library."),
                                      importPrevious, this);
 
     m_legacyRemove = new ActionButton(ActionButton::Kind::Amber, QStringLiteral("trash3"), tr("Remove"));
-    m_legacyCleanup = new SettingsRow(QStringLiteral("eraser"), tr("Remove Old Electron Version"),
+    m_legacyCleanup = new SettingsRow(QStringLiteral("eraser"), tr("Uninstall the old version"),
                                       tr("Checking the old version..."), m_legacyRemove, this);
-    m_legacyVerify = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("shield-check"), tr("Verify"));
-    m_legacyVerifyRow = new SettingsRow(
-        QStringLiteral("shield-check"), tr("Restore and Verify Data"),
-        tr("Re-check that everything copied from the old version is complete in this library before "
-           "removing it."),
-        m_legacyVerify, this);
-    m_legacyVerifyRow->setVisible(false);
 
     auto *quickStartButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("arrow-clockwise"),
                                               tr("Run again"));
@@ -105,7 +98,7 @@ GeneralTab::GeneralTab(QWidget *parent)
     column->addWidget(header);
     column->addSpacing(kHeaderGap);
     for (SettingsRow *row :
-         {languageRow, autoSave, minimize, pause, mode, previous, m_legacyCleanup, m_legacyVerifyRow, quickStart}) {
+         {languageRow, autoSave, minimize, pause, mode, previous, m_legacyCleanup, quickStart}) {
         column->addWidget(row);
         if (row != quickStart) {
             column->addSpacing(kRowGap);
@@ -117,17 +110,18 @@ GeneralTab::GeneralTab(QWidget *parent)
     connect(exportButton, &QAbstractButton::clicked, this, &GeneralTab::exportRequested);
     connect(importPrevious, &QAbstractButton::clicked, this, &GeneralTab::importPreviousRequested);
     connect(m_legacyRemove, &QAbstractButton::clicked, this, &GeneralTab::legacyRemovalRequested);
-    connect(m_legacyVerify, &QAbstractButton::clicked, this, &GeneralTab::legacyVerifyRequested);
     connect(quickStartButton, &QAbstractButton::clicked, this, &GeneralTab::quickStartRequested);
     connect(m_language, &SelectBox::currentIndexChanged, this, &GeneralTab::onLanguageChanged);
 }
 
-void GeneralTab::setLegacyCleanup(const QString &description, bool removeEnabled, bool verifyVisible, bool busy)
+void GeneralTab::setLegacyCleanup(const QString &title, const QString &description, bool removeEnabled,
+                                  bool busy, bool present)
 {
+    m_legacyCleanup->setVisible(present);
+    m_legacyCleanup->setTitle(title);
     m_legacyCleanup->setDescription(description);
     m_legacyRemove->setEnabled(removeEnabled && !busy);
     m_legacyRemove->setBusy(busy, tr("Uninstalling..."));
-    m_legacyVerifyRow->setVisible(verifyVisible);
 }
 
 void GeneralTab::setLanguage(const QString &preference)

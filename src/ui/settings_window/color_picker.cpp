@@ -15,7 +15,7 @@
 
 #include "core/translator.hpp"
 #include "ui/render/paint_utils.hpp"
-#include "ui/settings_window/action_button.hpp"
+#include "ui/widgets/action_button.hpp"
 #include "ui/theme_catalog.hpp"
 #include "ui/theme_manager.hpp"
 

@@ -5,9 +5,8 @@
 #include <QVBoxLayout>
 
 #include "core/translator.hpp"
-#include "crash/pending_reports.hpp"
-#include "ui/settings_window/action_button.hpp"
-#include "ui/settings_window/settings_row.hpp"
+#include "ui/widgets/action_button.hpp"
+#include "ui/widgets/settings_row.hpp"
 #include "ui/settings_window/tab_header.hpp"
 #include "ui/theme_manager.hpp"
 
@@ -42,6 +41,7 @@ ReportsTab::ReportsTab(QWidget *parent)
       m_crashHost(new QWidget(this)),
       m_crashList(new QVBoxLayout(m_crashHost)),
       m_crashCount(nullptr),
+      m_retentionNote(nullptr),
       m_clearButton(nullptr)
 {
     auto *header = new TabHeader(QStringLiteral("bug"), [] { return currentTheme().hoverColor; },
@@ -87,9 +87,8 @@ ReportsTab::ReportsTab(QWidget *parent)
     column->addSpacing(kTitleGap);
     column->addWidget(m_crashHost);
     column->addSpacing(kTitleGap);
-    column->addWidget(sectionNote(tr("Crash reports older than %1 days are deleted by themselves.")
-                                      .arg(kCrashReportMaxAgeDays),
-                                  this));
+    m_retentionNote = sectionNote(QString(), this);
+    column->addWidget(m_retentionNote);
     column->addStretch();
 
     connect(recordButton, &QAbstractButton::clicked, this, &ReportsTab::recordIssueRequested);
@@ -98,8 +97,9 @@ ReportsTab::ReportsTab(QWidget *parent)
     setCrashes({});
 }
 
-void ReportsTab::setCrashes(const std::vector<CrashListEntry> &crashes)
+void ReportsTab::setCrashes(const std::vector<CrashListEntry> &crashes, int retentionDays)
 {
+    m_retentionNote->setText(tr("Crash reports older than %1 days are deleted by themselves.").arg(retentionDays));
     while (QLayoutItem *item = m_crashList->takeAt(0)) {
         if (QWidget *widget = item->widget()) {
             widget->hide();

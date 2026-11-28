@@ -1,4 +1,4 @@
-#include "ui/settings_window/action_button.hpp"
+#include "ui/widgets/action_button.hpp"
 
 #include <QFocusEvent>
 #include <QFontMetricsF>

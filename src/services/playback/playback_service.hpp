@@ -2,9 +2,8 @@
 
 #include <memory>
 
-#include <QObject>
-
 #include "model/config.hpp"
+#include "services/playback/playback_port.hpp"
 #include "services/playback/player.hpp"
 #include "skyinput/keyboard.hpp"
 #include "skyinput/sender.hpp"
@@ -16,26 +15,22 @@ class LitePlayer;
 class PlayerBase;
 class StrictPlayer;
 
-class PlaybackService final : public QObject {
+class PlaybackService final : public IPlaybackPort {
     Q_OBJECT
 
 public:
-    explicit PlaybackService(ConfigService &config, std::unique_ptr<skyinput::ISender> sender = nullptr,
+    explicit PlaybackService(ConfigService &config,
+                             std::unique_ptr<skyinput::ISender> sender = nullptr,
                              QObject *parent = nullptr);
     ~PlaybackService() override;
 
-    void play(const PlayRequest &request);
-    void stop();
+    void play(const PlayRequest &request) override;
+    void stop() override;
     void shutdown();
-    bool isPlaying() const;
+    bool isPlaying() const override;
     void setHeld(bool held);
     bool isHeld() const { return m_held; }
     PlaybackMode activeMode() const { return m_activeMode; }
-
-signals:
-    void started();
-    void progress(int second);
-    void stopped(bool manual);
 
 private:
     PlayerBase &playerFor(PlaybackMode mode);

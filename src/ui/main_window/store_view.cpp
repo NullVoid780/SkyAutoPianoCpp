@@ -13,7 +13,7 @@
 #include <cmath>
 
 #include "core/translator.hpp"
-#include "app/player_controller.hpp"
+#include "ui/controllers/player_controller.hpp"
 #include "core/string_utils.hpp"
 #include "services/library/library_service.hpp"
 #include "services/store/store_service.hpp"

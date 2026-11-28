@@ -7,7 +7,7 @@
 #include <QPointer>
 #include <QWidget>
 
-#include "services/notifications/toast_service.hpp"
+#include "model/toast.hpp"
 #include "ui/theme_catalog.hpp"
 
 class QBoxLayout;

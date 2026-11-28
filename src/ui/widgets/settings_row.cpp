@@ -1,4 +1,4 @@
-#include "ui/settings_window/settings_row.hpp"
+#include "ui/widgets/settings_row.hpp"
 
 #include <QAbstractButton>
 #include <QHBoxLayout>

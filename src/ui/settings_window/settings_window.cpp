@@ -15,8 +15,8 @@
 #include <algorithm>
 
 #include "core/translator.hpp"
-#include "app/paths.hpp"
-#include "app/version.hpp"
+#include "core/paths.hpp"
+#include "core/version.hpp"
 #include "core/string_utils.hpp"
 #include "platform/file_dialog.hpp"
 #include "platform/shell_open.hpp"
@@ -26,7 +26,7 @@
 #include "ui/core/easing.hpp"
 #include "ui/core/elevation_layer.hpp"
 #include "ui/core/smooth_scroll.hpp"
-#include "ui/main_window/changelog_panel.hpp"
+#include "ui/widgets/changelog_panel.hpp"
 #include "ui/settings_window/confirm_dialog.hpp"
 #include "ui/settings_window/general_tab.hpp"
 #include "ui/settings_window/keyboard_tab.hpp"
@@ -310,9 +310,9 @@ OrderedJson SettingsWindow::mergedJson(const Config &form) const
     return next;
 }
 
-void SettingsWindow::setCrashReports(const std::vector<CrashListEntry> &crashes)
+void SettingsWindow::setCrashReports(const std::vector<CrashListEntry> &crashes, int retentionDays)
 {
-    m_reports->setCrashes(crashes);
+    m_reports->setCrashes(crashes, retentionDays);
 }
 
 int SettingsWindow::currentPage() const

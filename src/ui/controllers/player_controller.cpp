@@ -1,4 +1,4 @@
-#include "app/player_controller.hpp"
+#include "ui/controllers/player_controller.hpp"
 
 #include <QTimer>
 
@@ -7,24 +7,19 @@
 #include <set>
 
 #include "core/translator.hpp"
-#include "services/settings/config_service.hpp"
 #include "services/library/library_service.hpp"
-#include "services/playback/playback_service.hpp"
 #include "services/library/recent_service.hpp"
 #include "services/notifications/toast_service.hpp"
+#include "services/playback/playback_port.hpp"
+#include "services/settings/config_service.hpp"
 
 namespace sky {
 
-PlayerController::PlayerController(LibraryService &library, PlaybackService &playback, RecentService &recent,
-                                   ConfigService &config, ToastService &toasts, QObject *parent)
-    : QObject(parent),
-      m_library(library),
-      m_playback(playback),
-      m_recent(recent),
-      m_config(config),
-      m_toasts(toasts),
-      m_loopTimer(new QTimer(this))
-{
+PlayerController::PlayerController(LibraryService &library, IPlaybackPort &playback,
+                                   RecentService &recent, ConfigService &config,
+                                   ToastService &toasts, QObject *parent)
+    : QObject(parent), m_library(library), m_playback(playback), m_recent(recent), m_config(config),
+      m_toasts(toasts), m_loopTimer(new QTimer(this)) {
     qRegisterMetaType<sky::LoopMode>();
     m_loopTimer->setSingleShot(true);
     connect(m_loopTimer, &QTimer::timeout, this, [this] {
@@ -32,29 +27,27 @@ PlayerController::PlayerController(LibraryService &library, PlaybackService &pla
             togglePlay();
         }
     });
-    connect(&m_playback, &PlaybackService::stopped, this, &PlayerController::onStopped);
-    connect(&m_playback, &PlaybackService::progress, this, &PlayerController::onProgress);
+    connect(&m_playback, &IPlaybackPort::stopped, this, &PlayerController::onStopped);
+    connect(&m_playback, &IPlaybackPort::progress, this, &PlayerController::onProgress);
     connect(&m_library, &LibraryService::changed, this, &PlayerController::onLibraryChanged);
     connect(&m_library, &LibraryService::payloadChanged, this, [this](int index) {
-        if (m_target.kind == PlaybackTarget::Kind::Local && m_target.index == index && !isPlaying()) {
+        if (m_target.kind == PlaybackTarget::Kind::Local && m_target.index == index &&
+            !isPlaying()) {
             selectLocal(index, false);
         }
     });
 }
 
-void PlayerController::setVisibleIndicesProvider(VisibleIndices provider)
-{
+void PlayerController::setVisibleIndicesProvider(VisibleIndices provider) {
     m_visible = std::move(provider);
 }
 
-double PlayerController::loopDelaySeconds() const
-{
+double PlayerController::loopDelaySeconds() const {
     const double seconds = ConfigService::safeDelayNextMs(m_config.panel()) / 1000.0;
     return seconds == 0.0 ? 0.5 : seconds;
 }
 
-void PlayerController::setPlaying(bool playing)
-{
+void PlayerController::setPlaying(bool playing) {
     if (m_playing == playing) {
         return;
     }
@@ -62,22 +55,19 @@ void PlayerController::setPlaying(bool playing)
     emit playingChanged(playing);
 }
 
-void PlayerController::setPosition(int seconds)
-{
+void PlayerController::setPosition(int seconds) {
     m_position = std::max(0, seconds);
     emit positionChanged(m_position);
 }
 
-void PlayerController::applyTarget(PlaybackTarget target)
-{
+void PlayerController::applyTarget(PlaybackTarget target) {
     target.totalSeconds = static_cast<int>(std::trunc(target.keyMap.lastTime() / 1000.0));
     m_target = std::move(target);
     setPosition(0);
     emit targetChanged();
 }
 
-void PlayerController::selectLocal(int index, bool trackRecentPlay, std::function<void()> then)
-{
+void PlayerController::selectLocal(int index, bool trackRecentPlay, std::function<void()> then) {
     const SheetEntry *entry = m_library.entry(index);
     if (!entry) {
         return;
@@ -118,8 +108,8 @@ void PlayerController::selectLocal(int index, bool trackRecentPlay, std::functio
     });
 }
 
-void PlayerController::setRemoteTarget(const std::string &name, KeyMap keyMap, std::vector<PlaybackNote> notes)
-{
+void PlayerController::setRemoteTarget(const std::string &name, KeyMap keyMap,
+                                       std::vector<PlaybackNote> notes) {
     ++m_selectionToken;
     PlaybackTarget target;
     target.kind = PlaybackTarget::Kind::Remote;
@@ -130,16 +120,14 @@ void PlayerController::setRemoteTarget(const std::string &name, KeyMap keyMap, s
     applyTarget(std::move(target));
 }
 
-void PlayerController::clearTarget()
-{
+void PlayerController::clearTarget() {
     ++m_selectionToken;
     m_target = PlaybackTarget{};
     setPosition(0);
     emit targetChanged();
 }
 
-void PlayerController::togglePlay()
-{
+void PlayerController::togglePlay() {
     if (m_target.kind == PlaybackTarget::Kind::None) {
         return;
     }
@@ -162,8 +150,7 @@ void PlayerController::togglePlay()
     }
 }
 
-void PlayerController::onStopped(bool manual)
-{
+void PlayerController::onStopped(bool manual) {
     m_loopTimer->stop();
     setPlaying(false);
     if (manual || m_manualStop) {
@@ -180,13 +167,11 @@ void PlayerController::onStopped(bool manual)
     }
 }
 
-void PlayerController::onProgress(int second)
-{
+void PlayerController::onProgress(int second) {
     setPosition(second);
 }
 
-int PlayerController::neighbour(int direction) const
-{
+int PlayerController::neighbour(int direction) const {
     const int size = m_library.size();
     if (size == 0 || !m_visible) {
         return -1;
@@ -207,8 +192,7 @@ int PlayerController::neighbour(int direction) const
     return -1;
 }
 
-void PlayerController::previous()
-{
+void PlayerController::previous() {
     if (m_target.kind != PlaybackTarget::Kind::Local) {
         return;
     }
@@ -222,12 +206,12 @@ void PlayerController::previous()
         }
         togglePlay();
         setPosition(0);
-        QTimer::singleShot(static_cast<int>(loopDelaySeconds() * 1000), this, &PlayerController::togglePlay);
+        QTimer::singleShot(static_cast<int>(loopDelaySeconds() * 1000), this,
+                           &PlayerController::togglePlay);
     });
 }
 
-void PlayerController::next()
-{
+void PlayerController::next() {
     if (m_target.kind != PlaybackTarget::Kind::Local) {
         return;
     }
@@ -245,19 +229,18 @@ void PlayerController::next()
     });
 }
 
-void PlayerController::seek(int seconds)
-{
+void PlayerController::seek(int seconds) {
     setPosition(std::clamp(seconds, 0, m_target.totalSeconds));
 }
 
-void PlayerController::cycleLoopMode()
-{
-    m_loopMode = m_loopMode == LoopMode::Off ? LoopMode::All : m_loopMode == LoopMode::All ? LoopMode::One : LoopMode::Off;
+void PlayerController::cycleLoopMode() {
+    m_loopMode = m_loopMode == LoopMode::Off   ? LoopMode::All
+                 : m_loopMode == LoopMode::All ? LoopMode::One
+                                               : LoopMode::Off;
     emit loopModeChanged(m_loopMode);
 }
 
-void PlayerController::onLibraryChanged()
-{
+void PlayerController::onLibraryChanged() {
     if (m_target.kind != PlaybackTarget::Kind::Local) {
         return;
     }

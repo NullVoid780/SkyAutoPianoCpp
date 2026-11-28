@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "services/notifications/toast_service.hpp"
+#include "model/toast.hpp"
 #include "ui/core/overlay.hpp"
 
 class QLabel;

@@ -15,7 +15,7 @@
 #include <algorithm>
 
 #include "core/translator.hpp"
-#include "app/theme_controller.hpp"
+#include "ui/controllers/theme_controller.hpp"
 #include "core/json.hpp"
 #include "core/string_utils.hpp"
 #include "services/settings/config_service.hpp"
@@ -23,8 +23,8 @@
 #include "ui/render/font_loader.hpp"
 #include "ui/render/icon_cache.hpp"
 #include "ui/render/paint_utils.hpp"
-#include "ui/settings_window/action_button.hpp"
-#include "ui/settings_window/theme_preview.hpp"
+#include "ui/widgets/action_button.hpp"
+#include "ui/widgets/theme_preview.hpp"
 #include "ui/theme_catalog.hpp"
 #include "ui/theme_manager.hpp"
 #include "ui/widgets/select_box.hpp"

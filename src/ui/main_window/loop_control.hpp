@@ -2,7 +2,7 @@
 
 #include <QWidget>
 
-#include "app/player_controller.hpp"
+#include "model/loop_mode.hpp"
 
 class QLabel;
 class QSlider;

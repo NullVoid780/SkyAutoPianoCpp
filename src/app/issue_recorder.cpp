@@ -26,9 +26,9 @@
 #include <QWidget>
 #include <QWindow>
 
-#include "app/paths.hpp"
-#include "app/theme_controller.hpp"
-#include "app/version.hpp"
+#include "core/paths.hpp"
+#include "ui/controllers/theme_controller.hpp"
+#include "core/version.hpp"
 #include "core/string_utils.hpp"
 #include "skyinput/skyinput.hpp"
 #include "services/library/library_service.hpp"

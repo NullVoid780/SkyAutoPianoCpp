@@ -4,7 +4,7 @@
 #include <QSet>
 
 #include "ui/theme_catalog.hpp"
-#include "ui/settings_window/theme_preview.hpp"
+#include "ui/widgets/theme_preview.hpp"
 #include "ui/theme_manager.hpp"
 
 using namespace sky;

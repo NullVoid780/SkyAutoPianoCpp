@@ -3,7 +3,7 @@
 #include <QElapsedTimer>
 #include <QWidget>
 
-#include "services/notifications/toast_service.hpp"
+#include "model/toast.hpp"
 #include "ui/render/backdrop_blur.hpp"
 
 class QTimer;

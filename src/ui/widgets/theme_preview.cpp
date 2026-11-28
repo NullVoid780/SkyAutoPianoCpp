@@ -1,4 +1,4 @@
-#include "ui/settings_window/theme_preview.hpp"
+#include "ui/widgets/theme_preview.hpp"
 
 #include <QFontMetricsF>
 #include <QImage>

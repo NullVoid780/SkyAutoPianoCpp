@@ -7,9 +7,9 @@
 #include <thread>
 
 #include "app/application.hpp"
-#include "app/paths.hpp"
+#include "core/paths.hpp"
 #include "app/single_instance.hpp"
-#include "app/version.hpp"
+#include "core/version.hpp"
 #include "core/logger.hpp"
 #include "core/translator.hpp"
 #include "crash/crash_handler.hpp"

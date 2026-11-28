@@ -9,8 +9,8 @@
 
 #include "core/translator.hpp"
 #include "platform/window_attributes.hpp"
-#include "ui/settings_window/action_button.hpp"
-#include "ui/settings_window/settings_row.hpp"
+#include "ui/widgets/action_button.hpp"
+#include "ui/widgets/settings_row.hpp"
 #include "ui/theme_manager.hpp"
 #include "ui/widgets/toggle_switch.hpp"
 

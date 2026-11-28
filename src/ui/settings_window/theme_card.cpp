@@ -9,7 +9,7 @@
 #include "ui/render/font_loader.hpp"
 #include "ui/render/icon_cache.hpp"
 #include "ui/render/paint_utils.hpp"
-#include "ui/settings_window/theme_preview.hpp"
+#include "ui/widgets/theme_preview.hpp"
 #include "ui/theme_manager.hpp"
 #include "ui/widgets/icon_button.hpp"
 

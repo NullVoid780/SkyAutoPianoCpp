@@ -2,6 +2,7 @@ add_library(sky_core STATIC
     core/base64.cpp
     core/file_system.cpp
     core/logger.cpp
+    core/paths.cpp
     core/precise_sleep.cpp
     core/random.cpp
     core/string_utils.cpp
@@ -9,7 +10,7 @@ add_library(sky_core STATIC
     core/time_utils.cpp
     core/translator.cpp
 )
-target_include_directories(sky_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(sky_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/generated)
 target_link_libraries(sky_core
     PUBLIC Qt6::Core nlohmann_json::nlohmann_json
     PRIVATE winmm
@@ -42,11 +43,49 @@ add_library(sky_net STATIC
 )
 target_link_libraries(sky_net PUBLIC sky_core Qt6::Network PRIVATE miniz::miniz)
 
-add_library(sky_services STATIC
+# Service-domain DAG: each domain declares only its actual dependencies.
+add_library(sky_notifications STATIC
+    services/notifications/toast_service.cpp
+)
+target_link_libraries(sky_notifications PUBLIC sky_model sky_core)
+
+add_library(sky_report STATIC
+    services/report/report_writer.cpp
+)
+target_link_libraries(sky_report PUBLIC sky_core PRIVATE miniz::miniz)
+
+find_path(DRLIBS_INCLUDE_DIRS "dr_mp3.h" REQUIRED)
+add_library(sky_audio STATIC
     services/audio/note_synth.cpp
     services/audio/sample_bank.cpp
     services/audio/sheet_audio.cpp
     services/audio/wave_out.cpp
+)
+target_include_directories(sky_audio SYSTEM PRIVATE ${DRLIBS_INCLUDE_DIRS})
+target_link_libraries(sky_audio PUBLIC sky_core PRIVATE winmm)
+
+add_library(sky_settings STATIC
+    services/settings/config_service.cpp
+    services/settings/shortcut_parser.cpp
+    services/settings/shortcut_service.cpp
+    services/settings/theme_library_service.cpp
+    services/settings/ui_state_service.cpp
+)
+target_link_libraries(sky_settings PUBLIC sky_model sky_core skyinput)
+
+add_library(sky_playback STATIC
+    services/playback/lite_player.cpp
+    services/playback/playback_port.cpp
+    services/playback/playback_service.cpp
+    services/playback/player_base.cpp
+    services/playback/release_scheduler.cpp
+    services/playback/song_clock.cpp
+    services/playback/strict_player.cpp
+    services/playback/timeline_builder.cpp
+)
+target_link_libraries(sky_playback PUBLIC sky_settings sky_model sky_core skyinput)
+
+add_library(sky_library STATIC
     services/library/chromium_local_storage.cpp
     services/library/favorites_service.cpp
     services/library/legacy_import.cpp
@@ -54,31 +93,36 @@ add_library(sky_services STATIC
     services/library/library_service.cpp
     services/library/playlist_service.cpp
     services/library/recent_service.cpp
-    services/notifications/toast_service.cpp
-    services/playback/lite_player.cpp
-    services/playback/playback_service.cpp
-    services/playback/player_base.cpp
-    services/playback/release_scheduler.cpp
-    services/playback/song_clock.cpp
-    services/playback/strict_player.cpp
-    services/playback/timeline_builder.cpp
-    services/settings/config_service.cpp
-    services/settings/shortcut_parser.cpp
-    services/settings/shortcut_service.cpp
-    services/settings/theme_library_service.cpp
-    services/report/report_writer.cpp
-    services/settings/ui_state_service.cpp
+    services/library/storage_ops.cpp
+)
+target_link_libraries(sky_library PUBLIC sky_codec sky_settings sky_notifications sky_model sky_core)
+
+add_library(sky_store STATIC
     services/store/store_mapping.cpp
     services/store/store_service.cpp
-    services/update/release_notes.cpp
+)
+target_link_libraries(sky_store PUBLIC sky_codec sky_net sky_model sky_core)
+
+add_library(sky_update STATIC
     services/update/github_release.cpp
+    services/update/release_notes.cpp
     services/update/update_service.cpp
     services/update/version.cpp
 )
-target_link_libraries(sky_services PUBLIC sky_codec sky_net sky_model sky_core skyinput PRIVATE miniz::miniz winmm)
-find_path(DRLIBS_INCLUDE_DIRS "dr_mp3.h" REQUIRED)
-target_include_directories(sky_services SYSTEM PRIVATE ${DRLIBS_INCLUDE_DIRS})
-target_compile_definitions(sky_services PRIVATE SKY_UPDATE_REPOSITORY="${SKY_UPDATE_REPOSITORY}")
+target_link_libraries(sky_update PUBLIC sky_net sky_core)
+target_compile_definitions(sky_update PRIVATE SKY_UPDATE_REPOSITORY="${SKY_UPDATE_REPOSITORY}")
+
+add_library(sky_services INTERFACE)
+target_link_libraries(sky_services INTERFACE
+    sky_audio
+    sky_library
+    sky_notifications
+    sky_playback
+    sky_report
+    sky_settings
+    sky_store
+    sky_update
+)
 
 add_library(sky_crash STATIC
     crash/breadcrumbs.cpp
@@ -102,42 +146,128 @@ add_executable(crashreport WIN32 crash/reporter_main.cpp)
 set_target_properties(crashreport PROPERTIES OUTPUT_NAME CrashReport)
 target_link_libraries(crashreport PRIVATE sky_crash)
 
-configure_file(app/version.hpp.in ${CMAKE_CURRENT_BINARY_DIR}/generated/app/version.hpp @ONLY)
+configure_file(core/version.hpp.in ${CMAKE_CURRENT_BINARY_DIR}/generated/core/version.hpp @ONLY)
 
-add_library(sky_ui STATIC
-    app/paths.cpp
-    app/player_controller.cpp
-    app/update_controller.cpp
-    app/single_instance.cpp
+# Platform and shared UI foundation (no dependency on services, controllers, or feature windows).
+add_library(sky_platform STATIC
     platform/file_dialog.cpp
     platform/shell_open.cpp
     platform/tray_notification.cpp
     platform/window_attributes.cpp
+)
+target_link_libraries(sky_platform PUBLIC sky_core Qt6::Widgets PRIVATE dwmapi)
+
+add_library(sky_ui_base STATIC
     ui/core/easing.cpp
     ui/core/elevation_layer.cpp
     ui/core/hover_tracker.cpp
     ui/core/overlay.cpp
     ui/core/smooth_scroll.cpp
+    ui/render/backdrop_blur.cpp
+    ui/render/box_blur.cpp
+    ui/render/font_loader.cpp
+    ui/render/frame_diff.cpp
+    ui/render/icon_cache.cpp
+    ui/render/paint_utils.cpp
+    ui/render/shadow_painter.cpp
+    ui/theme.cpp
+    ui/theme_catalog.cpp
+    ui/theme_manager.cpp
+    ui/widgets/action_button.cpp
+    ui/widgets/badge.cpp
+    ui/widgets/card_frame.cpp
+    ui/widgets/changelog_panel.cpp
+    ui/widgets/confirm_popup.cpp
+    ui/widgets/flow_layout.cpp
+    ui/widgets/icon_button.cpp
+    ui/widgets/inline_switch.cpp
+    ui/widgets/markdown_view.cpp
+    ui/widgets/progress_bar.cpp
+    ui/widgets/search_field.cpp
+    ui/widgets/seek_slider.cpp
+    ui/widgets/select_box.cpp
+    ui/widgets/settings_row.cpp
+    ui/widgets/state_card.cpp
+    ui/widgets/step_dots.cpp
+    ui/widgets/theme_preview.cpp
+    ui/widgets/toast_host.cpp
+    ui/widgets/toast_item.cpp
+    ui/widgets/toggle_switch.cpp
+    ui/widgets/transport_button.cpp
+)
+target_link_libraries(sky_ui_base
+    PUBLIC sky_platform sky_model sky_core Qt6::Gui Qt6::Widgets Qt6::Svg
+    PRIVATE dwmapi
+)
+
+# Presentation controllers sit above shared UI foundation + services and below feature windows.
+add_library(sky_controllers STATIC
+    ui/controllers/player_controller.cpp
+    ui/controllers/theme_controller.cpp
+)
+target_link_libraries(sky_controllers
+    PUBLIC sky_ui_base sky_playback sky_library sky_settings sky_notifications sky_model sky_core
+)
+
+# Independent feature window libraries: no window-to-window dependencies.
+add_library(sky_ui_main STATIC
     ui/main_window/add_sheet_button.cpp
     ui/main_window/bulk_toolbar.cpp
+    ui/main_window/library_model.cpp
+    ui/main_window/library_view.cpp
+    ui/main_window/loop_control.cpp
+    ui/main_window/main_window.cpp
     ui/main_window/nav_drawer.cpp
     ui/main_window/nav_tab.cpp
     ui/main_window/nav_toggle.cpp
+    ui/main_window/player_footer.cpp
     ui/main_window/playlist_card_delegate.cpp
     ui/main_window/playlist_detail_bar.cpp
     ui/main_window/playlist_picker.cpp
-    ui/main_window/quick_start.cpp
     ui/main_window/playlists_view.cpp
+    ui/main_window/quick_start.cpp
+    ui/main_window/scroll_top_button.cpp
+    ui/main_window/sheet_actions_menu.cpp
+    ui/main_window/sheet_card_delegate.cpp
+    ui/main_window/sky_status_chip.cpp
+    ui/main_window/speed_control.cpp
     ui/main_window/store_card_delegate.cpp
     ui/main_window/store_pagination.cpp
     ui/main_window/store_view.cpp
-    ui/widgets/confirm_popup.cpp
-    ui/widgets/card_frame.cpp
-    ui/widgets/markdown_view.cpp
-    ui/widgets/progress_bar.cpp
-    ui/main_window/changelog_panel.cpp
+    ui/main_window/theme_toggle.cpp
+)
+target_link_libraries(sky_ui_main PUBLIC sky_controllers sky_ui_base sky_library sky_settings sky_store)
+
+add_library(sky_ui_settings STATIC
+    ui/settings_window/about_tab.cpp
+    ui/settings_window/app_info_card.cpp
+    ui/settings_window/color_picker.cpp
+    ui/settings_window/confirm_dialog.cpp
+    ui/settings_window/general_tab.cpp
+    ui/settings_window/key_cap.cpp
+    ui/settings_window/key_capture.cpp
+    ui/settings_window/keyboard_tab.cpp
+    ui/settings_window/reports_tab.cpp
+    ui/settings_window/save_button.cpp
+    ui/settings_window/setting_card.cpp
+    ui/settings_window/settings_panel.cpp
+    ui/settings_window/settings_sidebar.cpp
+    ui/settings_window/settings_window.cpp
+    ui/settings_window/shortcut_edit.cpp
+    ui/settings_window/shortcut_row.cpp
+    ui/settings_window/shortcuts_tab.cpp
+    ui/settings_window/sidebar_item.cpp
+    ui/settings_window/tab_header.cpp
+    ui/settings_window/theme_builder.cpp
+    ui/settings_window/theme_card.cpp
+    ui/settings_window/themes_tab.cpp
     ui/settings_window/update_overview_card.cpp
     ui/settings_window/update_prompt.cpp
+    ui/settings_window/updates_tab.cpp
+)
+target_link_libraries(sky_ui_settings PUBLIC sky_controllers sky_ui_base sky_settings sky_update)
+
+add_library(sky_ui_editor STATIC
     ui/editor_window/editable_field.cpp
     ui/editor_window/editor_document.cpp
     ui/editor_window/editor_setup.cpp
@@ -148,74 +278,27 @@ add_library(sky_ui STATIC
     ui/editor_window/step_grid_view.cpp
     ui/editor_window/timeline_view.cpp
     ui/editor_window/tool_button.cpp
-    ui/widgets/flow_layout.cpp
-    ui/widgets/step_dots.cpp
-    ui/widgets/toggle_switch.cpp
-    ui/settings_window/about_tab.cpp
-    ui/settings_window/action_button.cpp
-    ui/settings_window/app_info_card.cpp
-    ui/settings_window/confirm_dialog.cpp
-    ui/settings_window/general_tab.cpp
-    ui/settings_window/key_cap.cpp
-    ui/settings_window/key_capture.cpp
-    ui/settings_window/keyboard_tab.cpp
-    ui/settings_window/save_button.cpp
-    ui/settings_window/setting_card.cpp
-    ui/settings_window/settings_panel.cpp
-    ui/settings_window/settings_row.cpp
-    ui/settings_window/settings_sidebar.cpp
-    ui/settings_window/reports_tab.cpp
-    ui/settings_window/settings_window.cpp
-    ui/settings_window/shortcut_edit.cpp
-    ui/settings_window/shortcut_row.cpp
-    ui/settings_window/shortcuts_tab.cpp
-    ui/settings_window/sidebar_item.cpp
-    ui/settings_window/tab_header.cpp
-    ui/settings_window/updates_tab.cpp
-    ui/settings_window/color_picker.cpp
-    ui/settings_window/theme_builder.cpp
-    ui/settings_window/theme_card.cpp
-    ui/settings_window/theme_preview.cpp
-    ui/settings_window/themes_tab.cpp
-    app/theme_controller.cpp
-    app/issue_recorder.cpp
-    app/sky_window_watcher.cpp
+)
+target_link_libraries(sky_ui_editor PUBLIC sky_ui_base sky_codec sky_audio sky_library sky_settings)
+
+add_library(sky_ui_issue STATIC
     ui/issue/issue_report_window.cpp
     ui/issue/recording_bar.cpp
-    ui/theme_catalog.cpp
-    ui/main_window/library_model.cpp
-    ui/main_window/library_view.cpp
-    ui/main_window/loop_control.cpp
-    ui/main_window/main_window.cpp
-    ui/main_window/player_footer.cpp
-    ui/main_window/sky_status_chip.cpp
-    ui/main_window/scroll_top_button.cpp
-    ui/main_window/sheet_actions_menu.cpp
-    ui/main_window/sheet_card_delegate.cpp
-    ui/main_window/speed_control.cpp
-    ui/main_window/theme_toggle.cpp
-    ui/render/backdrop_blur.cpp
-    ui/render/box_blur.cpp
-    ui/render/font_loader.cpp
-    ui/render/frame_diff.cpp
-    ui/render/icon_cache.cpp
-    ui/render/paint_utils.cpp
-    ui/render/shadow_painter.cpp
-    ui/theme.cpp
-    ui/theme_manager.cpp
-    ui/widgets/badge.cpp
-    ui/widgets/icon_button.cpp
-    ui/widgets/inline_switch.cpp
-    ui/widgets/search_field.cpp
-    ui/widgets/seek_slider.cpp
-    ui/widgets/select_box.cpp
-    ui/widgets/state_card.cpp
-    ui/widgets/toast_host.cpp
-    ui/widgets/toast_item.cpp
-    ui/widgets/transport_button.cpp
 )
-target_include_directories(sky_ui PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/generated)
-target_link_libraries(sky_ui PUBLIC sky_services Qt6::Gui Qt6::Widgets Qt6::Svg Qt6::Network PRIVATE dwmapi)
+target_link_libraries(sky_ui_issue PUBLIC sky_ui_base)
+
+# Top-level app shell above feature windows, controllers, and services.
+add_library(sky_app STATIC
+    app/issue_recorder.cpp
+    app/legacy_migration_coordinator.cpp
+    app/single_instance.cpp
+    app/sky_window_watcher.cpp
+    app/update_controller.cpp
+)
+target_link_libraries(sky_app
+    PUBLIC sky_ui_main sky_ui_settings sky_ui_editor sky_ui_issue sky_controllers sky_ui_base
+           sky_services sky_crash skyinput
+)
 
 add_executable(skyautopiano WIN32
     main.cpp
@@ -223,7 +306,7 @@ add_executable(skyautopiano WIN32
     ui/resources.qrc
 )
 set_target_properties(skyautopiano PROPERTIES OUTPUT_NAME SkyAutoPiano)
-target_link_libraries(skyautopiano PRIVATE sky_ui sky_crash)
+target_link_libraries(skyautopiano PRIVATE sky_app sky_crash)
 add_dependencies(skyautopiano crashreport)
 
 set(SKY_ICON_PATH ${CMAKE_SOURCE_DIR}/assets/icon/Icon9.ico)

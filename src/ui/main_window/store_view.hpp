@@ -9,7 +9,7 @@
 
 #include "model/store_item.hpp"
 #include "services/store/store_mapping.hpp"
-#include "services/notifications/toast_service.hpp"
+#include "model/toast.hpp"
 
 class QListView;
 class QPushButton;

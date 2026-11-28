@@ -6,7 +6,7 @@
 
 #include <QObject>
 
-#include "services/notifications/toast_service.hpp"
+#include "model/toast.hpp"
 
 class QWidget;
 

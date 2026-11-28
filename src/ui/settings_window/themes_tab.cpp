@@ -9,11 +9,11 @@
 #include <vector>
 
 #include "core/translator.hpp"
-#include "app/theme_controller.hpp"
+#include "ui/controllers/theme_controller.hpp"
 #include "core/string_utils.hpp"
 #include "platform/file_dialog.hpp"
-#include "ui/settings_window/action_button.hpp"
-#include "ui/settings_window/settings_row.hpp"
+#include "ui/widgets/action_button.hpp"
+#include "ui/widgets/settings_row.hpp"
 #include "ui/settings_window/tab_header.hpp"
 #include "ui/settings_window/theme_builder.hpp"
 #include "ui/theme_manager.hpp"

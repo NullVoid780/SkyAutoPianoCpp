@@ -8,6 +8,7 @@
 #include <QObject>
 
 #include "model/key_map.hpp"
+#include "model/loop_mode.hpp"
 #include "model/note.hpp"
 
 class QTimer;
@@ -15,12 +16,10 @@ class QTimer;
 namespace sky {
 
 class ConfigService;
+class IPlaybackPort;
 class LibraryService;
-class PlaybackService;
 class RecentService;
 class ToastService;
-
-enum class LoopMode { Off, All, One };
 
 struct PlaybackTarget {
     enum class Kind { None, Local, Remote };
@@ -41,8 +40,8 @@ class PlayerController final : public QObject {
 public:
     using VisibleIndices = std::function<std::vector<int>()>;
 
-    PlayerController(LibraryService &library, PlaybackService &playback, RecentService &recent, ConfigService &config,
-                     ToastService &toasts, QObject *parent = nullptr);
+    PlayerController(LibraryService &library, IPlaybackPort &playback, RecentService &recent,
+                     ConfigService &config, ToastService &toasts, QObject *parent = nullptr);
 
     void setVisibleIndicesProvider(VisibleIndices provider);
 
@@ -77,7 +76,7 @@ private:
     double loopDelaySeconds() const;
 
     LibraryService &m_library;
-    PlaybackService &m_playback;
+    IPlaybackPort &m_playback;
     RecentService &m_recent;
     ConfigService &m_config;
     ToastService &m_toasts;
@@ -92,5 +91,3 @@ private:
 };
 
 }  // namespace sky
-
-Q_DECLARE_METATYPE(sky::LoopMode)

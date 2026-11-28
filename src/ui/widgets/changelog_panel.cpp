@@ -1,4 +1,4 @@
-#include "ui/main_window/changelog_panel.hpp"
+#include "ui/widgets/changelog_panel.hpp"
 
 #include <QDesktopServices>
 #include <QEvent>

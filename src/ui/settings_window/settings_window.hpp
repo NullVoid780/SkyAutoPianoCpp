@@ -7,7 +7,7 @@
 #include "core/json.hpp"
 #include "ui/settings_window/reports_tab.hpp"
 #include "model/config.hpp"
-#include "services/notifications/toast_service.hpp"
+#include "model/toast.hpp"
 #include "services/update/update_service.hpp"
 #include "ui/settings_window/update_overview_card.hpp"
 
@@ -51,7 +51,7 @@ public:
     void setLanguage(const QString &preference);
     int currentPage() const;
     void openPage(int index);
-    void setCrashReports(const std::vector<CrashListEntry> &crashes);
+    void setCrashReports(const std::vector<CrashListEntry> &crashes, int retentionDays = 30);
     void setLegacyCleanup(const QString &title, const QString &description, bool removeEnabled, bool busy,
                           bool present);
     bool isLegacyCleanupShown() const;

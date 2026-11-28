@@ -3,7 +3,7 @@
 #include <functional>
 
 #include "ui/core/overlay.hpp"
-#include "ui/settings_window/action_button.hpp"
+#include "ui/widgets/action_button.hpp"
 
 namespace sky {
 

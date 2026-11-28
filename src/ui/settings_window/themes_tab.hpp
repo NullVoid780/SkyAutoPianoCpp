@@ -3,7 +3,7 @@
 #include <QPointer>
 #include <QWidget>
 
-#include "services/notifications/toast_service.hpp"
+#include "model/toast.hpp"
 #include "ui/settings_window/theme_card.hpp"
 
 class QLabel;

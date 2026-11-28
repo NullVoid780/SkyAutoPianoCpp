@@ -6,7 +6,7 @@
 #include <QWidget>
 
 #include "services/settings/shortcut_service.hpp"
-#include "services/notifications/toast_service.hpp"
+#include "model/toast.hpp"
 #include "ui/main_window/library_model.hpp"
 
 class QLabel;

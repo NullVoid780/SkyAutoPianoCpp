@@ -22,7 +22,7 @@ class ReportsTab final : public QWidget {
 public:
     explicit ReportsTab(QWidget *parent = nullptr);
 
-    void setCrashes(const std::vector<CrashListEntry> &crashes);
+    void setCrashes(const std::vector<CrashListEntry> &crashes, int retentionDays = 30);
 
 signals:
     void recordIssueRequested();
@@ -34,6 +34,7 @@ private:
     QWidget *m_crashHost;
     QVBoxLayout *m_crashList;
     QLabel *m_crashCount;
+    QLabel *m_retentionNote;
     QWidget *m_clearButton;
 };
 

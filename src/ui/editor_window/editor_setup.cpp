@@ -20,7 +20,7 @@
 #include "ui/render/font_loader.hpp"
 #include "ui/render/icon_cache.hpp"
 #include "ui/render/paint_utils.hpp"
-#include "ui/settings_window/action_button.hpp"
+#include "ui/widgets/action_button.hpp"
 #include "ui/theme_manager.hpp"
 #include "ui/widgets/step_dots.hpp"
 

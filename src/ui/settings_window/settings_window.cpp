@@ -31,7 +31,6 @@
 #include "ui/settings_window/general_tab.hpp"
 #include "ui/settings_window/keyboard_tab.hpp"
 #include "ui/settings_window/save_button.hpp"
-#include "ui/settings_window/legacy_cleanup_tab.hpp"
 #include "ui/settings_window/settings_sidebar.hpp"
 #include "ui/settings_window/shortcuts_tab.hpp"
 #include "ui/settings_window/themes_tab.hpp"
@@ -96,7 +95,6 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
       m_themes(new ThemesTab(services.themes, m_pageHost)),
       m_updates(new UpdatesTab(QLatin1String(kAppVersion), m_pageHost)),
       m_reports(new ReportsTab(m_pageHost)),
-      m_cleanup(new LegacyCleanupTab(m_pageHost)),
       m_about(new AboutTab(QLatin1String(kAppVersion), m_pageHost)),
       m_save(new SaveButton(this)),
       m_shadows(new ElevationLayer(this)),
@@ -131,7 +129,7 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
     m_pageHost->setObjectName(QStringLiteral("SettingsPageHost"));
     applyPageMargins(0);
     m_pageLayout->setSpacing(0);
-    m_pages = {m_general, m_keyboard, m_shortcuts, m_themes, m_updates, m_reports, m_cleanup, m_about};
+    m_pages = {m_general, m_keyboard, m_shortcuts, m_themes, m_updates, m_reports, m_about};
     for (QWidget *page : m_pages) {
         m_pageLayout->addWidget(page);
         page->hide();
@@ -151,13 +149,12 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
     row->addWidget(m_sidebar);
     row->addWidget(m_scroll, 1);
 
-    m_sidebar->addItem(QStringLiteral("sliders"), tr("General"));
+    m_generalNav = m_sidebar->addItem(QStringLiteral("sliders"), tr("General"));
     m_sidebar->addItem(QStringLiteral("keyboard"), tr("Keyboard"));
     m_sidebar->addItem(QStringLiteral("lightning"), tr("Shortcuts"));
     m_sidebar->addItem(QStringLiteral("palette"), tr("Themes"));
     m_updatesNav = m_sidebar->addItem(QStringLiteral("update"), tr("Updates"));
     m_sidebar->addItem(QStringLiteral("bug"), tr("Reports"));
-    m_cleanupNav = m_sidebar->addItem(QStringLiteral("eraser"), tr("Remove Old Electron Version"));
     m_sidebar->addSeparator();
     m_sidebar->addItem(QStringLiteral("info-circle"), tr("About"));
 
@@ -186,7 +183,7 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
     connect(m_general, &GeneralTab::exportRequested, this, &SettingsWindow::exportSettings);
     connect(m_general, &GeneralTab::importRequested, this, &SettingsWindow::importSettings);
     connect(m_general, &GeneralTab::importPreviousRequested, this, &SettingsWindow::importPreviousRequested);
-    connect(m_cleanup, &LegacyCleanupTab::legacyRemovalRequested, this, &SettingsWindow::legacyRemovalRequested);
+    connect(m_general, &GeneralTab::legacyRemovalRequested, this, &SettingsWindow::legacyRemovalRequested);
     connect(m_general, &GeneralTab::quickStartRequested, this, &SettingsWindow::quickStartRequested);
     connect(m_general, &GeneralTab::languageChosen, this, &SettingsWindow::languageChosen);
     connect(m_general, &GeneralTab::restartRequested, this, &SettingsWindow::restartRequested);
@@ -261,7 +258,7 @@ void SettingsWindow::showPage(int index)
     m_pageFade->setStartValue(0.0);
     m_pageFade->setEndValue(1.0);
     m_pageFade->start();
-    if (index == m_cleanupNav) {
+    if (index == m_generalNav) {
         emit legacyCleanupShown();
     }
 }
@@ -336,16 +333,12 @@ void SettingsWindow::setLanguage(const QString &preference)
 
 void SettingsWindow::setLegacyCleanup(const QString &description, bool removeEnabled, bool busy, bool present)
 {
-    m_cleanup->setLegacyCleanup(description, removeEnabled, busy);
-    m_sidebar->setItemVisible(m_cleanupNav, present);
-    if (!present && m_sidebar->current() == m_cleanupNav) {
-        m_sidebar->setCurrent(0);
-    }
+    m_general->setLegacyCleanup(description, removeEnabled, busy, present);
 }
 
 bool SettingsWindow::isLegacyCleanupShown() const
 {
-    return isVisible() && m_sidebar->current() == m_cleanupNav;
+    return isVisible() && m_sidebar->current() == m_generalNav;
 }
 
 void SettingsWindow::reloadForm()
@@ -558,7 +551,7 @@ void SettingsWindow::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
     setFocus(Qt::OtherFocusReason);
-    if (m_sidebar->current() == m_cleanupNav) {
+    if (m_sidebar->current() == m_generalNav) {
         emit legacyCleanupShown();
     }
 }

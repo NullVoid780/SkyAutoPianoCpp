@@ -773,6 +773,5 @@
   "Remove Old Electron Version": "删除旧版 Electron",
   "Checking the old version...": "正在检查旧版...",
   "Uninstalling...": "正在卸载...",
-  "Pick the language for the app - it switches right away.": "选择应用语言 - 将立即切换。",
-  "Uninstall the previous version from this PC once your songs are safe in this library.": "当您的歌曲安全存入此曲库后，即可从此电脑卸载旧版本。"
+  "Pick the language for the app - it switches right away.": "选择应用语言 - 将立即切换。"
 }

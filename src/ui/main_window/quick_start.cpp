@@ -368,8 +368,27 @@ QWidget *QuickStart::buildLegacy()
     m_legacyNote = text(tr("Nothing in the previous version is changed. Your songs are copied."),
                         "SettingsRowDescription", widget, true);
     column->addWidget(m_legacyNote);
+    column->addSpacing(18);
+    column->addWidget(text(tr("Remove Old Electron Version"), "SettingsRowTitle", widget));
+    column->addSpacing(2);
+    m_cleanupDescription = text(tr("Checking the old version..."), "SettingsRowDescription", widget, true);
+    column->addWidget(m_cleanupDescription);
+    column->addSpacing(8);
+    auto *cleanupActions = new QHBoxLayout();
+    cleanupActions->setSpacing(10);
+    m_cleanupVerify = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("shield-check"), tr("Verify"),
+                                       widget);
+    m_cleanupRemove =
+        new ActionButton(ActionButton::Kind::Amber, QStringLiteral("trash3"), tr("Remove"), widget);
+    cleanupActions->addWidget(m_cleanupVerify);
+    cleanupActions->addWidget(m_cleanupRemove);
+    cleanupActions->addStretch();
+    column->addLayout(cleanupActions);
     column->addStretch();
     connect(m_folderButton, &QAbstractButton::clicked, this, &QuickStart::legacyFolderRequested);
+    connect(m_cleanupVerify, &QAbstractButton::clicked, this, &QuickStart::legacyVerifyRequested);
+    connect(m_cleanupRemove, &QAbstractButton::clicked, this, &QuickStart::legacyRemovalRequested);
+    applyCleanup();
     return widget;
 }
 
@@ -523,6 +542,33 @@ void QuickStart::setLegacyState(LegacyState state, int songs, int playlists, con
     m_legacyNote->setVisible(state == LegacyState::Found);
     m_folderButton->setVisible(state == LegacyState::Searching || state == LegacyState::NotFound ||
                                state == LegacyState::UpToDate);
+    if (isOpen()) {
+        relayout();
+        update();
+    }
+}
+
+void QuickStart::setLegacyCleanup(const QString &description, bool removeEnabled, bool verifyVisible, bool busy)
+{
+    m_cleanupText = description;
+    m_cleanupKnown = true;
+    m_cleanupRemoveEnabled = removeEnabled;
+    m_cleanupVerifyVisible = verifyVisible;
+    m_cleanupBusy = busy;
+    applyCleanup();
+}
+
+void QuickStart::applyCleanup()
+{
+    if (!m_cleanupDescription) {
+        return;
+    }
+    if (m_cleanupKnown) {
+        m_cleanupDescription->setText(m_cleanupText);
+    }
+    m_cleanupVerify->setVisible(m_cleanupVerifyVisible);
+    m_cleanupRemove->setEnabled(m_cleanupRemoveEnabled && !m_cleanupBusy);
+    m_cleanupRemove->setBusy(m_cleanupBusy, tr("Uninstalling..."));
     if (isOpen()) {
         relayout();
         update();

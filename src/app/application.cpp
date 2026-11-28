@@ -882,6 +882,7 @@ void Application::importLegacy(const LegacyImportPlan &plan, bool manual)
                                     if (self->m_settings) {
                                         self->m_settings->reloadForm();
                                     }
+                                    self->refreshLegacyCleanup();
                                 });
 }
 
@@ -1124,6 +1125,8 @@ void Application::showQuickStart()
             m_quickStart->setLegacyState(QuickStart::LegacyState::Searching);
             pickLegacyFolder();
         });
+        connect(m_quickStart, &QuickStart::legacyRemovalRequested, this, &Application::onLegacyRemovalClicked);
+        connect(m_quickStart, &QuickStart::legacyVerifyRequested, this, &Application::onLegacyVerifyClicked);
     }
     if (!m_quickStart->isOpen()) {
         m_quickStart->start();
@@ -1131,6 +1134,7 @@ void Application::showQuickStart()
         m_legacyForQuickStart = true;
         detectLegacyLibrary(false);
     }
+    refreshLegacyCleanup();
 }
 
 LegacyImportEvidence Application::legacyRemovalEvidence(const LegacyInstallInfo &install) const
@@ -1172,7 +1176,7 @@ void Application::refreshLegacyCleanup()
 
 void Application::updateLegacyCleanupUi()
 {
-    if (!m_settings || !m_removalDetection) {
+    if (!m_removalDetection) {
         return;
     }
     const LegacyDetection &detection = *m_removalDetection;
@@ -1234,7 +1238,12 @@ void Application::updateLegacyCleanupUi()
                     gate.blockers.end();
         }
     }
-    m_settings->setLegacyCleanup(description, removeEnabled, verifyVisible, busy);
+    if (m_settings) {
+        m_settings->setLegacyCleanup(description, removeEnabled, verifyVisible, busy);
+    }
+    if (m_quickStart) {
+        m_quickStart->setLegacyCleanup(description, removeEnabled, verifyVisible, busy);
+    }
 }
 
 void Application::onLegacyVerifyClicked()
@@ -1310,7 +1319,14 @@ void Application::onLegacyRemovalClicked()
                    kDefaultToastMs});
         return;
     }
-    QWidget *window = m_settings ? static_cast<QWidget *>(m_settings) : static_cast<QWidget *>(m_mainWindow.get());
+    QWidget *window = m_quickStart && m_quickStart->isOpen()
+                          ? static_cast<QWidget *>(m_mainWindow.get())
+                          : (m_settings ? static_cast<QWidget *>(m_settings)
+                                        : static_cast<QWidget *>(m_mainWindow.get()));
+    if (m_removalDialog && m_removalDialog->parentWidget() != window) {
+        m_removalDialog->deleteLater();
+        m_removalDialog = nullptr;
+    }
     if (!m_removalDialog) {
         m_removalDialog = new ConfirmDialog(
             window,

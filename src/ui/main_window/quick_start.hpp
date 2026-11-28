@@ -28,11 +28,16 @@ public:
     void start();
     void setLegacyState(LegacyState state, int songs = 0, int playlists = 0, const QString &detail = {});
     LegacyState legacyState() const { return m_legacyState; }
+    // The same legacy cleanup state the Settings > General section shows:
+    // the application computes it once and pushes it to both surfaces.
+    void setLegacyCleanup(const QString &description, bool removeEnabled, bool verifyVisible, bool busy);
 
 signals:
     void finished();
     void legacyImportRequested();
     void legacyFolderRequested();
+    void legacyRemovalRequested();
+    void legacyVerifyRequested();
 
 protected:
     QWidget *panel() const override { return m_panel; }
@@ -56,6 +61,7 @@ private:
     void finish();
     void syncLook();
     void loadControls();
+    void applyCleanup();
 
     ThemeController &m_themes;
     ConfigService &m_config;
@@ -71,6 +77,14 @@ private:
     int m_current = 0;
     LegacyState m_legacyState = LegacyState::Searching;
     bool m_finished = false;
+    QLabel *m_cleanupDescription = nullptr;
+    ActionButton *m_cleanupVerify = nullptr;
+    ActionButton *m_cleanupRemove = nullptr;
+    QString m_cleanupText;
+    bool m_cleanupKnown = false;
+    bool m_cleanupRemoveEnabled = false;
+    bool m_cleanupVerifyVisible = false;
+    bool m_cleanupBusy = false;
     QLabel *m_legacyBody = nullptr;
     QLabel *m_legacyNote = nullptr;
     QWidget *m_legacyChoices = nullptr;

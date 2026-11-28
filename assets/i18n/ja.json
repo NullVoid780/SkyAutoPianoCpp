@@ -364,7 +364,7 @@
   "Import them": "取り込む",
   "Songs, playlists, favorites, settings": "曲、プレイリスト、お気に入り、設定",
   "Not now": "後で",
-  "Import later in Settings → General": "あとで「設定 → 一般」から取り込めます",
+  "Import later by running Quick Start again": "後でクイックスタートを再実行してインポート",
   "Choose folder": "フォルダーを選択",
   "Nothing in the previous version is changed. Your songs are copied.": "以前のバージョンは何も変更されません。曲はコピーされます。",
   "How should songs play?": "曲の演奏方法は？",
@@ -456,7 +456,6 @@
   "Use the same language as Windows": "Windows と同じ言語を使用",
   "Language": "言語",
   "Choose the language of the app. It restarts to switch.": "アプリの言語を選びます。切り替えるとアプリが再起動します。",
-  "Import Previous Songs": "以前の曲を取り込む",
   "Run again": "もう一度実行",
   "Quick Start": "クイックスタート",
   "Go through the first-time setup again.": "初回セットアップをもう一度行います。",
@@ -741,7 +740,7 @@
   "Select All": "すべて選択",
   "Copy &Link Location": "リンクのアドレスをコピー(&L)",
   "%1 song(s) share a name with a different song already in your library and were skipped.": "%1曲が、ライブラリにある別の曲と名前が重複していたためスキップされました。",
-  "Some items need attention - you can retry the import from Settings.": "確認が必要な項目があります - 設定から取り込みを再試行できます。",
+  "Some items need attention - you can retry the import from Quick Start.": "注意が必要な項目があります - クイックスタートからインポートを再試行できます。",
   "Verifying that everything from the old version is complete in this library...": "旧バージョンの内容がすべてこのライブラリにそろっているか確認しています...",
   "More than one old installation is registered, so automatic removal is off. You can remove the old version in Windows Settings > Apps.": "旧バージョンのインストールが複数登録されているため、自動削除はオフになっています。旧バージョンは Windows Settings > Apps から削除できます。",
   "The old version's uninstaller could not be validated, so automatic removal is off. You can remove the old version in Windows Settings > Apps.": "旧バージョンのアンインストーラーを検証できなかったため、自動削除はオフになっています。旧バージョンは Windows Settings > Apps から削除できます。",
@@ -756,7 +755,7 @@
   "Maybe later": "後で",
   "Remove old version": "旧バージョンを削除",
   "Your data from the old version is verified in this library.": "旧バージョンのデータはこのライブラリで確認済みです。",
-  "Some data from the old version could not be verified. Import it again from Settings.": "旧バージョンの一部のデータを確認できませんでした。設定からもう一度取り込んでください。",
+  "Some data from the old version could not be verified. Import it again from Quick Start.": "旧バージョンの一部のデータを確認できませんでした。クイックスタートからもう一度インポートしてください。",
   "The old version cannot be removed yet. See the explanation in Settings.": "旧バージョンはまだ削除できません。設定内の説明をご覧ください。",
   "The old version's uninstaller is open. Follow its steps to finish.": "旧バージョンのアンインストーラーが開いています。手順に従って完了してください。",
   "The old version's uninstaller could not be started.": "旧バージョンのアンインストーラーを起動できませんでした。",
@@ -778,6 +777,5 @@
   "Version %1 is still running. Close it, then try again.": "バージョン %1 がまだ実行中です。閉じてからもう一度お試しください。",
   "The old version is still running. Close it, then try again.": "旧バージョンがまだ実行中です。閉じてからもう一度お試しください。",
   "Version %1 was removed. Your library here is unchanged.": "バージョン %1 を削除しました。こちらのライブラリに変更はありません。",
-  "The old version was removed. Your library here is unchanged.": "旧バージョンを削除しました。こちらのライブラリに変更はありません。",
-  "Copy all songs from the old version of Sky Auto Piano into this library.": "旧バージョンの Sky Auto Piano のすべての曲をこのライブラリにコピーします。"
+  "The old version was removed. Your library here is unchanged.": "旧バージョンを削除しました。こちらのライブラリに変更はありません。"
 }

@@ -869,7 +869,7 @@ void Application::importLegacy(const LegacyImportPlan &plan, bool manual)
                                     }
                                     if (!verified) {
                                         message += QLatin1Char(' ') +
-                                                   tr("Some items need attention - you can retry the import from Settings.");
+                                                   tr("Some items need attention - you can retry the import from Quick Start.");
                                     }
                                     const std::string text = fromQString(message);
                                     self->notifyLegacy(manual, Toast{verified ? ToastType::Success : ToastType::Warning,
@@ -1041,7 +1041,6 @@ void Application::openSettings()
     m_settings = new SettingsWindow(SettingsServices{*m_config, *m_updates, *m_themes}, m_mainWindow.get());
     connect(m_settings, &QObject::destroyed, this, [this] { m_shortcuts->resume(); });
     connect(m_settings, &SettingsWindow::themeImported, this, &Application::applyTheme);
-    connect(m_settings, &SettingsWindow::importPreviousRequested, this, [this] { detectLegacyLibrary(true); });
     connect(m_settings, &SettingsWindow::legacyRemovalRequested, this, &Application::onLegacyRemovalClicked);
     connect(m_settings, &SettingsWindow::legacyCleanupShown, this, [this] {
         m_autoVerifyArmed = true;
@@ -1380,7 +1379,7 @@ void Application::startLegacyVerification()
                 self->tell(Toast{verified ? ToastType::Success : ToastType::Warning, {},
                                  verified ? trUtf8("Your data from the old version is verified in this library.")
                                           : trUtf8("Some data from the old version could not be verified. "
-                                                   "Import it again from Settings."),
+                                                   "Import it again from Quick Start."),
                                  kDefaultToastMs});
                 self->updateLegacyCleanupUi();
             },

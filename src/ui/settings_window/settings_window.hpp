@@ -58,7 +58,6 @@ public:
 
 signals:
     void themeImported(sky::AppTheme theme);
-    void importPreviousRequested();
     void legacyRemovalRequested();
     void legacyCleanupShown();
     void quickStartRequested();

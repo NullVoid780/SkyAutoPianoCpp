@@ -272,16 +272,29 @@ QuickStart::QuickStart(ThemeController &themes, ConfigService &config, QWidget *
 
 void QuickStart::buildSteps()
 {
+    m_cleanupDescription = nullptr;
+    m_cleanupRemove = nullptr;
+    const auto add = [this](Step step, QWidget *pageWidget) {
+        m_stack->addWidget(pageWidget);
+        m_steps.push_back(pageWidget);
+        m_stepRoles.push_back(step);
+    };
     m_welcome = buildWelcome();
+    add(Step::Welcome, m_welcome);
     m_look = buildLook();
+    add(Step::Look, m_look);
     m_legacy = buildLegacy();
-    m_playback = buildPlayback();
-    m_controls = buildControls();
-    m_done = buildDone();
-    for (QWidget *step : {m_welcome, m_look, m_legacy, m_playback, m_controls, m_done}) {
-        m_stack->addWidget(step);
+    add(Step::Legacy, m_legacy);
+    m_cleanupPage = m_cleanupStepWanted ? buildCleanup() : nullptr;
+    if (m_cleanupPage) {
+        add(Step::Cleanup, m_cleanupPage);
     }
-    m_steps = {m_welcome, m_look, m_legacy, m_playback, m_controls, m_done};
+    m_playback = buildPlayback();
+    add(Step::Playback, m_playback);
+    m_controls = buildControls();
+    add(Step::Controls, m_controls);
+    m_done = buildDone();
+    add(Step::Done, m_done);
 }
 
 QWidget *QuickStart::page(const QString &iconId, const QString &title, const QString &body)
@@ -410,25 +423,25 @@ QWidget *QuickStart::buildLegacy()
     m_legacyNote = text(tr("Nothing in the previous version is changed. Your songs are copied."),
                         "SettingsRowDescription", widget, true);
     column->addWidget(m_legacyNote);
-    column->addSpacing(18);
-    column->addWidget(text(tr("Remove Old Electron Version"), "SettingsRowTitle", widget));
-    column->addSpacing(2);
-    m_cleanupDescription = text(tr("Checking the old version..."), "SettingsRowDescription", widget, true);
-    column->addWidget(m_cleanupDescription);
-    column->addSpacing(8);
-    auto *cleanupActions = new QHBoxLayout();
-    cleanupActions->setSpacing(10);
-    m_cleanupVerify = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("shield-check"), tr("Verify"),
-                                       widget);
-    m_cleanupRemove =
-        new ActionButton(ActionButton::Kind::Amber, QStringLiteral("trash3"), tr("Remove"), widget);
-    cleanupActions->addWidget(m_cleanupVerify);
-    cleanupActions->addWidget(m_cleanupRemove);
-    cleanupActions->addStretch();
-    column->addLayout(cleanupActions);
     column->addStretch();
     connect(m_folderButton, &QAbstractButton::clicked, this, &QuickStart::legacyFolderRequested);
-    connect(m_cleanupVerify, &QAbstractButton::clicked, this, &QuickStart::legacyVerifyRequested);
+    return widget;
+}
+
+QWidget *QuickStart::buildCleanup()
+{
+    QWidget *widget = page(QStringLiteral("eraser"), tr("Remove Old Electron Version"),
+                           tr("Checking the old version..."));
+    m_cleanupDescription = widget->findChildren<QLabel *>(QStringLiteral("QuickStartBody")).value(0);
+    auto *column = static_cast<QVBoxLayout *>(widget->layout());
+    m_cleanupRemove =
+        new ActionButton(ActionButton::Kind::Amber, QStringLiteral("trash3"), tr("Remove"), widget);
+    auto *actions = new QHBoxLayout();
+    actions->setSpacing(10);
+    actions->addWidget(m_cleanupRemove);
+    actions->addStretch();
+    column->addLayout(actions);
+    column->addStretch();
     connect(m_cleanupRemove, &QAbstractButton::clicked, this, &QuickStart::legacyRemovalRequested);
     applyCleanup();
     return widget;
@@ -598,14 +611,26 @@ void QuickStart::setLegacyState(LegacyState state, int songs, int playlists, con
     }
 }
 
-void QuickStart::setLegacyCleanup(const QString &description, bool removeEnabled, bool verifyVisible, bool busy)
+void QuickStart::setLegacyCleanup(const QString &description, bool removeEnabled, bool busy, bool present)
 {
     m_cleanupText = description;
     m_cleanupKnown = true;
     m_cleanupRemoveEnabled = removeEnabled;
-    m_cleanupVerifyVisible = verifyVisible;
     m_cleanupBusy = busy;
+    if (present != m_cleanupStepWanted) {
+        // The cleanup step exists only while a legacy installation or a
+        // migration state does; rebuild so it appears or disappears.
+        m_cleanupStepWanted = present;
+        rebuildSteps();
+        return;
+    }
     applyCleanup();
+}
+
+bool QuickStart::isLegacyCleanupShown() const
+{
+    return isOpen() && m_current >= 0 && m_current < static_cast<int>(m_stepRoles.size()) &&
+           m_stepRoles[static_cast<std::size_t>(m_current)] == Step::Cleanup;
 }
 
 void QuickStart::applyCleanup()
@@ -616,7 +641,6 @@ void QuickStart::applyCleanup()
     if (m_cleanupKnown) {
         m_cleanupDescription->setText(m_cleanupText);
     }
-    m_cleanupVerify->setVisible(m_cleanupVerifyVisible);
     m_cleanupRemove->setEnabled(m_cleanupRemoveEnabled && !m_cleanupBusy);
     m_cleanupRemove->setBusy(m_cleanupBusy, tr("Uninstalling..."));
     if (isOpen()) {
@@ -671,12 +695,20 @@ void QuickStart::onLanguageIndexChanged(int index)
 // legacy import state and the legacy cleanup state.
 void QuickStart::rebuildSteps()
 {
-    const int step = m_current;
+    // Restore the step the user is on by role, not by index: the cleanup
+    // step comes and goes with legacy detection, shifting the indices of
+    // the steps after it.
+    const Step current =
+        m_stepRoles.empty()
+            ? Step::Welcome
+            : m_stepRoles[static_cast<std::size_t>(
+                  std::clamp(m_current, 0, static_cast<int>(m_stepRoles.size()) - 1))];
     for (QWidget *page : m_steps) {
         m_stack->removeWidget(page);
         delete page;
     }
     m_steps.clear();
+    m_stepRoles.clear();
     m_modeTiles.clear();
     m_themeChips.clear();
     m_shortcutKeys.clear();
@@ -685,7 +717,14 @@ void QuickStart::rebuildSteps()
     syncControls();
     setLegacyState(m_legacyState, m_legacySongs, m_legacyPlaylists, m_legacyDetail);
     retranslateChrome();
-    showStep(step);
+    int index = 0;
+    for (std::size_t i = 0; i < m_stepRoles.size(); ++i) {
+        if (m_stepRoles[i] == current) {
+            index = static_cast<int>(i);
+            break;
+        }
+    }
+    showStep(index);
 }
 
 void QuickStart::retranslateChrome()
@@ -743,6 +782,9 @@ void QuickStart::showStep(int index)
     m_dots->set(static_cast<int>(m_steps.size()), m_current);
     relayout();
     update();
+    if (m_stepRoles[static_cast<std::size_t>(m_current)] == Step::Cleanup) {
+        emit legacyCleanupShown();
+    }
 }
 
 void QuickStart::next()

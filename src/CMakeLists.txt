@@ -156,6 +156,7 @@ add_library(sky_ui STATIC
     ui/settings_window/app_info_card.cpp
     ui/settings_window/confirm_dialog.cpp
     ui/settings_window/general_tab.cpp
+    ui/settings_window/legacy_cleanup_tab.cpp
     ui/settings_window/key_cap.cpp
     ui/settings_window/key_capture.cpp
     ui/settings_window/keyboard_tab.cpp

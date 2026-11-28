@@ -29,9 +29,12 @@ public:
     void start();
     void setLegacyState(LegacyState state, int songs = 0, int playlists = 0, const QString &detail = {});
     LegacyState legacyState() const { return m_legacyState; }
-    // The same legacy cleanup state the Settings > General section shows:
-    // the application computes it once and pushes it to both surfaces.
-    void setLegacyCleanup(const QString &description, bool removeEnabled, bool verifyVisible, bool busy);
+    // The same legacy cleanup state the Settings legacy page shows: the
+    // application computes it once and pushes it to both surfaces. The
+    // cleanup lives on its own step, present only while a legacy
+    // installation or migration state exists.
+    void setLegacyCleanup(const QString &description, bool removeEnabled, bool busy, bool present);
+    bool isLegacyCleanupShown() const;
     // The same language preference the Settings > General tab edits: the
     // application seeds it from the persisted value, and every change is
     // reported back through languageChosen so it is stored in the same place.
@@ -42,7 +45,7 @@ signals:
     void legacyImportRequested();
     void legacyFolderRequested();
     void legacyRemovalRequested();
-    void legacyVerifyRequested();
+    void legacyCleanupShown();
     void languageChosen(const QString &preference);
 
 protected:
@@ -57,6 +60,7 @@ private:
     QWidget *buildWelcome();
     QWidget *buildLook();
     QWidget *buildLegacy();
+    QWidget *buildCleanup();
     QWidget *buildPlayback();
     QWidget *buildControls();
     QWidget *buildDone();
@@ -74,14 +78,18 @@ private:
     void retranslateChrome();
     void onLanguageIndexChanged(int index);
 
+    enum class Step { Welcome, Look, Legacy, Cleanup, Playback, Controls, Done };
+
     ThemeController &m_themes;
     ConfigService &m_config;
     QWidget *m_panel;
     QStackedWidget *m_stack;
     std::vector<QWidget *> m_steps;
+    std::vector<Step> m_stepRoles;
     QWidget *m_welcome;
     QWidget *m_look;
     QWidget *m_legacy;
+    QWidget *m_cleanupPage = nullptr;
     QWidget *m_playback;
     QWidget *m_controls;
     QWidget *m_done;
@@ -89,13 +97,12 @@ private:
     LegacyState m_legacyState = LegacyState::Searching;
     bool m_finished = false;
     QLabel *m_cleanupDescription = nullptr;
-    ActionButton *m_cleanupVerify = nullptr;
     ActionButton *m_cleanupRemove = nullptr;
     QString m_cleanupText;
     bool m_cleanupKnown = false;
     bool m_cleanupRemoveEnabled = false;
-    bool m_cleanupVerifyVisible = false;
     bool m_cleanupBusy = false;
+    bool m_cleanupStepWanted = false;
     SelectBox *m_language = nullptr;
     QString m_languagePreference;
     int m_legacySongs = 0;

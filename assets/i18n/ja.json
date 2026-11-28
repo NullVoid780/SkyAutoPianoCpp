@@ -772,9 +772,7 @@
   "Remove": "削除",
   "Remove Old Electron Version": "旧 Electron バージョンを削除",
   "Checking the old version...": "旧バージョンを確認しています...",
-  "Verify": "確認",
-  "Restore and Verify Data": "データを復元して確認",
-  "Re-check that everything copied from the old version is complete in this library before removing it.": "旧バージョンを削除する前に、旧バージョンからコピーした内容がすべてこのライブラリにそろっているか再確認します。",
   "Uninstalling...": "アンインストールしています...",
-  "Pick the language for the app - it switches right away.": "アプリの言語を選択してください - すぐに切り替わります。"
+  "Pick the language for the app - it switches right away.": "アプリの言語を選択してください - すぐに切り替わります。",
+  "Uninstall the previous version from this PC once your songs are safe in this library.": "曲がこのライブラリに安全に保存されたら、このPCから以前のバージョンをアンインストールできます。"
 }

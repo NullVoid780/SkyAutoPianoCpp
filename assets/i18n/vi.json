@@ -772,9 +772,7 @@
   "Remove": "Gỡ bỏ",
   "Remove Old Electron Version": "Gỡ phiên bản Electron cũ",
   "Checking the old version...": "Đang kiểm tra phiên bản cũ...",
-  "Verify": "Xác minh",
-  "Restore and Verify Data": "Khôi phục và xác minh dữ liệu",
-  "Re-check that everything copied from the old version is complete in this library before removing it.": "Kiểm tra lại xem mọi thứ đã sao chép từ phiên bản cũ đã đầy đủ trong thư viện này chưa trước khi gỡ nó.",
   "Uninstalling...": "Đang gỡ cài đặt...",
-  "Pick the language for the app - it switches right away.": "Chọn ngôn ngữ cho ứng dụng - thay đổi sẽ áp dụng ngay lập tức."
+  "Pick the language for the app - it switches right away.": "Chọn ngôn ngữ cho ứng dụng - thay đổi sẽ áp dụng ngay lập tức.",
+  "Uninstall the previous version from this PC once your songs are safe in this library.": "Gỡ cài đặt phiên bản trước khỏi máy này sau khi bài hát của bạn đã an toàn trong thư viện này."
 }

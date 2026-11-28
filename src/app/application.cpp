@@ -1043,7 +1043,10 @@ void Application::openSettings()
     connect(m_settings, &SettingsWindow::themeImported, this, &Application::applyTheme);
     connect(m_settings, &SettingsWindow::importPreviousRequested, this, [this] { detectLegacyLibrary(true); });
     connect(m_settings, &SettingsWindow::legacyRemovalRequested, this, &Application::onLegacyRemovalClicked);
-    connect(m_settings, &SettingsWindow::legacyVerifyRequested, this, &Application::onLegacyVerifyClicked);
+    connect(m_settings, &SettingsWindow::legacyCleanupShown, this, [this] {
+        m_autoVerifyArmed = true;
+        maybeAutoVerify();
+    });
     connect(m_settings, &SettingsWindow::recordIssueRequested, this, &Application::startIssueRecording);
     connect(m_settings, &SettingsWindow::saveCrashReportRequested, this, &Application::saveCrashReport);
     connect(m_settings, &SettingsWindow::clearCrashReportsRequested, this, [this] {
@@ -1133,7 +1136,10 @@ void Application::showQuickStart()
             pickLegacyFolder();
         });
         connect(m_quickStart, &QuickStart::legacyRemovalRequested, this, &Application::onLegacyRemovalClicked);
-        connect(m_quickStart, &QuickStart::legacyVerifyRequested, this, &Application::onLegacyVerifyClicked);
+        connect(m_quickStart, &QuickStart::legacyCleanupShown, this, [this] {
+            m_autoVerifyArmed = true;
+            maybeAutoVerify();
+        });
     }
     if (!m_quickStart->isOpen()) {
         m_quickStart->start();
@@ -1178,6 +1184,7 @@ void Application::refreshLegacyCleanup()
     } else {
         m_removalEvidence.reset();
     }
+    m_autoVerifyArmed = true;
     updateLegacyCleanupUi();
 }
 
@@ -1191,7 +1198,6 @@ void Application::updateLegacyCleanupUi()
     const bool busy = uninstalling || m_removalVerifying;
     QString description;
     bool removeEnabled = false;
-    bool verifyVisible = false;
     if (m_removalVerifying) {
         description = tr("Verifying that everything from the old version is complete in this library...");
     } else if (detection.status == LegacyDetectionStatus::NotFound) {
@@ -1239,21 +1245,46 @@ void Application::updateLegacyCleanupUi()
                     description = tr("The old version could not be validated for removal.");
                     break;
             }
-            verifyVisible =
-                m_removalEvidence->migrationStatus == "verified" &&
-                std::find(gate.blockers.begin(), gate.blockers.end(), RemovalBlocker::ReverificationRequired) !=
-                    gate.blockers.end();
         }
     }
+    const bool present = detection.status != LegacyDetectionStatus::NotFound || m_removalEvidence.has_value() ||
+                         m_uiState->legacyRemoved() || m_uiState->legacyMigrationStatus() != "not_detected";
     if (m_settings) {
-        m_settings->setLegacyCleanup(description, removeEnabled, verifyVisible, busy);
+        m_settings->setLegacyCleanup(description, removeEnabled, busy, present);
     }
     if (m_quickStart) {
-        m_quickStart->setLegacyCleanup(description, removeEnabled, verifyVisible, busy);
+        m_quickStart->setLegacyCleanup(description, removeEnabled, busy, present);
     }
+    maybeAutoVerify();
 }
 
-void Application::onLegacyVerifyClicked()
+void Application::maybeAutoVerify()
+{
+    // Verification of the imported data runs on its own when the cleanup
+    // page or step is on screen and the removal gate still needs it: users
+    // should not have to find a Verify button. It is armed when the cleanup
+    // state refreshes and whenever the cleanup surface becomes visible, and
+    // disarmed as soon as it fires, so a failed verification is retried on
+    // the next visit rather than in a loop.
+    if (!m_autoVerifyArmed || m_removalVerifying || m_legacyBusy || !m_removal || m_removal->removalInProgress() ||
+        !m_removalDetection || !m_removalDetection->install || !m_removalEvidence) {
+        return;
+    }
+    const bool shown = (m_settings && m_settings->isLegacyCleanupShown()) ||
+                       (m_quickStart && m_quickStart->isLegacyCleanupShown());
+    if (!shown || m_removalEvidence->migrationStatus != "verified") {
+        return;
+    }
+    const auto gate = m_removal->canOfferRemoval(*m_removalEvidence, *m_removalDetection);
+    if (std::find(gate.blockers.begin(), gate.blockers.end(), RemovalBlocker::ReverificationRequired) ==
+        gate.blockers.end()) {
+        return;
+    }
+    m_autoVerifyArmed = false;
+    startLegacyVerification();
+}
+
+void Application::startLegacyVerification()
 {
     if (!m_removalDetection || !m_removalDetection->install || m_removalVerifying || m_legacyBusy) {
         return;

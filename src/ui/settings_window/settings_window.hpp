@@ -23,6 +23,7 @@ class ConfigService;
 class ElevationLayer;
 class GeneralTab;
 class KeyboardTab;
+class LegacyCleanupTab;
 class SaveButton;
 class SettingsSidebar;
 class SmoothScroll;
@@ -52,13 +53,14 @@ public:
     int currentPage() const;
     void openPage(int index);
     void setCrashReports(const std::vector<CrashListEntry> &crashes);
-    void setLegacyCleanup(const QString &description, bool removeEnabled, bool verifyVisible, bool busy);
+    void setLegacyCleanup(const QString &description, bool removeEnabled, bool busy, bool present);
+    bool isLegacyCleanupShown() const;
 
 signals:
     void themeImported(sky::AppTheme theme);
     void importPreviousRequested();
     void legacyRemovalRequested();
-    void legacyVerifyRequested();
+    void legacyCleanupShown();
     void quickStartRequested();
     void languageChosen(const QString &preference);
     void restartRequested();
@@ -103,8 +105,10 @@ private:
     ThemesTab *m_themes;
     UpdatesTab *m_updates;
     ReportsTab *m_reports;
+    LegacyCleanupTab *m_cleanup;
     AboutTab *m_about;
     int m_updatesNav = -1;
+    int m_cleanupNav = -1;
     std::vector<QWidget *> m_pages;
     SaveButton *m_save;
     ElevationLayer *m_shadows;

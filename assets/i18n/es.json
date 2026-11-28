@@ -777,5 +777,7 @@
   "Version %1 is still running. Close it, then try again.": "La versión %1 sigue en ejecución. Ciérrala e inténtalo de nuevo.",
   "The old version is still running. Close it, then try again.": "La versión antigua sigue en ejecución. Ciérrala e inténtalo de nuevo.",
   "Version %1 was removed. Your library here is unchanged.": "Se eliminó la versión %1. Tu biblioteca aquí no ha cambiado.",
-  "The old version was removed. Your library here is unchanged.": "Se eliminó la versión antigua. Tu biblioteca aquí no ha cambiado."
+  "The old version was removed. Your library here is unchanged.": "Se eliminó la versión antigua. Tu biblioteca aquí no ha cambiado.",
+  "Deleted from library, but playlist changes could not be saved.": "Eliminado de la biblioteca, pero no se pudieron guardar los cambios en las listas.",
+  "Deleted from library, but some sheet files could not be removed.": "Eliminado de la biblioteca, pero no se pudieron quitar algunos archivos de partitura."
 }

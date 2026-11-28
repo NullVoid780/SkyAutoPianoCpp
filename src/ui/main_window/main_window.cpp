@@ -19,8 +19,8 @@
 #include <set>
 
 #include "core/translator.hpp"
-#include "app/player_controller.hpp"
-#include "app/version.hpp"
+#include "ui/controllers/player_controller.hpp"
+#include "core/version.hpp"
 #include "core/string_utils.hpp"
 #include "platform/file_dialog.hpp"
 #include "platform/window_attributes.hpp"
@@ -499,7 +499,7 @@ void MainWindow::deleteSelection()
     m_confirm->ask(toQString(LibraryService::deleteConfirmation(selected.size())), [this, selected] {
         const DeleteSummary summary = m_services.library.deleteSheets(selected);
         showToast(LibraryService::deleteToast(summary));
-        if (!summary.deletedKeys.empty()) {
+        if (summary.indexCommitted && !summary.deletedKeys.empty()) {
             setBulkMode(false);
         }
     });
@@ -594,13 +594,17 @@ void MainWindow::handleMenuAction(int rawAction)
         m_services.playlists.moveSheet(m_activePlaylistId, key, 1);
         break;
     case SheetAction::RemoveFromPlaylist:
-        m_services.playlists.removeSheet(m_activePlaylistId, key);
-        break;
-    case SheetAction::Delete:
-        if (auto removed = m_services.library.deleteSheet(m_menuLibraryIndex); !removed) {
+        if (auto removed = m_services.playlists.removeSheet(m_activePlaylistId, key); !removed) {
             showToast(Toast{ToastType::Error, {}, removed.error().userMessage, kDefaultToastMs});
         }
         break;
+    case SheetAction::Delete: {
+        const DeleteSummary summary = m_services.library.deleteSheet(m_menuLibraryIndex);
+        if (!summary.ok()) {
+            showToast(LibraryService::deleteToast(summary));
+        }
+        break;
+    }
     default:
         break;
     }

@@ -8,8 +8,7 @@
 
 using namespace sky;
 
-TEST_CASE("creating playlists validates and persists names")
-{
+TEST_CASE("creating playlists validates and persists names") {
     ensureCoreApp();
     TempDir dir;
     PlaylistService service(dir.path());
@@ -39,8 +38,7 @@ TEST_CASE("creating playlists validates and persists names")
     CHECK(reloaded.playlists()[0].name == "Favourites");
 }
 
-TEST_CASE("renaming requires a unique non-empty name")
-{
+TEST_CASE("renaming requires a unique non-empty name") {
     ensureCoreApp();
     TempDir dir;
     PlaylistService service(dir.path());
@@ -55,8 +53,7 @@ TEST_CASE("renaming requires a unique non-empty name")
     CHECK(service.find(a)->name == "a");
 }
 
-TEST_CASE("sheets are added, reordered and removed by payload key")
-{
+TEST_CASE("sheets are added, reordered and removed by payload key") {
     ensureCoreApp();
     TempDir dir;
     PlaylistService service(dir.path());
@@ -81,18 +78,18 @@ TEST_CASE("sheets are added, reordered and removed by payload key")
 
     CHECK(service.moveSheet(id, "three.json", -1));
     CHECK_FALSE(service.moveSheet(id, "one.json", -1));
-    CHECK(service.find(id)->sheetKeys == std::vector<std::string>{"one.json", "three.json", "two.json"});
+    CHECK(service.find(id)->sheetKeys ==
+          std::vector<std::string>{"one.json", "three.json", "two.json"});
 
-    service.removeSheetsEverywhere({"three.json"});
-    service.removeSheet(id, "one.json");
+    REQUIRE(service.removeSheetsEverywhere({"three.json"}).ok());
+    REQUIRE(service.removeSheet(id, "one.json").ok());
     CHECK(service.find(id)->sheetKeys == std::vector<std::string>{"two.json"});
 
     CHECK(service.remove(id));
     CHECK(service.playlists().empty());
 }
 
-TEST_CASE("loading drops invalid playlists and duplicate keys")
-{
+TEST_CASE("loading drops invalid playlists and duplicate keys") {
     ensureCoreApp();
     TempDir dir;
     {
@@ -106,8 +103,7 @@ TEST_CASE("loading drops invalid playlists and duplicate keys")
     CHECK(service.playlists()[0].sheetKeys == std::vector<std::string>{"a", "b"});
 }
 
-TEST_CASE("playlists.json round-trips with four-space indentation")
-{
+TEST_CASE("playlists.json round-trips with four-space indentation") {
     ensureCoreApp();
     TempDir dir;
     PlaylistService service(dir.path());
@@ -116,5 +112,51 @@ TEST_CASE("playlists.json round-trips with four-space indentation")
     (void)service.addSheet(id, "k.json");
     const std::string text = readTextFile(dir.path() / "playlists.json").value();
     CHECK(text == "[\n    {\n        \"id\": \"" + id +
-                      "\",\n        \"name\": \"Mix\",\n        \"sheetKeys\": [\n            \"k.json\"\n        ]\n    }\n]");
+                      "\",\n        \"name\": \"Mix\",\n        \"sheetKeys\": [\n            "
+                      "\"k.json\"\n        ]\n    }\n]");
+}
+
+TEST_CASE(
+    "playlist mutations restore in-memory state and suppress changed signal when save fails") {
+    ensureCoreApp();
+    TempDir dir;
+    bool failWrite = false;
+    StorageFileOps ops = StorageFileOps::native();
+    ops.atomicWrite = [&](const std::filesystem::path &file,
+                          std::string_view bytes) -> Result<void> {
+        if (failWrite) {
+            return Error{"WRITE_FAILED", "Playlist write blocked", "injected"};
+        }
+        return StorageFileOps::native().atomicWrite(file, bytes);
+    };
+
+    PlaylistService service(dir.path(), ops);
+    service.load();
+    const std::string id = service.create("Mix").value().id;
+    REQUIRE(service.addSheets(id, {"a.json", "b.json"}).ok());
+
+    int changedCount = 0;
+    QObject::connect(&service, &PlaylistService::changed, [&] { ++changedCount; });
+
+    failWrite = true;
+    CHECK_FALSE(service.create("Second").ok());
+    CHECK(service.playlists().size() == 1);
+    CHECK_FALSE(service.rename(id, "Renamed").ok());
+    CHECK(service.find(id)->name == "Mix");
+    CHECK_FALSE(service.addSheet(id, "c.json").ok());
+    CHECK_FALSE(service.addSheets(id, {"c.json"}).ok());
+    CHECK_FALSE(service.removeSheet(id, "a.json").ok());
+    CHECK_FALSE(service.moveSheet(id, "b.json", -1));
+    CHECK_FALSE(service.removeSheetsEverywhere({"a.json"}).ok());
+    CHECK_FALSE(service.remove(id));
+    CHECK(service.playlists().size() == 1);
+    CHECK(service.find(id)->sheetKeys == std::vector<std::string>{"a.json", "b.json"});
+    CHECK(changedCount == 0);
+    CHECK(service.lastError().has_value());
+
+    PlaylistService reloaded(dir.path());
+    reloaded.load();
+    REQUIRE(reloaded.playlists().size() == 1);
+    CHECK(reloaded.find(id)->name == "Mix");
+    CHECK(reloaded.find(id)->sheetKeys == std::vector<std::string>{"a.json", "b.json"});
 }

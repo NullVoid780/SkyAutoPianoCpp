@@ -777,5 +777,7 @@
   "Version %1 is still running. Close it, then try again.": "版本 %1 仍在运行。请先关闭它，然后重试。",
   "The old version is still running. Close it, then try again.": "旧版本仍在运行。请先关闭它，然后重试。",
   "Version %1 was removed. Your library here is unchanged.": "版本 %1 已删除。你在这里的曲库没有变化。",
-  "The old version was removed. Your library here is unchanged.": "旧版本已删除。你在这里的曲库没有变化。"
+  "The old version was removed. Your library here is unchanged.": "旧版本已删除。你在这里的曲库没有变化。",
+  "Deleted from library, but playlist changes could not be saved.": "已从曲库删除，但无法保存歌单更改。",
+  "Deleted from library, but some sheet files could not be removed.": "已从曲库删除，但部分曲谱文件无法移除。"
 }

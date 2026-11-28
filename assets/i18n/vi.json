@@ -777,5 +777,7 @@
   "Version %1 is still running. Close it, then try again.": "Phiên bản %1 vẫn đang chạy. Hãy đóng nó rồi thử lại.",
   "The old version is still running. Close it, then try again.": "Phiên bản cũ vẫn đang chạy. Hãy đóng nó rồi thử lại.",
   "Version %1 was removed. Your library here is unchanged.": "Đã gỡ phiên bản %1. Thư viện của bạn ở đây không thay đổi.",
-  "The old version was removed. Your library here is unchanged.": "Đã gỡ phiên bản cũ. Thư viện của bạn ở đây không thay đổi."
+  "The old version was removed. Your library here is unchanged.": "Đã gỡ phiên bản cũ. Thư viện của bạn ở đây không thay đổi.",
+  "Deleted from library, but playlist changes could not be saved.": "Đã xóa khỏi thư viện, nhưng không thể lưu thay đổi danh sách phát.",
+  "Deleted from library, but some sheet files could not be removed.": "Đã xóa khỏi thư viện, nhưng một số tệp sheet không thể xóa."
 }

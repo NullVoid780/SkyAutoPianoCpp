@@ -7,6 +7,7 @@
 #include <array>
 #include <system_error>
 
+#include "core/translator.hpp"
 #include "core/string_utils.hpp"
 #include "core/text_file.hpp"
 #include "services/library/chromium_local_storage.hpp"
@@ -238,7 +239,7 @@ Result<LegacyImportPlan> planLegacyImport(const LegacyInstall &install, const st
 {
     const auto list = readJson(install.dataDirectory / "listSheet.json");
     if (!list || !list->is_array()) {
-        return Error{"LEGACY_INVALID", "That folder does not contain songs from Sky Auto Piano.", {}};
+        return Error{"LEGACY_INVALID", trUtf8("That folder does not contain songs from Sky Auto Piano."), {}};
     }
     LegacyImportPlan plan;
     plan.install = install;

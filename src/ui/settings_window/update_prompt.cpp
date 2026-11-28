@@ -13,6 +13,7 @@
 
 #include <algorithm>
 
+#include "core/translator.hpp"
 #include "ui/render/icon_cache.hpp"
 #include "ui/render/paint_utils.hpp"
 #include "ui/settings_window/action_button.hpp"
@@ -46,7 +47,7 @@ UpdatePrompt::UpdatePrompt(QWidget *window)
       m_versionOld(new QLabel(m_panel)),
       m_arrow(new QLabel(m_panel)),
       m_versionNew(new QLabel(m_panel)),
-      m_critical(new QLabel(QStringLiteral("This update includes an important fix. Please install it."), m_panel)),
+      m_critical(new QLabel(tr("This update includes an important fix. Please install it."), m_panel)),
       m_notes(new MarkdownView(MarkdownView::Style{13, [] { return currentTheme().update.promptBody; },
                                                    [] { return currentTheme().update.versionNew; },
                                                    [] { return currentTheme().update.codeFill; },
@@ -58,9 +59,9 @@ UpdatePrompt::UpdatePrompt(QWidget *window)
                                  m_panel)),
       m_status(new QLabel(m_panel)),
       m_primary(new ActionButton(ActionButton::Kind::UpdateNow, QStringLiteral("download"),
-                                 QStringLiteral("Update now"), m_panel)),
-      m_later(new ActionButton(ActionButton::Kind::Later, QString(), QStringLiteral("Not now"), m_panel)),
-      m_github(new QPushButton(QStringLiteral("View on GitHub"), m_panel)),
+                                 tr("Update now"), m_panel)),
+      m_later(new ActionButton(ActionButton::Kind::Later, QString(), tr("Not now"), m_panel)),
+      m_github(new QPushButton(tr("View on GitHub"), m_panel)),
       m_close(new IconButton(QStringLiteral("x-lg"), kCloseIcon, QSize(kCloseBox, kCloseBox),
                              IconButtonStyle{[] { return currentTheme().update.promptVersion; },
                                              [] { return currentTheme().update.promptHeading; }},
@@ -81,7 +82,7 @@ UpdatePrompt::UpdatePrompt(QWidget *window)
     notesBar->style()->polish(notesBar);
     m_status->setObjectName(QStringLiteral("UpdatePromptStatus"));
     m_status->setWordWrap(true);
-    m_close->setToolTip(QStringLiteral("Close"));
+    m_close->setToolTip(tr("Close"));
     m_github->setObjectName(QStringLiteral("UpdatePromptLink"));
     m_github->setCursor(Qt::PointingHandCursor);
     m_github->setFlat(true);
@@ -154,13 +155,13 @@ void UpdatePrompt::present(const QString &currentVersion, const QString &latestV
     m_currentVersion = currentVersion;
     m_latestVersion = latestVersion;
     m_state = State::Offer;
-    m_heading->setText(QStringLiteral("A new update is available!"));
+    m_heading->setText(tr("A new update is available!"));
     refreshVersion();
     m_critical->setVisible(critical);
     m_primary->setBusy(false);
-    m_primary->setText(QStringLiteral("Update now"));
+    m_primary->setText(tr("Update now"));
     m_primary->setIconId(QStringLiteral("download"));
-    m_later->setText(QStringLiteral("Not now"));
+    m_later->setText(tr("Not now"));
     m_later->setVisible(true);
     m_progress->setVisible(false);
     m_progress->setValue(0);
@@ -193,25 +194,25 @@ void UpdatePrompt::fitNotes()
 void UpdatePrompt::showDownloading(int percent)
 {
     m_state = State::Downloading;
-    m_primary->setBusy(true, QStringLiteral("Downloading..."));
+    m_primary->setBusy(true, tr("Downloading..."));
     m_later->setVisible(false);
     m_progress->setVisible(true);
     m_progress->setValue(percent);
-    setStatus(QStringLiteral("Downloading update... %1%").arg(percent), false);
+    setStatus(tr("Downloading update... %1%").arg(percent), false);
 }
 
 void UpdatePrompt::showReady()
 {
     m_state = State::Ready;
-    m_heading->setText(QStringLiteral("Update ready to install"));
+    m_heading->setText(tr("Update ready to install"));
     m_primary->setBusy(false);
-    m_primary->setText(QStringLiteral("Restart now"));
+    m_primary->setText(tr("Restart now"));
     m_primary->setIconId(QStringLiteral("update"));
-    m_later->setText(QStringLiteral("Later"));
+    m_later->setText(tr("Later"));
     m_later->setVisible(true);
     m_progress->setVisible(true);
     m_progress->setValue(100);
-    setStatus(QStringLiteral("Downloaded and checked. It will also install automatically when you close the app."),
+    setStatus(tr("Downloaded and checked. It will also install automatically when you close the app."),
               false);
     m_primary->setFocus(Qt::OtherFocusReason);
 }
@@ -220,9 +221,9 @@ void UpdatePrompt::showFailed(const QString &message)
 {
     m_state = State::Failed;
     m_primary->setBusy(false);
-    m_primary->setText(QStringLiteral("Try again"));
+    m_primary->setText(tr("Try again"));
     m_primary->setIconId(QStringLiteral("update"));
-    m_later->setText(QStringLiteral("Not now"));
+    m_later->setText(tr("Not now"));
     m_later->setVisible(true);
     m_progress->setVisible(false);
     setStatus(message, true);

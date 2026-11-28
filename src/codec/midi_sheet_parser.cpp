@@ -6,6 +6,7 @@
 #include <string>
 #include <utility>
 
+#include "core/translator.hpp"
 #include "codec/midi_file.hpp"
 #include "codec/sheet_error.hpp"
 #include "core/string_utils.hpp"
@@ -56,15 +57,16 @@ double jsRound(double value)
 Result<OrderedJson> parseMidiSheet(std::span<const std::byte> content, std::string_view fileStem)
 {
     if (content.empty()) {
-        return sheetError(SheetErrorCode::EmptyMidi, "The selected MIDI file is empty.");
+        return sheetError(SheetErrorCode::EmptyMidi, trUtf8("The selected MIDI file is empty."));
     }
     auto parsed = readMidiFile(content);
     if (!parsed) {
         if (parsed.error().code == kMidiNotMidiCode) {
-            return sheetError(SheetErrorCode::InvalidMidi, "The MIDI file does not contain any tracks.");
+            return sheetError(SheetErrorCode::InvalidMidi, trUtf8("The MIDI file does not contain any tracks."));
         }
         const std::string &detail = parsed.error().details;
-        return sheetError(SheetErrorCode::InvalidMidi, "Invalid MIDI file: " + detail, detail);
+        return sheetError(SheetErrorCode::InvalidMidi,
+                          fromQString(tr("Invalid MIDI file: %1").arg(toQString(detail))), detail);
     }
     const MidiFile &midi = parsed.value();
 

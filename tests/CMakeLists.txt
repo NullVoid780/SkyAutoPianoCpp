@@ -34,6 +34,7 @@ add_executable(skyautopiano_tests
     ui/test_key_capture.cpp
     ui/test_theme_catalog.cpp
     ui/test_theme_tokens.cpp
+    ui/test_translations.cpp
 )
 target_include_directories(skyautopiano_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/support)
 target_compile_definitions(skyautopiano_tests PRIVATE SKY_QSS_PATH="${CMAKE_SOURCE_DIR}/src/ui/styles/app.qss"
@@ -42,6 +43,9 @@ target_link_libraries(skyautopiano_tests PRIVATE sky_ui sky_services sky_codec s
 file(GLOB_RECURSE SKY_TEST_SOUNDPACK_FILES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/assets/soundpack/*.mp3)
 qt_add_resources(skyautopiano_tests sky_test_soundpack PREFIX "/soundpack" BASE ${CMAKE_SOURCE_DIR}/assets/soundpack
                  FILES ${SKY_TEST_SOUNDPACK_FILES})
+file(GLOB SKY_TEST_I18N_FILES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/assets/i18n/*.json)
+qt_add_resources(skyautopiano_tests sky_test_i18n PREFIX "/i18n" BASE ${CMAKE_SOURCE_DIR}/assets/i18n
+                 FILES ${SKY_TEST_I18N_FILES})
 
 add_custom_command(TARGET skyautopiano_tests POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

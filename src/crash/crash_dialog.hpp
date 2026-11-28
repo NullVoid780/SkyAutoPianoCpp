@@ -12,6 +12,7 @@ struct CrashDialogContent {
     std::wstring reportName;
     std::filesystem::path folder;
     std::wstring details;
+    std::string language;
 };
 
 CrashDialogChoice showCrashDialog(const CrashDialogContent &content);

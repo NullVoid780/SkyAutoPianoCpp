@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "core/string_utils.hpp"
+#include "core/translator.hpp"
 #include "codec/relaxed_json.hpp"
 #include "codec/sheet_error.hpp"
 
@@ -14,7 +16,7 @@ Result<OrderedJson> unwrapSheet(OrderedJson parsed)
 {
     if (parsed.is_array()) {
         if (parsed.empty()) {
-            return sheetError(SheetErrorCode::EmptySheetArray, "The sheet JSON array is empty.");
+            return sheetError(SheetErrorCode::EmptySheetArray, trUtf8("The sheet JSON array is empty."));
         }
         return std::move(parsed[0]);
     }
@@ -22,7 +24,7 @@ Result<OrderedJson> unwrapSheet(OrderedJson parsed)
         return parsed;
     }
     return sheetError(SheetErrorCode::InvalidJsonRoot,
-                      "The sheet JSON must be an object or an array containing one object.");
+                      trUtf8("The sheet JSON must be an object or an array containing one object."));
 }
 
 std::string parserMessage(const std::string &what)
@@ -55,12 +57,14 @@ Result<OrderedJson> parseJsonSheet(std::string_view text)
     auto relaxed = parseJson<OrderedJson>(toRelaxedJson(unwrapped));
     if (!relaxed) {
         const std::string detail = parserMessage(relaxed.error().userMessage);
-        return sheetError(SheetErrorCode::InvalidJson, "Invalid sheet JSON: " + detail, detail);
+        return sheetError(SheetErrorCode::InvalidJson,
+                          fromQString(tr("Invalid sheet JSON: %1").arg(toQString(detail))), detail);
     }
     auto sheet = unwrapSheet(std::move(relaxed).value());
     if (!sheet) {
         const std::string &detail = sheet.error().userMessage;
-        return sheetError(SheetErrorCode::InvalidJson, "Invalid sheet JSON: " + detail, detail);
+        return sheetError(SheetErrorCode::InvalidJson,
+                          fromQString(tr("Invalid sheet JSON: %1").arg(toQString(detail))), detail);
     }
     return sheet;
 }

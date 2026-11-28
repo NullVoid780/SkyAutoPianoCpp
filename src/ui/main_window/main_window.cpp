@@ -18,6 +18,7 @@
 #include <cmath>
 #include <set>
 
+#include "core/translator.hpp"
 #include "app/player_controller.hpp"
 #include "app/version.hpp"
 #include "core/string_utils.hpp"
@@ -64,12 +65,12 @@ constexpr int kAddBottom = 5;
 constexpr int kScrollTopRight = 20;
 constexpr int kScrollTopBottom = 170;
 
-const QString kLocalPlaceholder = QStringLiteral("Search the music sheet or author name...");
-const QString kStorePlaceholder = QStringLiteral("Search title, artist, or transcriber...");
+constexpr const char *kLocalPlaceholder = trNoop("Search the music sheet or author name...");
+constexpr const char *kStorePlaceholder = trNoop("Search title, artist, or transcriber...");
 
 QPushButton *makeBulkToggle(QWidget *parent)
 {
-    auto *button = new QPushButton(QStringLiteral("Multi-select"), parent);
+    auto *button = new QPushButton(tr("Multi-select"), parent);
     button->setObjectName(QStringLiteral("NeutralButton"));
     button->setCheckable(true);
     button->setCursor(Qt::PointingHandCursor);
@@ -83,7 +84,7 @@ MainWindow::MainWindow(MainWindowServices services, QWidget *parent) : QWidget(p
     setObjectName(QStringLiteral("MainWindow"));
     setAttribute(Qt::WA_StyledBackground);
     setFocusPolicy(Qt::ClickFocus);
-    setWindowTitle(QStringLiteral("Sky Auto Piano (Version: %1)").arg(QLatin1String(kAppVersion)));
+    setWindowTitle(tr("Sky Auto Piano (Version: %1)").arg(QLatin1String(kAppVersion)));
     setWindowIcon(QIcon(QStringLiteral(":/icon/Icon9.ico")));
     resize(750, 600);
     setMinimumSize(700, 200);
@@ -159,8 +160,8 @@ void MainWindow::buildLayout()
 
     m_model = new LibraryModel(m_services.library, m_services.favorites, m_services.recent, this);
     m_empty = new StateCard(m_localPage);
-    m_empty->setContent(QStringLiteral("No sheets found."),
-                        QStringLiteral("Import a local sheet with the plus button, or switch tabs."));
+    m_empty->setContent(tr("No sheets found."),
+                        tr("Import a local sheet with the plus button, or switch tabs."));
     m_list = new LibraryView(m_model, m_localPage);
     local->addWidget(m_empty);
     local->addWidget(m_list, 1);
@@ -289,7 +290,7 @@ void MainWindow::wireNavigation()
         setFocus();
     });
     connect(m_drawer, &NavDrawer::openChanged, this, [this](bool open) {
-        const QString label = open ? QStringLiteral("Close navigation") : QStringLiteral("Open navigation");
+        const QString label = open ? tr("Close navigation") : tr("Open navigation");
         m_navToggle->setToolTip(label);
         m_navToggle->setAccessibleName(label);
     });
@@ -338,7 +339,7 @@ void MainWindow::setActiveTab(LibraryTab tab)
     m_addButton->setVisible(!store);
     {
         const QSignalBlocker blocker(m_search);
-        m_search->setPlaceholderText(store ? kStorePlaceholder : kLocalPlaceholder);
+        m_search->setPlaceholderText(tr(store ? kStorePlaceholder : kLocalPlaceholder));
         m_search->setText(store ? m_storeView->query() : m_localQuery);
     }
     if (store) {
@@ -418,7 +419,7 @@ void MainWindow::refreshBulkToolbar()
 {
     const bool bulk = m_model->bulkMode();
     m_bulkToolbar->setVisible(bulk && showingLocalList());
-    const QString label = bulk ? QStringLiteral("Exit multi-select") : QStringLiteral("Multi-select");
+    const QString label = bulk ? tr("Exit multi-select") : tr("Multi-select");
     for (QPushButton *toggle : {m_bulkToggle, m_bulkEntryToggle}) {
         const QSignalBlocker blocker(toggle);
         toggle->setText(label);
@@ -467,7 +468,7 @@ void MainWindow::addSelectionToPlaylist()
 {
     const Playlist *playlist = m_services.playlists.find(m_bulkPlaylistId);
     if (!playlist) {
-        showToast(Toast{ToastType::Warning, {}, "Create or select a playlist first.", kDefaultToastMs});
+        showToast(Toast{ToastType::Warning, {}, trUtf8("Create or select a playlist first."), kDefaultToastMs});
         return;
     }
     std::vector<std::string> keys;
@@ -519,24 +520,24 @@ void MainWindow::openSheetMenu(int libraryIndex, const QRect &anchor)
     m_menuLibraryIndex = libraryIndex;
     const bool favorite = m_services.favorites.isFavorite(entry->name());
     std::vector<SheetActionEntry> entries{
-        {SheetAction::Favorite, favorite ? QStringLiteral("Unfavorite") : QStringLiteral("Favorite"), QStringLiteral("heart"),
+        {SheetAction::Favorite, favorite ? tr("Unfavorite") : tr("Favorite"), QStringLiteral("heart"),
          true, false, favorite},
-        {SheetAction::Edit, QStringLiteral("Edit"), QStringLiteral("sheet-editor")},
-        {SheetAction::AddToPlaylist, QStringLiteral("Add to playlist"), QStringLiteral("collection-plus")},
+        {SheetAction::Edit, tr("Edit"), QStringLiteral("sheet-editor")},
+        {SheetAction::AddToPlaylist, tr("Add to playlist"), QStringLiteral("collection-plus")},
     };
     if (m_tab == LibraryTab::Playlists && !m_activePlaylistId.empty()) {
         const Playlist *playlist = m_services.playlists.find(m_activePlaylistId);
         const auto &keys = playlist->sheetKeys;
         const auto position = std::find(keys.begin(), keys.end(), entry->payloadFile());
         if (position != keys.end()) {
-            entries.push_back({SheetAction::MoveUp, QStringLiteral("Move up"), QStringLiteral("arrow-up-short"),
+            entries.push_back({SheetAction::MoveUp, tr("Move up"), QStringLiteral("arrow-up-short"),
                                position != keys.begin()});
-            entries.push_back({SheetAction::MoveDown, QStringLiteral("Move down"), QStringLiteral("arrow-down-short"),
+            entries.push_back({SheetAction::MoveDown, tr("Move down"), QStringLiteral("arrow-down-short"),
                                position + 1 != keys.end()});
         }
-        entries.push_back({SheetAction::RemoveFromPlaylist, QStringLiteral("Remove from playlist"), QStringLiteral("dash-circle")});
+        entries.push_back({SheetAction::RemoveFromPlaylist, tr("Remove from playlist"), QStringLiteral("dash-circle")});
     }
-    entries.push_back({SheetAction::Delete, QStringLiteral("Delete"), QStringLiteral("trash3"), true, true});
+    entries.push_back({SheetAction::Delete, tr("Delete"), QStringLiteral("trash3"), true, true});
     m_menu->setEntries(std::move(entries));
     m_menu->popupBeside(anchor, QRect(mapToGlobal(QPoint(0, 0)), size()));
 }
@@ -546,8 +547,8 @@ void MainWindow::openPlaylistMenu(const std::string &playlistId, const QRect &an
     m_menuContext = MenuContext::Playlist;
     m_menuPlaylistId = playlistId;
     m_menu->setEntries({
-        {SheetAction::Rename, QStringLiteral("Rename"), QStringLiteral("pencil")},
-        {SheetAction::Delete, QStringLiteral("Delete"), QStringLiteral("trash3"), true, true},
+        {SheetAction::Rename, tr("Rename"), QStringLiteral("pencil")},
+        {SheetAction::Delete, tr("Delete"), QStringLiteral("trash3"), true, true},
     });
     m_menu->popupBeside(anchor, QRect(mapToGlobal(QPoint(0, 0)), size()));
 }
@@ -560,7 +561,7 @@ void MainWindow::handleMenuAction(int rawAction)
         if (action == SheetAction::Rename) {
             m_picker->openForRename(id);
         } else if (action == SheetAction::Delete) {
-            m_confirm->ask(QStringLiteral("Delete this playlist? Sheets will remain in your library."), [this, id] {
+            m_confirm->ask(tr("Delete this playlist? Sheets will remain in your library."), [this, id] {
                 m_services.playlists.remove(id);
                 if (m_activePlaylistId == id) {
                     m_activePlaylistId.clear();

@@ -101,7 +101,7 @@ core      logging, files, text, timing     (src/core)
 
 ```
 SkyAutoPianoCpp/
-├── assets/           fonts, icons, the app icon and the soundpack
+├── assets/           fonts, icons, app icon, soundpack, translations
 ├── cmake/            helper CMake scripts
 ├── docs/             install, user and release guides
 ├── libs/skyinput/    sends key presses to the game
@@ -187,6 +187,23 @@ The app updates itself from this repository's GitHub releases, so a release must
 4. Paste the notes into the release description. **This is what users see in the update window.**
    Add `<!-- critical -->` for an important fix. Anything after a `---` line only shows on GitHub.
 5. Publish it as a normal release, not a draft or pre-release.
+
+## Translations
+
+The app comes in English, Vietnamese, Simplified Chinese, Japanese and Spanish. By default it
+follows the Windows language, and **Settings → General → Language** picks one by hand.
+
+- Put every text people see through `tr("…")`. Use `trUtf8("…")` where the code needs a
+  `std::string`, and `trNoop("…")` for text in a table that is translated where it's shown.
+- Write whole sentences with `%1`, `%2` for the parts that change, never glue pieces together.
+  Counts get one text for 1 and one for more, for example
+  `trCount(n, trNoop("1 song"), trNoop("%1 songs"))`.
+- Add each new text with its translation to every file in `assets/i18n/`. The English text is the
+  key.
+
+> [!TIP]
+> The tests list any text that is missing from a language file, any unused entry, any translation
+> that lost a `%1`, and any visible text that skips `tr()`.
 
 ## The website
 

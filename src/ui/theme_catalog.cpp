@@ -1,3 +1,4 @@
+#include "core/translator.hpp"
 #include "ui/theme_catalog.hpp"
 
 #include <QRegularExpression>
@@ -19,7 +20,7 @@ ThemeSlot slot(const char *id, const char *label, FieldRef field)
 {
     ThemeSlot result;
     result.id = QString::fromLatin1(id);
-    result.label = QString::fromUtf8(label);
+    result.label = tr(label);
     result.read = [field](const Theme &theme) { return field(const_cast<Theme &>(theme)); };
     result.write = [field](Theme &theme, const QColor &color) { field(theme) = color; };
     return result;
@@ -45,7 +46,7 @@ ThemeSlot coreSlot(const char *id, const char *label, FieldRef field)
 ThemeSection section(const char *id, const char *title, const char *description, const char *iconId,
                      std::vector<ThemeSlot> entries, PreviewScene scene = PreviewScene::Main)
 {
-    return ThemeSection{QString::fromLatin1(id), QString::fromUtf8(title), QString::fromUtf8(description),
+    return ThemeSection{QString::fromLatin1(id), tr(title), tr(description),
                         QString::fromLatin1(iconId), std::move(entries), scene};
 }
 
@@ -53,132 +54,132 @@ std::vector<ThemeSection> makeSections()
 {
     std::vector<ThemeSection> sections;
     sections.push_back(section(
-        "app", "Everyday Colors", "The base colors most of the app is built from.", "palette",
+        "app", trNoop("Everyday Colors"), trNoop("The base colors most of the app is built from."), "palette",
         {
-            coreSlot("app.surface", "Base surface", [](Theme &t) -> QColor & { return t.background; }),
-            coreSlot("app.text", "Text", [](Theme &t) -> QColor & { return t.fontColor; }),
-            coreSlot("app.accent", "Accent", [](Theme &t) -> QColor & { return t.hoverColor; }),
-            slot("app.success", "Success", [](Theme &t) -> QColor & { return t.successColor; }),
-            slot("app.error", "Error", [](Theme &t) -> QColor & { return t.errorColor; }),
+            coreSlot("app.surface", trNoop("Base surface"), [](Theme &t) -> QColor & { return t.background; }),
+            coreSlot("app.text", trNoop("Text"), [](Theme &t) -> QColor & { return t.fontColor; }),
+            coreSlot("app.accent", trNoop("Accent"), [](Theme &t) -> QColor & { return t.hoverColor; }),
+            slot("app.success", trNoop("Success"), [](Theme &t) -> QColor & { return t.successColor; }),
+            slot("app.error", trNoop("Error"), [](Theme &t) -> QColor & { return t.errorColor; }),
         }));
     sections.push_back(section(
-        "main", "Main Window", "The song library window behind everything else.", "music-note-list",
+        "main", trNoop("Main Window"), trNoop("The song library window behind everything else."), "music-note-list",
         {
-            slot("main.window", "Window background", [](Theme &t) -> QColor & { return t.windowMain; },
+            slot("main.window", trNoop("Window background"), [](Theme &t) -> QColor & { return t.windowMain; },
                  [](Theme &t, const QColor &c) { t.prePaint = c; }),
-            slot("main.searchFill", "Search box", [](Theme &t) -> QColor & { return t.searchBg; }),
-            slot("main.searchText", "Search text", [](Theme &t) -> QColor & { return t.searchText; },
+            slot("main.searchFill", trNoop("Search box"), [](Theme &t) -> QColor & { return t.searchBg; }),
+            slot("main.searchText", trNoop("Search text"), [](Theme &t) -> QColor & { return t.searchText; },
                  [](Theme &t, const QColor &c) { t.searchPlaceholder = withAlpha(c, 0.7); }),
-            slot("main.searchIcon", "Search icon", [](Theme &t) -> QColor & { return t.searchIcon; }),
-            slot("main.buttonBorder", "Button border", [](Theme &t) -> QColor & { return t.neutralBorder; }),
-            slot("main.scrollbar", "Scrollbar", [](Theme &t) -> QColor & { return t.scrollHandle; },
+            slot("main.searchIcon", trNoop("Search icon"), [](Theme &t) -> QColor & { return t.searchIcon; }),
+            slot("main.buttonBorder", trNoop("Button border"), [](Theme &t) -> QColor & { return t.neutralBorder; }),
+            slot("main.scrollbar", trNoop("Scrollbar"), [](Theme &t) -> QColor & { return t.scrollHandle; },
                  [](Theme &t, const QColor &c) { t.scrollHandleHover = c; }),
         }));
     sections.push_back(section(
-        "title", "Title Bar", "The bar at the top of every window, with the close button.", "window",
+        "title", trNoop("Title Bar"), trNoop("The bar at the top of every window, with the close button."), "window",
         {
-            slot("title.fill", "Background", [](Theme &t) -> QColor & { return t.titleBarFill; }),
-            slot("title.text", "Title text", [](Theme &t) -> QColor & { return t.titleBarText; }),
-            slot("title.border", "Window border", [](Theme &t) -> QColor & { return t.windowBorder; }),
+            slot("title.fill", trNoop("Background"), [](Theme &t) -> QColor & { return t.titleBarFill; }),
+            slot("title.text", trNoop("Title text"), [](Theme &t) -> QColor & { return t.titleBarText; }),
+            slot("title.border", trNoop("Window border"), [](Theme &t) -> QColor & { return t.windowBorder; }),
         }));
     sections.push_back(section(
-        "card", "Song Cards", "Cards for songs, playlists and the store.", "music-note-beamed",
+        "card", trNoop("Song Cards"), trNoop("Cards for songs, playlists and the store."), "music-note-beamed",
         {
-            slot("card.fill", "Card background", [](Theme &t) -> QColor & { return t.cardFill; }),
-            slot("card.text", "Title and values", [](Theme &t) -> QColor & { return t.cardText; }),
-            slot("card.label", "Labels", [](Theme &t) -> QColor & { return t.cardLabelTint; }),
-            slot("card.edge", "Top edge", [](Theme &t) -> QColor & { return t.cardTopEdge; }),
-            slot("card.author", "Author icon", [](Theme &t) -> QColor & { return t.authorIcon; }),
-            slot("card.transcriber", "Transcriber icon", [](Theme &t) -> QColor & { return t.transcriberIcon; }),
-            slot("card.bpm", "BPM icon", [](Theme &t) -> QColor & { return t.bpmIcon; }),
-            slot("card.hold", "Hold badge", [](Theme &t) -> QColor & { return t.holdBadgeFill; }),
-            slot("card.menu", "Menu button", [](Theme &t) -> QColor & { return t.actionGlyph; }),
-            slot("card.selected", "Selected outline", [](Theme &t) -> QColor & { return t.cardSelectedOutline; },
+            slot("card.fill", trNoop("Card background"), [](Theme &t) -> QColor & { return t.cardFill; }),
+            slot("card.text", trNoop("Title and values"), [](Theme &t) -> QColor & { return t.cardText; }),
+            slot("card.label", trNoop("Labels"), [](Theme &t) -> QColor & { return t.cardLabelTint; }),
+            slot("card.edge", trNoop("Top edge"), [](Theme &t) -> QColor & { return t.cardTopEdge; }),
+            slot("card.author", trNoop("Author icon"), [](Theme &t) -> QColor & { return t.authorIcon; }),
+            slot("card.transcriber", trNoop("Transcriber icon"), [](Theme &t) -> QColor & { return t.transcriberIcon; }),
+            slot("card.bpm", trNoop("BPM icon"), [](Theme &t) -> QColor & { return t.bpmIcon; }),
+            slot("card.hold", trNoop("Hold badge"), [](Theme &t) -> QColor & { return t.holdBadgeFill; }),
+            slot("card.menu", trNoop("Menu button"), [](Theme &t) -> QColor & { return t.actionGlyph; }),
+            slot("card.selected", trNoop("Selected outline"), [](Theme &t) -> QColor & { return t.cardSelectedOutline; },
                  [](Theme &t, const QColor &c) { t.cardSelectedTint = c; }),
-            slot("card.favorite", "Favorite heart", [](Theme &t) -> QColor & { return t.heartOn; }),
-            slot("card.storeTag", "Store tags", [](Theme &t) -> QColor & { return t.storeBadgeFill; }),
+            slot("card.favorite", trNoop("Favorite heart"), [](Theme &t) -> QColor & { return t.heartOn; }),
+            slot("card.storeTag", trNoop("Store tags"), [](Theme &t) -> QColor & { return t.storeBadgeFill; }),
         }));
     sections.push_back(section(
-        "footer", "Player Bar", "The bar at the bottom with the song, progress and buttons.", "play-circle",
+        "footer", trNoop("Player Bar"), trNoop("The bar at the bottom with the song, progress and buttons."), "play-circle",
         {
-            slot("footer.fill", "Bar background", [](Theme &t) -> QColor & { return t.footerFill; }),
-            slot("footer.text", "Text and icons", [](Theme &t) -> QColor & { return t.footerText; }),
-            slot("footer.edge", "Top edge", [](Theme &t) -> QColor & { return t.footerTopEdge; }),
-            slot("footer.track", "Progress track", [](Theme &t) -> QColor & { return t.progressGroove; }),
-            slot("footer.played", "Progress played", [](Theme &t) -> QColor & { return t.progressPlayed; }),
-            slot("footer.handle", "Progress handle", [](Theme &t) -> QColor & { return t.progressHandle; }),
-            slot("footer.play", "Play button", [](Theme &t) -> QColor & { return t.transportPlay; },
+            slot("footer.fill", trNoop("Bar background"), [](Theme &t) -> QColor & { return t.footerFill; }),
+            slot("footer.text", trNoop("Text and icons"), [](Theme &t) -> QColor & { return t.footerText; }),
+            slot("footer.edge", trNoop("Top edge"), [](Theme &t) -> QColor & { return t.footerTopEdge; }),
+            slot("footer.track", trNoop("Progress track"), [](Theme &t) -> QColor & { return t.progressGroove; }),
+            slot("footer.played", trNoop("Progress played"), [](Theme &t) -> QColor & { return t.progressPlayed; }),
+            slot("footer.handle", trNoop("Progress handle"), [](Theme &t) -> QColor & { return t.progressHandle; }),
+            slot("footer.play", trNoop("Play button"), [](Theme &t) -> QColor & { return t.transportPlay; },
                  [](Theme &t, const QColor &c) { t.transportPlayHover = hoverShade(c); }),
-            slot("footer.skip", "Previous and next", [](Theme &t) -> QColor & { return t.transportSkip; },
+            slot("footer.skip", trNoop("Previous and next"), [](Theme &t) -> QColor & { return t.transportSkip; },
                  [](Theme &t, const QColor &c) { t.transportSkipHover = hoverShade(c); }),
-            slot("footer.buttonFill", "Button fill", [](Theme &t) -> QColor & { return t.transportFill; }),
-            slot("footer.loop", "Loop icon", [](Theme &t) -> QColor & { return t.loopIcon; },
+            slot("footer.buttonFill", trNoop("Button fill"), [](Theme &t) -> QColor & { return t.transportFill; }),
+            slot("footer.loop", trNoop("Loop icon"), [](Theme &t) -> QColor & { return t.loopIcon; },
                  [](Theme &t, const QColor &c) { t.loopIconHover = hoverShade(c); }),
-            slot("footer.speedFill", "Speed box", [](Theme &t) -> QColor & { return t.speedFieldBg; }),
-            slot("footer.speedText", "Speed text", [](Theme &t) -> QColor & { return t.speedFieldText; }),
-            slot("footer.switch", "Switch track", [](Theme &t) -> QColor & { return t.switchTrackOff; }),
-            slot("footer.knob", "Switch knob", [](Theme &t) -> QColor & { return t.switchKnob; }),
+            slot("footer.speedFill", trNoop("Speed box"), [](Theme &t) -> QColor & { return t.speedFieldBg; }),
+            slot("footer.speedText", trNoop("Speed text"), [](Theme &t) -> QColor & { return t.speedFieldText; }),
+            slot("footer.switch", trNoop("Switch track"), [](Theme &t) -> QColor & { return t.switchTrackOff; }),
+            slot("footer.knob", trNoop("Switch knob"), [](Theme &t) -> QColor & { return t.switchKnob; }),
         }));
     sections.push_back(section(
-        "drawer", "Menu Drawer", "The side menu with All Songs, Favorite, Playlists and Store.", "list",
+        "drawer", trNoop("Menu Drawer"), trNoop("The side menu with All Songs, Favorite, Playlists and Store."), "list",
         {
-            slot("drawer.fill", "Drawer background", [](Theme &t) -> QColor & { return t.drawerFill; }),
-            slot("drawer.text", "Tab text", [](Theme &t) -> QColor & { return t.navIdleText; },
+            slot("drawer.fill", trNoop("Drawer background"), [](Theme &t) -> QColor & { return t.drawerFill; }),
+            slot("drawer.text", trNoop("Tab text"), [](Theme &t) -> QColor & { return t.navIdleText; },
                  [](Theme &t, const QColor &c) { t.navHoverText = c; }),
-            slot("drawer.activeStart", "Active tab", [](Theme &t) -> QColor & { return t.navActiveStart; }),
-            slot("drawer.selectionBar", "Selection bar", [](Theme &t) -> QColor & { return t.bulkFill; }),
+            slot("drawer.activeStart", trNoop("Active tab"), [](Theme &t) -> QColor & { return t.navActiveStart; }),
+            slot("drawer.selectionBar", trNoop("Selection bar"), [](Theme &t) -> QColor & { return t.bulkFill; }),
         }));
     sections.push_back(section(
-        "popup", "Menus and Dialogs", "Pop-up menus, the playlist picker and confirm boxes.", "three-dots-vertical",
+        "popup", trNoop("Menus and Dialogs"), trNoop("Pop-up menus, the playlist picker and confirm boxes."), "three-dots-vertical",
         {
-            slot("popup.menuFill", "Menu background", [](Theme &t) -> QColor & { return t.popoverFill; }),
-            slot("popup.menuBorder", "Menu border", [](Theme &t) -> QColor & { return t.popoverBorder; }),
-            slot("popup.menuHover", "Menu highlight", [](Theme &t) -> QColor & { return t.menuHoverText; },
+            slot("popup.menuFill", trNoop("Menu background"), [](Theme &t) -> QColor & { return t.popoverFill; }),
+            slot("popup.menuBorder", trNoop("Menu border"), [](Theme &t) -> QColor & { return t.popoverBorder; }),
+            slot("popup.menuHover", trNoop("Menu highlight"), [](Theme &t) -> QColor & { return t.menuHoverText; },
                  [](Theme &t, const QColor &c) { t.menuHoverFill = withAlpha(c, 0.12); }),
-            slot("popup.dialogFill", "Dialog background", [](Theme &t) -> QColor & { return t.confirmFill; }),
-            slot("popup.dialogText", "Dialog text", [](Theme &t) -> QColor & { return t.confirmText; }),
-            slot("popup.confirm", "Confirm button", [](Theme &t) -> QColor & { return t.confirmOk; }),
-            slot("popup.dim", "Dim behind pop-ups", [](Theme &t) -> QColor & { return t.overlayDim; },
+            slot("popup.dialogFill", trNoop("Dialog background"), [](Theme &t) -> QColor & { return t.confirmFill; }),
+            slot("popup.dialogText", trNoop("Dialog text"), [](Theme &t) -> QColor & { return t.confirmText; }),
+            slot("popup.confirm", trNoop("Confirm button"), [](Theme &t) -> QColor & { return t.confirmOk; }),
+            slot("popup.dim", trNoop("Dim behind pop-ups"), [](Theme &t) -> QColor & { return t.overlayDim; },
                  [](Theme &t, const QColor &c) { t.confirmOverlay = c; }),
         },
         PreviewScene::Popups));
     sections.push_back(section(
-        "toast", "Notifications", "The small messages that slide in at the top.", "info-circle",
+        "toast", trNoop("Notifications"), trNoop("The small messages that slide in at the top."), "info-circle",
         {
-            slot("toast.success", "Success", [](Theme &t) -> QColor & { return t.toastSuccess; }),
-            slot("toast.warning", "Warning", [](Theme &t) -> QColor & { return t.toastWarning; }),
-            slot("toast.error", "Error", [](Theme &t) -> QColor & { return t.toastError; }),
-            slot("toast.info", "Info", [](Theme &t) -> QColor & { return t.toastInfo; }),
-            slot("toast.text", "Text", [](Theme &t) -> QColor & { return t.toastText; }),
+            slot("toast.success", trNoop("Success"), [](Theme &t) -> QColor & { return t.toastSuccess; }),
+            slot("toast.warning", trNoop("Warning"), [](Theme &t) -> QColor & { return t.toastWarning; }),
+            slot("toast.error", trNoop("Error"), [](Theme &t) -> QColor & { return t.toastError; }),
+            slot("toast.info", trNoop("Info"), [](Theme &t) -> QColor & { return t.toastInfo; }),
+            slot("toast.text", trNoop("Text"), [](Theme &t) -> QColor & { return t.toastText; }),
         },
         PreviewScene::Alerts));
     sections.push_back(section(
-        "settings", "Settings Window", "This window: sidebar, pages and cards.", "gear-fill",
+        "settings", trNoop("Settings Window"), trNoop("This window: sidebar, pages and cards."), "gear-fill",
         {
-            slot("settings.content", "Page background", [](Theme &t) -> QColor & { return t.settings.contentFill; }),
-            slot("settings.sidebar", "Sidebar", [](Theme &t) -> QColor & { return t.settings.sidebarFill; }),
-            slot("settings.sidebarEdge", "Sidebar edge", [](Theme &t) -> QColor & { return t.settings.sidebarEdge; }),
-            slot("settings.card", "Cards", [](Theme &t) -> QColor & { return t.settings.cardFill; }),
-            slot("settings.cardBorder", "Card border", [](Theme &t) -> QColor & { return t.settings.cardBorder; }),
-            slot("settings.description", "Descriptions", [](Theme &t) -> QColor & { return t.settings.cardDescText; },
+            slot("settings.content", trNoop("Page background"), [](Theme &t) -> QColor & { return t.settings.contentFill; }),
+            slot("settings.sidebar", trNoop("Sidebar"), [](Theme &t) -> QColor & { return t.settings.sidebarFill; }),
+            slot("settings.sidebarEdge", trNoop("Sidebar edge"), [](Theme &t) -> QColor & { return t.settings.sidebarEdge; }),
+            slot("settings.card", trNoop("Cards"), [](Theme &t) -> QColor & { return t.settings.cardFill; }),
+            slot("settings.cardBorder", trNoop("Card border"), [](Theme &t) -> QColor & { return t.settings.cardBorder; }),
+            slot("settings.description", trNoop("Descriptions"), [](Theme &t) -> QColor & { return t.settings.cardDescText; },
                  [](Theme &t, const QColor &c) { t.settings.headerDescText = c; }),
-            slot("settings.switch", "Switch on", [](Theme &t) -> QColor & { return t.settings.checkStart; },
+            slot("settings.switch", trNoop("Switch on"), [](Theme &t) -> QColor & { return t.settings.checkStart; },
                  [](Theme &t, const QColor &c) { t.settings.checkEnd = hoverShade(c); }),
-            slot("settings.save", "Save button", [](Theme &t) -> QColor & { return t.settings.saveStart; },
+            slot("settings.save", trNoop("Save button"), [](Theme &t) -> QColor & { return t.settings.saveStart; },
                  [](Theme &t, const QColor &c) { t.settings.saveEnd = hoverShade(c); }),
         },
         PreviewScene::Settings));
     sections.push_back(section(
-        "editor", "Sheet Editor", "The window for editing a song's notes.", "sheet-editor",
+        "editor", trNoop("Sheet Editor"), trNoop("The window for editing a song's notes."), "sheet-editor",
         {
-            slot("editor.window", "Window background", [](Theme &t) -> QColor & { return t.windowEditor; }),
-            slot("editor.panel", "Info panel", [](Theme &t) -> QColor & { return t.editor.metaFill; }),
-            slot("editor.grid", "Grid lines", [](Theme &t) -> QColor & { return t.gridColor; }),
-            slot("editor.dot", "Grid dots", [](Theme &t) -> QColor & { return t.dotColor; }),
-            slot("editor.note", "Notes", [](Theme &t) -> QColor & { return t.gridNoteColor; }),
-            slot("editor.hover", "Hovered cell", [](Theme &t) -> QColor & { return t.gridHoverColor; }),
-            slot("editor.active", "Active cell", [](Theme &t) -> QColor & { return t.activeColor; }),
-            slot("editor.export", "Export button", [](Theme &t) -> QColor & { return t.editor.exportFill; },
+            slot("editor.window", trNoop("Window background"), [](Theme &t) -> QColor & { return t.windowEditor; }),
+            slot("editor.panel", trNoop("Info panel"), [](Theme &t) -> QColor & { return t.editor.metaFill; }),
+            slot("editor.grid", trNoop("Grid lines"), [](Theme &t) -> QColor & { return t.gridColor; }),
+            slot("editor.dot", trNoop("Grid dots"), [](Theme &t) -> QColor & { return t.dotColor; }),
+            slot("editor.note", trNoop("Notes"), [](Theme &t) -> QColor & { return t.gridNoteColor; }),
+            slot("editor.hover", trNoop("Hovered cell"), [](Theme &t) -> QColor & { return t.gridHoverColor; }),
+            slot("editor.active", trNoop("Active cell"), [](Theme &t) -> QColor & { return t.activeColor; }),
+            slot("editor.export", trNoop("Export button"), [](Theme &t) -> QColor & { return t.editor.exportFill; },
                  [](Theme &t, const QColor &c) { t.editor.exportHoverFill = hoverShade(c); }),
         },
         PreviewScene::Editor));
@@ -188,7 +189,7 @@ std::vector<ThemeSection> makeSections()
 QuickColor quick(const char *id, const char *label, const char *description, const char *primary,
                  std::vector<std::pair<const char *, std::function<QColor(const QColor &)>>> targets)
 {
-    QuickColor result{QString::fromLatin1(id), QString::fromUtf8(label), QString::fromUtf8(description),
+    QuickColor result{QString::fromLatin1(id), tr(label), tr(description),
                       QString::fromLatin1(primary), {}};
     for (auto &[slotId, derive] : targets) {
         result.targets.emplace_back(QString::fromLatin1(slotId), std::move(derive));
@@ -200,7 +201,7 @@ std::vector<QuickColor> makeQuickColors();
 
 QuickColorSet quickSet(PreviewScene scene, const char *name, const char *description, std::vector<QuickColor> colors)
 {
-    return QuickColorSet{scene, QString::fromUtf8(name), QString::fromUtf8(description), std::move(colors)};
+    return QuickColorSet{scene, tr(name), tr(description), std::move(colors)};
 }
 
 std::vector<QuickColorSet> makeQuickColorSets()
@@ -208,48 +209,48 @@ std::vector<QuickColorSet> makeQuickColorSets()
     const auto same = [](const QColor &c) { return c; };
     const auto soft = [](qreal alpha) { return [alpha](const QColor &c) { return withAlpha(c, alpha); }; };
     std::vector<QuickColorSet> sets;
-    sets.push_back(quickSet(PreviewScene::Main, "Song List", "Pick these five and the rest of the app follows.",
+    sets.push_back(quickSet(PreviewScene::Main, trNoop("Song List"), trNoop("Pick these five and the rest of the app follows."),
                             makeQuickColors()));
     sets.push_back(quickSet(
-        PreviewScene::Popups, "Menus", "The main colors of pop-up menus and confirm boxes.",
-        {quick("popupFill", "Pop-up background", "Behind pop-up menus and confirm boxes.", "popup.menuFill",
+        PreviewScene::Popups, trNoop("Menus"), trNoop("The main colors of pop-up menus and confirm boxes."),
+        {quick("popupFill", trNoop("Pop-up background"), trNoop("Behind pop-up menus and confirm boxes."), "popup.menuFill",
                {{"popup.menuFill", same}, {"popup.dialogFill", same}}),
-         quick("popupText", "Pop-up text", "The words in confirm boxes.", "popup.dialogText",
+         quick("popupText", trNoop("Pop-up text"), trNoop("The words in confirm boxes."), "popup.dialogText",
                {{"popup.dialogText", same}}),
-         quick("popupHighlight", "Highlight", "The menu row under the mouse and the confirm button.", "popup.menuHover",
+         quick("popupHighlight", trNoop("Highlight"), trNoop("The menu row under the mouse and the confirm button."), "popup.menuHover",
                {{"popup.menuHover", same}, {"popup.confirm", same}}),
-         quick("popupBorder", "Border", "The thin line around pop-up menus.", "popup.menuBorder",
+         quick("popupBorder", trNoop("Border"), trNoop("The thin line around pop-up menus."), "popup.menuBorder",
                {{"popup.menuBorder", same}}),
-         quick("popupDim", "Dim", "The shade over the app behind a pop-up.", "popup.dim", {{"popup.dim", same}})}));
+         quick("popupDim", trNoop("Dim"), trNoop("The shade over the app behind a pop-up."), "popup.dim", {{"popup.dim", same}})}));
     sets.push_back(quickSet(
-        PreviewScene::Alerts, "Alerts", "The main colors of the messages that slide in at the top.",
-        {quick("alertSuccess", "Success", "Shown when something worked.", "toast.success", {{"toast.success", same}}),
-         quick("alertWarning", "Warning", "Shown when something needs a look.", "toast.warning",
+        PreviewScene::Alerts, trNoop("Alerts"), trNoop("The main colors of the messages that slide in at the top."),
+        {quick("alertSuccess", trNoop("Success"), trNoop("Shown when something worked."), "toast.success", {{"toast.success", same}}),
+         quick("alertWarning", trNoop("Warning"), trNoop("Shown when something needs a look."), "toast.warning",
                {{"toast.warning", same}}),
-         quick("alertError", "Error", "Shown when something went wrong.", "toast.error", {{"toast.error", same}}),
-         quick("alertInfo", "Info", "Shown for progress and tips.", "toast.info", {{"toast.info", same}}),
-         quick("alertText", "Text", "The words in every message.", "toast.text", {{"toast.text", same}})}));
+         quick("alertError", trNoop("Error"), trNoop("Shown when something went wrong."), "toast.error", {{"toast.error", same}}),
+         quick("alertInfo", trNoop("Info"), trNoop("Shown for progress and tips."), "toast.info", {{"toast.info", same}}),
+         quick("alertText", trNoop("Text"), trNoop("The words in every message."), "toast.text", {{"toast.text", same}})}));
     sets.push_back(quickSet(
-        PreviewScene::Settings, "Settings", "The main colors of the Settings window.",
-        {quick("settingsBackground", "Background", "Behind the pages and the sidebar.", "settings.content",
+        PreviewScene::Settings, trNoop("Settings"), trNoop("The main colors of the Settings window."),
+        {quick("settingsBackground", trNoop("Background"), trNoop("Behind the pages and the sidebar."), "settings.content",
                {{"settings.content", same}, {"settings.sidebar", same}}),
-         quick("settingsCards", "Cards", "The boxes each setting sits in.", "settings.card", {{"settings.card", same}}),
-         quick("settingsBorders", "Borders", "Lines around cards and next to the sidebar.", "settings.cardBorder",
+         quick("settingsCards", trNoop("Cards"), trNoop("The boxes each setting sits in."), "settings.card", {{"settings.card", same}}),
+         quick("settingsBorders", trNoop("Borders"), trNoop("Lines around cards and next to the sidebar."), "settings.cardBorder",
                {{"settings.cardBorder", same}, {"settings.sidebarEdge", same}}),
-         quick("settingsDescriptions", "Descriptions", "The smaller text under each title.", "settings.description",
+         quick("settingsDescriptions", trNoop("Descriptions"), trNoop("The smaller text under each title."), "settings.description",
                {{"settings.description", same}}),
-         quick("settingsSwitches", "Switches and Save", "Switches that are on, and the Save button.", "settings.switch",
+         quick("settingsSwitches", trNoop("Switches and Save"), trNoop("Switches that are on, and the Save button."), "settings.switch",
                {{"settings.switch", same}, {"settings.save", same}})}));
     sets.push_back(quickSet(
-        PreviewScene::Editor, "Sheet Editor", "The main colors of the window for editing notes.",
-        {quick("editorBackground", "Background", "Behind the notes and the key pad.", "editor.window",
+        PreviewScene::Editor, trNoop("Sheet Editor"), trNoop("The main colors of the window for editing notes."),
+        {quick("editorBackground", trNoop("Background"), trNoop("Behind the notes and the key pad."), "editor.window",
                {{"editor.window", same}}),
-         quick("editorCells", "Cells", "The boxes for each moment, and the keys.", "editor.grid",
+         quick("editorCells", trNoop("Cells"), trNoop("The boxes for each moment, and the keys."), "editor.grid",
                {{"editor.grid", same}}),
-         quick("editorNotes", "Notes", "The squares for keys that play.", "editor.note", {{"editor.note", same}}),
-         quick("editorHighlights", "Highlighted cells", "The cell under the mouse and the chosen one.", "editor.active",
+         quick("editorNotes", trNoop("Notes"), trNoop("The squares for keys that play."), "editor.note", {{"editor.note", same}}),
+         quick("editorHighlights", trNoop("Highlighted cells"), trNoop("The cell under the mouse and the chosen one."), "editor.active",
                {{"editor.active", same}, {"editor.hover", soft(0.7)}}),
-         quick("editorPanel", "Info panel", "The box with the song name and BPM.", "editor.panel",
+         quick("editorPanel", trNoop("Info panel"), trNoop("The box with the song name and BPM."), "editor.panel",
                {{"editor.panel", same}})}));
     return sets;
 }
@@ -259,7 +260,7 @@ std::vector<QuickColor> makeQuickColors()
     const auto same = [](const QColor &c) { return c; };
     const auto soft = [](qreal alpha) { return [alpha](const QColor &c) { return withAlpha(c, alpha); }; };
     std::vector<QuickColor> list;
-    list.push_back(quick("accent", "Accent", "Buttons, highlights, progress and the active tab.", "app.accent",
+    list.push_back(quick("accent", trNoop("Accent"), trNoop("Buttons, highlights, progress and the active tab."), "app.accent",
                          {{"app.accent", same},
                           {"footer.played", same},
                           {"footer.handle", same},
@@ -268,20 +269,20 @@ std::vector<QuickColor> makeQuickColors()
                           {"popup.menuHover", same},
                           {"editor.note", same},
                           {"settings.switch", same}}));
-    list.push_back(quick("background", "Background", "Behind the song list, Settings and the editor.", "main.window",
+    list.push_back(quick("background", trNoop("Background"), trNoop("Behind the song list, Settings and the editor."), "main.window",
                          {{"main.window", same},
                           {"editor.window", same},
                           {"settings.content", same},
                           {"settings.sidebar", same},
                           {"drawer.fill", same}}));
-    list.push_back(quick("cards", "Cards and boxes", "Song cards, menus, the search box and Settings cards.", "card.fill",
+    list.push_back(quick("cards", trNoop("Cards and boxes"), trNoop("Song cards, menus, the search box and Settings cards."), "card.fill",
                          {{"app.surface", same},
                           {"card.fill", same},
                           {"settings.card", same},
                           {"popup.menuFill", same},
                           {"main.searchFill", same},
                           {"footer.speedFill", same}}));
-    list.push_back(quick("text", "Text", "Titles, labels and everything you read.", "app.text",
+    list.push_back(quick("text", trNoop("Text"), trNoop("Titles, labels and everything you read."), "app.text",
                          {{"app.text", same},
                           {"card.text", same},
                           {"footer.text", same},
@@ -289,7 +290,7 @@ std::vector<QuickColor> makeQuickColors()
                           {"footer.speedText", same},
                           {"card.label", soft(0.8)},
                           {"settings.description", soft(0.7)}}));
-    list.push_back(quick("player", "Player bar", "The bar at the bottom with the play buttons.", "footer.fill",
+    list.push_back(quick("player", trNoop("Player bar"), trNoop("The bar at the bottom with the play buttons."), "footer.fill",
                          {{"footer.fill", same}}));
     return list;
 }
@@ -309,7 +310,7 @@ ThemeDefinition preset(const char *id, const char *name, ColorList light, ColorL
 {
     ThemeDefinition definition;
     definition.id = QString::fromLatin1(id);
-    definition.name = QString::fromUtf8(name);
+    definition.name = tr(name);
     definition.light = toColors(light);
     definition.dark = toColors(dark);
     definition.builtIn = true;
@@ -319,9 +320,9 @@ ThemeDefinition preset(const char *id, const char *name, ColorList light, ColorL
 std::vector<ThemeDefinition> makeBuiltIns()
 {
     std::vector<ThemeDefinition> themes;
-    themes.push_back(preset(kDefaultThemeId, "Default", {}, {}));
+    themes.push_back(preset(kDefaultThemeId, trNoop("Default"), {}, {}));
     themes.push_back(preset(
-        "builtin-midnight", "Indigo",
+        "builtin-midnight", trNoop("Indigo"),
         {{"app.surface", "#f6f7ff"},       {"app.text", "#2a2f5c"},        {"app.accent", "#5b5fe0"},
          {"main.window", "#eef0ff"},       {"main.searchFill", "#e3e6ff"}, {"main.searchText", "#2a2f5c"},
          {"main.scrollbar", "#c3c8f5"},    {"card.fill", "#ffffff"},       {"card.edge", "#d9ddff"},
@@ -339,7 +340,7 @@ std::vector<ThemeDefinition> makeBuiltIns()
          {"popup.menuFill", "#18203a"},  {"settings.content", "#141a2e"},
          {"settings.sidebar", "#121933"},  {"settings.card", "#18203a"},   {"editor.window", "#141a2e"}}));
     themes.push_back(preset(
-        "builtin-forest", "Green",
+        "builtin-forest", trNoop("Green"),
         {{"app.surface", "#f6faf6"},       {"app.text", "#24402c"},        {"app.accent", "#2f8a4a"},
          {"main.window", "#eef6ef"},       {"main.searchFill", "#e0efe3"}, {"main.searchText", "#24402c"},
          {"main.scrollbar", "#b5d6bd"},    {"card.fill", "#ffffff"},       {"card.edge", "#cfe5d4"},
@@ -358,7 +359,7 @@ std::vector<ThemeDefinition> makeBuiltIns()
          {"settings.content", "#17201b"},  {"settings.sidebar", "#16201a"}, {"settings.card", "#1b261f"},
          {"editor.window", "#17201b"}}));
     themes.push_back(preset(
-        "builtin-sunset", "Orange",
+        "builtin-sunset", trNoop("Orange"),
         {{"app.surface", "#fff8f3"},       {"app.text", "#4a2c2a"},        {"app.accent", "#e8643c"},
          {"main.window", "#fff1e8"},       {"main.searchFill", "#ffe4d4"}, {"main.searchText", "#4a2c2a"},
          {"main.scrollbar", "#f7c0a6"},    {"card.fill", "#ffffff"},       {"card.edge", "#ffd3bd"},
@@ -376,7 +377,7 @@ std::vector<ThemeDefinition> makeBuiltIns()
          {"popup.menuFill", "#2a1f2e"},  {"settings.content", "#221a26"},
          {"settings.sidebar", "#241b28"},  {"settings.card", "#2a1f2e"},   {"editor.window", "#221a26"}}));
     themes.push_back(preset(
-        "builtin-sakura", "Pink",
+        "builtin-sakura", trNoop("Pink"),
         {{"app.surface", "#fff7fa"},       {"app.text", "#5b3a4a"},        {"app.accent", "#e86a9a"},
          {"main.window", "#fff0f5"},       {"main.searchFill", "#fde4ee"}, {"main.searchText", "#5b3a4a"},
          {"main.scrollbar", "#f0b6cb"},    {"card.fill", "#ffffff"},       {"card.edge", "#f9cfdf"},
@@ -395,7 +396,7 @@ std::vector<ThemeDefinition> makeBuiltIns()
          {"settings.sidebar", "#241820"},  {"settings.card", "#2c1d26"},   {"editor.window", "#261a21"},
          {"editor.note", "#f472b6"}}));
     themes.push_back(preset(
-        "builtin-ocean", "Blue",
+        "builtin-ocean", trNoop("Blue"),
         {{"app.surface", "#f5fbff"},       {"app.text", "#1f3b57"},        {"app.accent", "#1e88c8"},
          {"main.window", "#eef7fd"},       {"main.searchFill", "#dceefa"}, {"main.searchText", "#1f3b57"},
          {"card.fill", "#ffffff"},         {"card.edge", "#cfe6f5"},       {"footer.fill", "#ffffff"},
@@ -413,7 +414,7 @@ std::vector<ThemeDefinition> makeBuiltIns()
          {"settings.sidebar", "#0f2131"},  {"settings.card", "#13253a"},   {"editor.window", "#0f1d2b"},
          {"editor.note", "#38a3e0"}}));
     themes.push_back(preset(
-        "builtin-paper", "Black and White",
+        "builtin-paper", trNoop("Black and White"),
         {{"app.surface", "#ffffff"},       {"app.text", "#111111"},        {"app.accent", "#111111"},
          {"main.window", "#fafafa"},       {"main.searchFill", "#efefef"}, {"main.searchText", "#111111"},
          {"main.searchIcon", "#555555"},   {"card.fill", "#ffffff"},       {"card.edge", "#111111"},

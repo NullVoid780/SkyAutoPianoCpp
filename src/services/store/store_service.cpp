@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "core/translator.hpp"
 #include "core/json.hpp"
 #include "core/logger.hpp"
 #include "core/random.hpp"
@@ -16,18 +17,18 @@ namespace sky {
 namespace {
 
 constexpr const char *kUserAgent = "SkyAutoPiano/1.3.7a";
-constexpr const char *kRequestFailed = "Sky Sheet Store request failed.";
+constexpr const char *kRequestFailed = trNoop("Sky Sheet Store request failed.");
 
 Result<OrderedJson> parseStoreResponse(const Result<HttpResponse> &response, const char *networkFallback)
 {
     if (!response) {
-        return Error{response.error().code, networkFallback, response.error().details};
+        return Error{response.error().code, trUtf8(networkFallback), response.error().details};
     }
     const HttpResponse &http = response.value();
     auto body = parseJson<OrderedJson>(std::string_view(http.body.constData(), static_cast<std::size_t>(http.body.size())));
     if (http.isSuccess()) {
         if (!body) {
-            return Error{"STORE_INVALID_RESPONSE", networkFallback, body.error().userMessage};
+            return Error{"STORE_INVALID_RESPONSE", trUtf8(networkFallback), body.error().userMessage};
         }
         return std::move(body).value();
     }
@@ -43,7 +44,7 @@ Result<OrderedJson> parseStoreResponse(const Result<HttpResponse> &response, con
         }
     }
     return Error{code.empty() ? "http_" + std::to_string(http.status) : code,
-                 message.empty() ? std::string(kRequestFailed) : message, std::to_string(http.status)};
+                 message.empty() ? trUtf8(kRequestFailed) : message, std::to_string(http.status)};
 }
 
 std::string normalizedSourceType(const std::string &sourceType)
@@ -97,7 +98,7 @@ void StoreService::listSheets(const StoreQuery &query, PageCallback done)
     request.url = buildUrl(QString::fromLatin1(kStoreApiBase), QStringLiteral("/api/v1/catalog/sheets"), params);
     request.maxBytes = kStoreListMaxBytes;
     m_http->send(request, [this, cacheKey, limit, offset, done = std::move(done)](Result<HttpResponse> response) {
-        auto json = parseStoreResponse(response, "Unable to connect to Sky Sheet Store.");
+        auto json = parseStoreResponse(response, trNoop("Unable to connect to Sky Sheet Store."));
         if (!json) {
             done(json.error());
             return;
@@ -114,7 +115,7 @@ void StoreService::getPlayerSheet(const std::string &rawId, const std::string &s
 {
     const std::string id(trimJs(rawId));
     if (!isStoreSheetId(id)) {
-        done(Error{"STORE_INVALID_ID", "Invalid Sky Sheet Store sheet id.", {}});
+        done(Error{"STORE_INVALID_ID", trUtf8("Invalid Sky Sheet Store sheet id."), {}});
         return;
     }
     const std::string type = normalizedSourceType(sourceType);
@@ -129,13 +130,13 @@ void StoreService::getPlayerSheet(const std::string &rawId, const std::string &s
     HttpRequest request = baseRequest(path);
     request.maxBytes = kStorePlayerMaxBytes;
     m_http->send(request, [this, cacheKey, done = std::move(done)](Result<HttpResponse> response) {
-        auto json = parseStoreResponse(response, "Unable to load this sheet. Please try again.");
+        auto json = parseStoreResponse(response, trNoop("Unable to load this sheet. Please try again."));
         if (!json) {
             done(json.error());
             return;
         }
         if (!json.value().is_object() && !json.value().is_array()) {
-            done(Error{"STORE_INVALID_RESPONSE", "Sky Sheet Store returned an invalid player payload.", {}});
+            done(Error{"STORE_INVALID_RESPONSE", trUtf8("Sky Sheet Store returned an invalid player payload."), {}});
             return;
         }
         auto payload = mapStorePlayerPayload(json.value());

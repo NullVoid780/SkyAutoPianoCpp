@@ -4,6 +4,7 @@
 #include <QPainter>
 #include <QVBoxLayout>
 
+#include "core/translator.hpp"
 #include "ui/render/font_loader.hpp"
 #include "ui/render/paint_utils.hpp"
 #include "ui/settings_window/sidebar_item.hpp"
@@ -100,7 +101,7 @@ void SettingsSidebar::paintEvent(QPaintEvent *)
     painter.setFont(FontLoader::font(20, QFont::DemiBold));
     painter.setPen(theme.fontColor);
     painter.drawText(QRectF(logo.right() + kTitleGap, logo.top(), width() - logo.right(), kLogo),
-                     Qt::AlignVCenter | Qt::AlignLeft, QStringLiteral("Settings"));
+                     Qt::AlignVCenter | Qt::AlignLeft, tr("Settings"));
 
     const QRectF card = versionCard();
     painter.fillPath(roundedPath(card, kCardRadius), s.subtleFill);
@@ -109,7 +110,7 @@ void SettingsSidebar::paintEvent(QPaintEvent *)
     const QRectF lower(textLeft, card.center().y(), card.right() - textLeft, card.height() / 2 - 10);
     painter.setFont(FontLoader::font(12, QFont::Normal));
     painter.setPen(s.cardDescText);
-    painter.drawText(upper, Qt::AlignLeft | Qt::AlignBottom, QStringLiteral("App Version"));
+    painter.drawText(upper, Qt::AlignLeft | Qt::AlignBottom, tr("App Version"));
     painter.setFont(FontLoader::font(16, QFont::Medium));
     painter.setPen(theme.fontColor);
     painter.drawText(lower, Qt::AlignLeft | Qt::AlignTop, m_version);

@@ -10,6 +10,7 @@
 
 #include <set>
 
+#include "core/translator.hpp"
 #include "core/string_utils.hpp"
 #include "services/library/library_service.hpp"
 #include "services/library/playlist_service.hpp"
@@ -35,9 +36,9 @@ PlaylistsView::PlaylistsView(PlaylistService &playlists, LibraryService &library
       m_list(new QListView(this)),
       m_empty(new StateCard(this))
 {
-    auto *heading = new QLabel(QStringLiteral("Playlists"), this);
+    auto *heading = new QLabel(tr("Playlists"), this);
     heading->setObjectName(QStringLiteral("LibraryHeading"));
-    auto *create = new QPushButton(QStringLiteral("New Playlist"), this);
+    auto *create = new QPushButton(tr("New Playlist"), this);
     create->setObjectName(QStringLiteral("NeutralButton"));
     create->setCursor(Qt::PointingHandCursor);
 
@@ -59,8 +60,8 @@ PlaylistsView::PlaylistsView(PlaylistService &playlists, LibraryService &library
     m_list->viewport()->installEventFilter(this);
     m_list->installEventFilter(this);
 
-    m_empty->setContent(QStringLiteral("No playlists yet."),
-                        QStringLiteral("Create a playlist, then add sheets from your library."));
+    m_empty->setContent(tr("No playlists yet."),
+                        tr("Create a playlist, then add sheets from your library."));
 
     auto *column = new QVBoxLayout(this);
     column->setContentsMargins(0, 0, 0, 0);

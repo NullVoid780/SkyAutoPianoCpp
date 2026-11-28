@@ -9,6 +9,7 @@
 #include <array>
 #include <cmath>
 
+#include "core/translator.hpp"
 #include "model/key_table.hpp"
 #include "ui/editor_window/key_colors.hpp"
 #include "ui/render/font_loader.hpp"
@@ -300,7 +301,7 @@ void StepGridView::paintEvent(QPaintEvent *event)
             painter.setPen(barStart ? theme.fontColor : blend(theme.background, theme.fontColor, 0.65));
             const QString time = captionTime(m_grid.timeOf(column));
             painter.drawText(captionRect(column), Qt::AlignLeft | Qt::AlignVCenter,
-                             barStart ? QStringLiteral("Bar %1  ·  %2").arg(column / bar + 1).arg(time) : time);
+                             barStart ? tr("Bar %1  ·  %2").arg(column / bar + 1).arg(time) : time);
         }
     }
 }

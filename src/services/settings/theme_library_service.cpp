@@ -5,6 +5,7 @@
 
 #include <QString>
 
+#include "core/translator.hpp"
 #include "core/file_system.hpp"
 #include "core/logger.hpp"
 #include "core/random.hpp"
@@ -22,7 +23,7 @@ constexpr std::size_t kSlotIdLimit = 64;
 
 Error invalidFile()
 {
-    return Error{"THEME_INVALID", "The selected theme file is invalid.", {}};
+    return Error{"THEME_INVALID", trUtf8("The selected theme file is invalid."), {}};
 }
 
 bool isSlotId(const std::string &id)
@@ -198,7 +199,7 @@ Result<void> ThemeLibraryService::write() const
     (void)ensureDir(m_path.parent_path());
     if (auto written = atomicWrite(m_path, dumpJson(root, 4)); !written) {
         Logger::error("themes", written.error().details);
-        return Error{"THEME_SAVE_FAILED", "The theme could not be saved.", written.error().details};
+        return Error{"THEME_SAVE_FAILED", trUtf8("The theme could not be saved."), written.error().details};
     }
     return {};
 }
@@ -239,7 +240,7 @@ Result<std::string> ThemeLibraryService::save(CustomTheme theme)
 {
     theme.name = cleanName(theme.name);
     if (theme.name.empty()) {
-        return Error{"THEME_NAME_EMPTY", "Enter a theme name.", {}};
+        return Error{"THEME_NAME_EMPTY", trUtf8("Enter a theme name."), {}};
     }
     cleanColors(theme.light);
     cleanColors(theme.dark);
@@ -252,7 +253,7 @@ Result<std::string> ThemeLibraryService::save(CustomTheme theme)
         *existing = theme;
     } else {
         if (m_themes.size() >= kThemeLimit) {
-            return Error{"THEME_LIMIT", "You can keep up to 100 custom themes.", {}};
+            return Error{"THEME_LIMIT", trUtf8("You can keep up to 100 custom themes."), {}};
         }
         theme.id = "theme-" + std::to_string(epochMillis()) + "-" + randomBase36(6);
         m_themes.push_back(theme);
@@ -306,7 +307,7 @@ Result<CustomTheme> ThemeLibraryService::readThemeFile(const std::filesystem::pa
 Result<void> ThemeLibraryService::writeThemeFile(const std::filesystem::path &file, const CustomTheme &theme)
 {
     if (auto written = atomicWrite(file, dumpJson(toJson(theme, false), 4)); !written) {
-        return Error{"THEME_EXPORT_FAILED", "The theme could not be exported.", written.error().details};
+        return Error{"THEME_EXPORT_FAILED", trUtf8("The theme could not be exported."), written.error().details};
     }
     return {};
 }

@@ -1,5 +1,6 @@
 #include "ui/main_window/player_footer.hpp"
 
+#include "core/translator.hpp"
 #include "ui/main_window/sky_status_chip.hpp"
 
 #include <QLabel>
@@ -52,11 +53,11 @@ PlayerFooter::PlayerFooter(QWidget *parent)
                             this)),
       m_theme(new ThemeToggle(this)),
       m_name(new QLabel(this)),
-      m_hold(new Badge(QStringLiteral("Hold"), this)),
+      m_hold(new Badge(tr("Hold"), this)),
       m_progress(new SeekSlider(this)),
       m_elapsed(new QLabel(QStringLiteral("00:00"), this)),
       m_total(new QLabel(QStringLiteral("00:00"), this)),
-      m_longPress(new InlineSwitch(QStringLiteral("Long-press mode: "), this)),
+      m_longPress(new InlineSwitch(tr("Long-press mode: "), this)),
       m_loop(new LoopControl(this)),
       m_previous(new TransportButton(TransportButton::Kind::Skip, QStringLiteral("skip-start-fill"), this)),
       m_play(new TransportButton(TransportButton::Kind::Play, QStringLiteral("play-fill"), this)),
@@ -71,7 +72,7 @@ PlayerFooter::PlayerFooter(QWidget *parent)
     m_progress->setObjectName(QStringLiteral("ProgressSlider"));
     m_progress->setRange(0, 0);
     m_hold->hide();
-    m_gear->setAccessibleName(QStringLiteral("Settings"));
+    m_gear->setAccessibleName(tr("Settings"));
 
     connect(m_gear, &QAbstractButton::clicked, this, &PlayerFooter::settingsRequested);
     connect(m_theme, &QAbstractButton::clicked, this, &PlayerFooter::themeToggleRequested);
@@ -94,11 +95,11 @@ PlayerFooter::PlayerFooter(QWidget *parent)
 
 void PlayerFooter::refreshTransportLabels()
 {
-    m_previous->setContent(QStringLiteral("skip-start-fill"), QStringLiteral("Prev (%1)").arg(m_previousShortcut));
-    const QString playLabel = m_playing ? QStringLiteral("Pause") : QStringLiteral("Play");
+    m_previous->setContent(QStringLiteral("skip-start-fill"), tr("Prev (%1)").arg(m_previousShortcut));
+    const QString playLabel = m_playing ? tr("Pause") : tr("Play");
     m_play->setContent(m_playing ? QStringLiteral("pause-fill") : QStringLiteral("play-fill"),
                        QStringLiteral("%1 (%2)").arg(playLabel, m_playShortcut));
-    m_next->setContent(QStringLiteral("skip-end-fill"), QStringLiteral("Next (%1)").arg(m_nextShortcut));
+    m_next->setContent(QStringLiteral("skip-end-fill"), tr("Next (%1)").arg(m_nextShortcut));
     relayout();
 }
 
@@ -126,7 +127,7 @@ void PlayerFooter::showTarget(const QString &name, bool hold, int totalSeconds)
 
 void PlayerFooter::showEmpty()
 {
-    m_name->setText(QStringLiteral("Pick a song to play, or press + to add one"));
+    m_name->setText(tr("Pick a song to play, or press + to add one"));
     m_hold->hide();
     {
         const QSignalBlocker blocker(m_progress);

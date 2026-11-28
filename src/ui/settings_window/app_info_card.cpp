@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QVBoxLayout>
 
+#include "core/translator.hpp"
 #include "ui/render/paint_utils.hpp"
 #include "ui/theme_manager.hpp"
 
@@ -28,9 +29,9 @@ AppInfoCard::AppInfoCard(const QString &version, QWidget *parent) : QWidget(pare
 
     auto *name = new QLabel(QStringLiteral("Sky Auto Piano"), this);
     name->setObjectName(QStringLiteral("OverviewTitle"));
-    auto *versionLabel = new QLabel(QStringLiteral("Version %1").arg(version), this);
+    auto *versionLabel = new QLabel(tr("Version %1").arg(version), this);
     versionLabel->setObjectName(QStringLiteral("OverviewVersion"));
-    auto *tagline = new QLabel(QStringLiteral("Plays music sheets for you in Sky: Children of the Light."), this);
+    auto *tagline = new QLabel(tr("Plays music sheets for you in Sky: Children of the Light."), this);
     tagline->setObjectName(QStringLiteral("SettingsRowDescription"));
     tagline->setWordWrap(true);
 

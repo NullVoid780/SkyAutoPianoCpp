@@ -67,6 +67,7 @@ struct CrashContext {
     volatile LONG cleanExit;
     volatile LONG crashed;
     char appVersion[32];
+    char language[8];
     CrashState state;
     volatile LONG64 breadcrumbNext;
     Breadcrumb breadcrumbs[kBreadcrumbCount];

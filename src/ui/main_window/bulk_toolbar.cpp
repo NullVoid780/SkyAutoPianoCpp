@@ -7,6 +7,7 @@
 #include <QPushButton>
 #include <QSignalBlocker>
 
+#include "core/translator.hpp"
 #include "core/string_utils.hpp"
 #include "ui/render/paint_utils.hpp"
 #include "ui/theme_manager.hpp"
@@ -42,16 +43,16 @@ BulkToolbar::BulkToolbar(QWidget *parent)
                                  this)),
       m_summary(new QLabel(this)),
       m_playlists(new QComboBox(this)),
-      m_add(makeButton(QStringLiteral("Add to playlist"), "PrimaryButton", this)),
-      m_delete(makeButton(QStringLiteral("Delete"), "DestructiveButton", this)),
-      m_done(makeButton(QStringLiteral("Done"), "NeutralButton", this))
+      m_add(makeButton(tr("Add to playlist"), "PrimaryButton", this)),
+      m_delete(makeButton(tr("Delete"), "DestructiveButton", this)),
+      m_done(makeButton(tr("Done"), "NeutralButton", this))
 {
     setObjectName(QStringLiteral("BulkToolbar"));
     m_summary->setObjectName(QStringLiteral("BulkSummary"));
     m_summary->setTextFormat(Qt::RichText);
     m_playlists->setObjectName(QStringLiteral("BulkPlaylistSelect"));
     m_playlists->setMinimumWidth(130);
-    m_playlists->setAccessibleName(QStringLiteral("Target playlist"));
+    m_playlists->setAccessibleName(tr("Target playlist"));
 
     connect(m_selectAll, &QAbstractButton::clicked, this, &BulkToolbar::selectAllRequested);
     connect(m_add, &QPushButton::clicked, this, &BulkToolbar::addToPlaylistRequested);
@@ -106,10 +107,10 @@ void BulkToolbar::setState(int selectedCount, bool allVisibleSelected, bool anyV
     m_allSelected = allVisibleSelected;
     m_selectAll->setIconId(allVisibleSelected ? QStringLiteral("check-square-ticked") : QStringLiteral("check-square"));
     m_selectAll->setEnabled(anyVisible);
-    const QString hint = allVisibleSelected ? QStringLiteral("Clear visible selection") : QStringLiteral("Select all visible sheets");
+    const QString hint = allVisibleSelected ? tr("Clear visible selection") : tr("Select all visible sheets");
     m_selectAll->setToolTip(hint);
     m_selectAll->setAccessibleName(hint);
-    m_summary->setText(QStringLiteral("<span style=\"color:%1; font-weight:700\">%2</span> selected")
+    m_summary->setText(tr("<span style=\"color:%1; font-weight:700\">%2</span> selected")
                            .arg(theme.bulkCount.name())
                            .arg(selectedCount));
     m_add->setEnabled(selectedCount > 0 && m_playlists->isEnabled());
@@ -121,7 +122,7 @@ void BulkToolbar::setPlaylists(const std::vector<Playlist> &playlists, const std
     const QSignalBlocker blocker(m_playlists);
     m_playlists->clear();
     if (playlists.empty()) {
-        m_playlists->addItem(QStringLiteral("No playlists"), QString());
+        m_playlists->addItem(tr("No playlists"), QString());
         m_playlists->setEnabled(false);
         m_add->setEnabled(false);
         return;

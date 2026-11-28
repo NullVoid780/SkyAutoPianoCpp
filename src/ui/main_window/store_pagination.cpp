@@ -1,5 +1,7 @@
 #include "ui/main_window/store_pagination.hpp"
 
+#include "core/translator.hpp"
+
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QVBoxLayout>
@@ -56,12 +58,12 @@ void StorePagination::setPages(int current, int total, bool busy)
         m_row->addWidget(button);
     };
     m_row->addStretch();
-    addButton(QStringLiteral("Prev"), current - 1, !busy && current > 1, false);
+    addButton(tr("Prev"), current - 1, !busy && current > 1, false);
     const auto [start, end] = pageWindow(current, total);
     for (int page = start; page <= end; ++page) {
         addButton(QString::number(page), page, !busy && page != current, page == current);
     }
-    addButton(QStringLiteral("Next"), current + 1, !busy && current < total, false);
+    addButton(tr("Next"), current + 1, !busy && current < total, false);
     m_row->addStretch();
 }
 

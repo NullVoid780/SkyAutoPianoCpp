@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include "core/translator.hpp"
 #include "ui/render/font_loader.hpp"
 #include "ui/render/icon_cache.hpp"
 #include "ui/render/paint_utils.hpp"
@@ -572,7 +573,7 @@ QImage renderScene(const QSizeF &size, const Theme &theme, qreal radius, qreal d
 void paintModePill(QPainter &painter, const QPointF &anchor, bool alignRight, AppTheme kind, bool withText,
                    bool highlighted, const QColor &accent, qreal dpr)
 {
-    const QString label = kind == AppTheme::Dark ? QStringLiteral("Dark") : QStringLiteral("Light");
+    const QString label = kind == AppTheme::Dark ? tr("Dark") : tr("Light");
     const QString iconId = kind == AppTheme::Dark ? QStringLiteral("moon") : QStringLiteral("sun");
     const QFont font = FontLoader::font(11, QFont::DemiBold);
     const qreal icon = withText ? 12 : 11;

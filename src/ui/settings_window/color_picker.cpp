@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "core/translator.hpp"
 #include "ui/render/paint_utils.hpp"
 #include "ui/settings_window/action_button.hpp"
 #include "ui/theme_catalog.hpp"
@@ -310,20 +311,20 @@ ColorPicker::ColorPicker(QWidget *window)
       m_alpha(new ColorStrip(ColorStrip::Mode::Alpha, m_panel)),
       m_compare(new ColorCompare(m_panel)),
       m_hex(new QLineEdit(m_panel)),
-      m_cancel(new ActionButton(ActionButton::Kind::Subtle, QString(), QStringLiteral("Cancel"), m_panel)),
-      m_apply(new ActionButton(ActionButton::Kind::Primary, QStringLiteral("check-lg"), QStringLiteral("Apply"), m_panel))
+      m_cancel(new ActionButton(ActionButton::Kind::Subtle, QString(), tr("Cancel"), m_panel)),
+      m_apply(new ActionButton(ActionButton::Kind::Primary, QStringLiteral("check-lg"), tr("Apply"), m_panel))
 {
     m_title->setObjectName(QStringLiteral("ColorPickerTitle"));
-    auto *caption = new QLabel(QStringLiteral("Drag to pick a color, or type a hex code."), m_panel);
+    auto *caption = new QLabel(tr("Drag to pick a color, or type a hex code."), m_panel);
     caption->setObjectName(QStringLiteral("SettingsRowDescription"));
     m_hex->setObjectName(QStringLiteral("ThemeHexField"));
     m_hex->setValidator(new QRegularExpressionValidator(
         QRegularExpression(QStringLiteral("#?[0-9a-fA-F]{0,8}")), m_hex));
-    m_hex->setAccessibleName(QStringLiteral("Hex color"));
+    m_hex->setAccessibleName(tr("Hex color"));
 
-    auto *hueLabel = new QLabel(QStringLiteral("Hue"), m_panel);
+    auto *hueLabel = new QLabel(tr("Hue"), m_panel);
     hueLabel->setObjectName(QStringLiteral("ColorPickerCaption"));
-    auto *alphaLabel = new QLabel(QStringLiteral("Opacity"), m_panel);
+    auto *alphaLabel = new QLabel(tr("Opacity"), m_panel);
     alphaLabel->setObjectName(QStringLiteral("ColorPickerCaption"));
 
     auto *valueRow = new QHBoxLayout();

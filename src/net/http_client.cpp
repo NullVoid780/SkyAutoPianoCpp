@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "core/translator.hpp"
 #include "core/logger.hpp"
 #include "core/string_utils.hpp"
 #include "net/url.hpp"
@@ -20,7 +21,7 @@ HttpClient::HttpClient(std::vector<QString> allowedHosts, QObject *parent)
 void HttpClient::send(const HttpRequest &request, Callback done)
 {
     if (!isAllowedHttpsUrl(request.url, m_allowedHosts)) {
-        done(Error{"URL_REJECTED", "The request address is not allowed.", fromQString(request.url.toString())});
+        done(Error{"URL_REJECTED", trUtf8("The request address is not allowed."), fromQString(request.url.toString())});
         return;
     }
 
@@ -61,7 +62,7 @@ void HttpClient::send(const HttpRequest &request, Callback done)
     connect(reply, &QNetworkReply::finished, this, [reply, tooLarge, done = std::move(done)] {
         reply->deleteLater();
         if (*tooLarge) {
-            done(Error{"RESPONSE_TOO_LARGE", "The response was too large.", {}});
+            done(Error{"RESPONSE_TOO_LARGE", trUtf8("The response was too large."), {}});
             return;
         }
         const QVariant status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);

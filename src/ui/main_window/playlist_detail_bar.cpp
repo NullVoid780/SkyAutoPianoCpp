@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
+#include "core/translator.hpp"
 #include "ui/theme_manager.hpp"
 #include "ui/widgets/icon_button.hpp"
 
@@ -27,8 +28,8 @@ PlaylistDetailBar::PlaylistDetailBar(QWidget *parent)
       m_title(new QLabel(this)),
       m_subtitle(new QLabel(this))
 {
-    m_back->setToolTip(QStringLiteral("Back"));
-    m_back->setAccessibleName(QStringLiteral("Back"));
+    m_back->setToolTip(tr("Back"));
+    m_back->setAccessibleName(tr("Back"));
     m_title->setObjectName(QStringLiteral("LibraryHeading"));
     m_subtitle->setObjectName(QStringLiteral("PlaylistSubtitle"));
     m_title->setAlignment(Qt::AlignCenter);
@@ -54,7 +55,7 @@ PlaylistDetailBar::PlaylistDetailBar(QWidget *parent)
 void PlaylistDetailBar::setPlaylist(const QString &name, int sheetCount)
 {
     m_title->setText(name);
-    m_subtitle->setText(QStringLiteral("%1 sheets").arg(sheetCount));
+    m_subtitle->setText(trCount(sheetCount, trNoop("1 sheet"), trNoop("%1 sheets")));
 }
 
 }  // namespace sky

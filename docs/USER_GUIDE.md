@@ -194,6 +194,8 @@ Click the gear in the bottom-left corner. While Settings is open, the global sho
 you can type freely.
 
 - **General:**
+  - **Language:** follow Windows, or pick English, Tiếng Việt, 简体中文, 日本語 or Español. The app
+    restarts to switch.
   - **Import / Export:** save all your settings to one file, or load them back.
   - **Auto Save Settings:** save changes from the player (speed, long-press and so on) by itself.
   - **Minimize on Play:** hide the app when a song starts.

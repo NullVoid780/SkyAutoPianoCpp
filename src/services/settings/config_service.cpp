@@ -6,6 +6,7 @@
 #include <set>
 #include <vector>
 
+#include "core/translator.hpp"
 #include "core/file_system.hpp"
 #include "core/logger.hpp"
 #include "core/text_file.hpp"
@@ -21,7 +22,7 @@ constexpr std::array<const char *, 5> kShortcutKeys = {"pre", "play", "next", "i
 
 Error duplicateShortcut()
 {
-    return Error{"SHORTCUT_DUPLICATE", "Unable to save the settings, the shortcut has been duplicated!", {}};
+    return Error{"SHORTCUT_DUPLICATE", trUtf8("Unable to save the settings, the shortcut has been duplicated!"), {}};
 }
 
 bool fillMissing(OrderedJson &current, const OrderedJson &defaults, bool &updated)
@@ -243,7 +244,7 @@ Result<void> ConfigService::persistLocked()
     auto written = atomicWrite(m_path, dumpJson(m_raw, 4));
     if (!written) {
         Logger::error("config", written.error().details);
-        return Error{"CONFIG_WRITE_FAILED", "Can't save the settings!", written.error().details};
+        return Error{"CONFIG_WRITE_FAILED", trUtf8("Can't save the settings!"), written.error().details};
     }
     return {};
 }
@@ -298,7 +299,7 @@ void ConfigService::updateKeyboard(const OrderedJson &partial)
 Result<void> ConfigService::replace(const OrderedJson &config)
 {
     if (!config.is_object()) {
-        return Error{"CONFIG_INVALID", "Can't save the settings!", {}};
+        return Error{"CONFIG_INVALID", trUtf8("Can't save the settings!"), {}};
     }
     Result<void> result;
     {
@@ -318,7 +319,7 @@ Result<void> ConfigService::validateShortcuts(const ShortcutConfig &shortcuts)
     for (std::string_view raw : values) {
         const std::string value(trimJs(raw));
         if (value.empty()) {
-            return Error{"SHORTCUT_EMPTY", "Unable to save the settings, a shortcut is empty!", {}};
+            return Error{"SHORTCUT_EMPTY", trUtf8("Unable to save the settings, a shortcut is empty!"), {}};
         }
         if (!seen.insert(value).second) {
             return duplicateShortcut();
@@ -344,7 +345,7 @@ Result<void> ConfigService::validateShortcuts(const ShortcutConfig &shortcuts)
 Result<void> ConfigService::writeSettingsFile(const std::filesystem::path &file, const OrderedJson &config)
 {
     if (auto written = atomicWrite(file, dumpJson(config, 4)); !written) {
-        return Error{"SETTINGS_EXPORT_FAILED", "Can't export the settings!", written.error().details};
+        return Error{"SETTINGS_EXPORT_FAILED", trUtf8("Can't export the settings!"), written.error().details};
     }
     return {};
 }
@@ -353,11 +354,11 @@ Result<OrderedJson> ConfigService::readSettingsFile(const std::filesystem::path 
 {
     auto text = readTextFile(file);
     if (!text) {
-        return Error{"SETTINGS_INVALID", "The selected settings file is invalid.", text.error().details};
+        return Error{"SETTINGS_INVALID", trUtf8("The selected settings file is invalid."), text.error().details};
     }
     auto parsed = parseJson<OrderedJson>(text.value());
     if (!parsed) {
-        return Error{"SETTINGS_INVALID", "The selected settings file is invalid.", parsed.error().userMessage};
+        return Error{"SETTINGS_INVALID", trUtf8("The selected settings file is invalid."), parsed.error().userMessage};
     }
     return parsed.value();
 }
@@ -365,7 +366,7 @@ Result<OrderedJson> ConfigService::readSettingsFile(const std::filesystem::path 
 Result<OrderedJson> ConfigService::normalizeImported(const OrderedJson &current, const OrderedJson &imported)
 {
     if (!imported.is_object()) {
-        return Error{"SETTINGS_INVALID", "The selected settings file is invalid.", {}};
+        return Error{"SETTINGS_INVALID", trUtf8("The selected settings file is invalid."), {}};
     }
     OrderedJson next = current;
 

@@ -3,10 +3,13 @@
 #include <QSignalBlocker>
 #include <QVBoxLayout>
 
+#include "core/translator.hpp"
+#include "core/translator.hpp"
 #include "ui/settings_window/action_button.hpp"
 #include "ui/settings_window/settings_row.hpp"
 #include "ui/settings_window/tab_header.hpp"
 #include "ui/theme_manager.hpp"
+#include "ui/widgets/confirm_popup.hpp"
 #include "ui/widgets/select_box.hpp"
 #include "ui/widgets/toggle_switch.hpp"
 
@@ -17,6 +20,24 @@ namespace {
 constexpr int kHeaderGap = 20;
 constexpr int kRowGap = 12;
 
+const char *languageName(const char *code)
+{
+    const QLatin1String id(code);
+    if (id == QLatin1String("en")) {
+        return trNoop("English");
+    }
+    if (id == QLatin1String("vi")) {
+        return trNoop("Vietnamese");
+    }
+    if (id == QLatin1String("zh_CN")) {
+        return trNoop("Chinese (Simplified)");
+    }
+    if (id == QLatin1String("ja")) {
+        return trNoop("Japanese");
+    }
+    return trNoop("Spanish");
+}
+
 }  // namespace
 
 GeneralTab::GeneralTab(QWidget *parent)
@@ -24,46 +45,55 @@ GeneralTab::GeneralTab(QWidget *parent)
       m_autoSave(new ToggleSwitch(this)),
       m_minimizeOnPlay(new ToggleSwitch(this)),
       m_pauseWhenUnfocused(new ToggleSwitch(this)),
-      m_playbackMode(new SelectBox(this))
+      m_playbackMode(new SelectBox(this)),
+      m_language(new SelectBox(this))
 {
     auto *header = new TabHeader(QStringLiteral("sliders"), [] { return currentTheme().settings.navIconSliders; },
-                                 QStringLiteral("General Settings"),
-                                 QStringLiteral("Configure basic application behavior and preferences"), this);
-    auto *importButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("upload"), QStringLiteral("Import"));
-    auto *exportButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("download"), QStringLiteral("Export"));
+                                 tr("General Settings"),
+                                 tr("Configure basic application behavior and preferences"), this);
+    auto *importButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("upload"), tr("Import"));
+    auto *exportButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("download"), tr("Export"));
     header->addAction(importButton);
     header->addAction(exportButton);
 
-    m_playbackMode->addOption(QStringLiteral("Lite"), QStringLiteral("Lighter on weak PCs, may drift a few ms"));
-    m_playbackMode->addOption(QStringLiteral("Strict"), QStringLiteral("Most accurate timing, uses more CPU"));
-    m_playbackMode->setAccessibleName(QStringLiteral("Playback Mode"));
+    m_playbackMode->addOption(tr("Lite"), tr("Lighter on weak PCs, may drift a few ms"));
+    m_playbackMode->addOption(tr("Strict"), tr("Most accurate timing, uses more CPU"));
+    m_playbackMode->setAccessibleName(tr("Playback Mode"));
 
-    auto *autoSave = new SettingsRow(QStringLiteral("save"), QStringLiteral("Auto Save Settings"),
-                                     QStringLiteral("Save your changes by itself when you close Settings."), m_autoSave, this);
-    auto *minimize = new SettingsRow(QStringLiteral("dash-lg"), QStringLiteral("Minimize on Play"),
-                                     QStringLiteral("Minimize the window when playback starts."), m_minimizeOnPlay, this);
-    auto *pause = new SettingsRow(QStringLiteral("pause-fill"), QStringLiteral("Pause When Sky Isn't in Front"),
-                                  QStringLiteral("Wait for the game before playing, and pause if you switch to another "
+    auto *autoSave = new SettingsRow(QStringLiteral("save"), tr("Auto Save Settings"),
+                                     tr("Save your changes by itself when you close Settings."), m_autoSave, this);
+    auto *minimize = new SettingsRow(QStringLiteral("dash-lg"), tr("Minimize on Play"),
+                                     tr("Minimize the window when playback starts."), m_minimizeOnPlay, this);
+    auto *pause = new SettingsRow(QStringLiteral("pause-fill"), tr("Pause When Sky Isn't in Front"),
+                                  tr("Wait for the game before playing, and pause if you switch to another "
                                                  "window so keys never type into it."),
                                   m_pauseWhenUnfocused, this);
-    auto *mode = new SettingsRow(QStringLiteral("music-note-beamed"), QStringLiteral("Playback Mode"),
-                                 QStringLiteral("Choose how notes are timed while a song plays."), m_playbackMode, this);
-    auto *importPrevious = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("download"), QStringLiteral("Import"));
-    auto *previous = new SettingsRow(QStringLiteral("music-note-list"), QStringLiteral("Import Previous Songs"),
-                                     QStringLiteral("Copy all songs from the Electron version of Sky Auto Piano into this library."),
+    auto *mode = new SettingsRow(QStringLiteral("music-note-beamed"), tr("Playback Mode"),
+                                 tr("Choose how notes are timed while a song plays."), m_playbackMode, this);
+    m_language->addOption(tr("Follow Windows"), tr("Use the same language as Windows"));
+    for (const LanguageInfo &language : supportedLanguages()) {
+        m_language->addOption(QString::fromUtf8(language.nativeName), tr(languageName(language.code)));
+    }
+    m_language->setAccessibleName(tr("Language"));
+    auto *languageRow = new SettingsRow(QStringLiteral("translate"), tr("Language"),
+                                        tr("Choose the language of the app. It restarts to switch."), m_language,
+                                        this);
+    auto *importPrevious = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("download"), tr("Import"));
+    auto *previous = new SettingsRow(QStringLiteral("music-note-list"), tr("Import Previous Songs"),
+                                     tr("Copy all songs from the Electron version of Sky Auto Piano into this library."),
                                      importPrevious, this);
 
     auto *quickStartButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("arrow-clockwise"),
-                                              QStringLiteral("Run again"));
-    auto *quickStart = new SettingsRow(QStringLiteral("lightbulb"), QStringLiteral("Quick Start"),
-                                       QStringLiteral("Go through the first-time setup again."), quickStartButton, this);
+                                              tr("Run again"));
+    auto *quickStart = new SettingsRow(QStringLiteral("lightbulb"), tr("Quick Start"),
+                                       tr("Go through the first-time setup again."), quickStartButton, this);
 
     auto *column = new QVBoxLayout(this);
     column->setContentsMargins(0, 0, 0, 0);
     column->setSpacing(0);
     column->addWidget(header);
     column->addSpacing(kHeaderGap);
-    for (SettingsRow *row : {autoSave, minimize, pause, mode, previous, quickStart}) {
+    for (SettingsRow *row : {languageRow, autoSave, minimize, pause, mode, previous, quickStart}) {
         column->addWidget(row);
         if (row != quickStart) {
             column->addSpacing(kRowGap);
@@ -75,6 +105,41 @@ GeneralTab::GeneralTab(QWidget *parent)
     connect(exportButton, &QAbstractButton::clicked, this, &GeneralTab::exportRequested);
     connect(importPrevious, &QAbstractButton::clicked, this, &GeneralTab::importPreviousRequested);
     connect(quickStartButton, &QAbstractButton::clicked, this, &GeneralTab::quickStartRequested);
+    connect(m_language, &SelectBox::currentIndexChanged, this, &GeneralTab::onLanguageChanged);
+}
+
+void GeneralTab::setLanguage(const QString &preference)
+{
+    int index = 0;
+    const auto &languages = supportedLanguages();
+    for (std::size_t i = 0; i < languages.size(); ++i) {
+        if (preference == QLatin1String(languages[i].code)) {
+            index = static_cast<int>(i) + 1;
+        }
+    }
+    const QSignalBlocker blocker(m_language);
+    m_language->setCurrentIndex(index);
+}
+
+void GeneralTab::onLanguageChanged(int index)
+{
+    const auto &languages = supportedLanguages();
+    const QString preference = index <= 0 || index > static_cast<int>(languages.size())
+                                   ? QString()
+                                   : QString::fromLatin1(languages[static_cast<std::size_t>(index - 1)].code);
+    emit languageChosen(preference);
+    if (resolveLanguage(preference) == currentLanguage()) {
+        return;
+    }
+    if (!m_confirm) {
+        m_confirm = new ConfirmPopup(window());
+    }
+    QPointer<GeneralTab> self(this);
+    m_confirm->ask(tr("Restart Sky Auto Piano now to switch the language?"), [self] {
+        if (self) {
+            emit self->restartRequested();
+        }
+    });
 }
 
 void GeneralTab::load(const Config &config)

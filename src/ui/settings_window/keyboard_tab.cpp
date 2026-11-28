@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
+#include "core/translator.hpp"
 #include "core/string_utils.hpp"
 #include "ui/core/elevation_layer.hpp"
 #include "ui/render/icon_cache.hpp"
@@ -42,8 +43,8 @@ KeyboardTab::KeyboardTab(QWidget *parent)
 {
     auto *shadows = new ElevationLayer(this);
     auto *header = new TabHeader(QStringLiteral("keyboard"), [] { return currentTheme().settings.navIconKeyboard; },
-                                 QStringLiteral("Keyboard Layout"),
-                                 QStringLiteral("Customize your keyboard mapping for piano keys"), this);
+                                 tr("Keyboard Layout"),
+                                 tr("Customize your keyboard mapping for piano keys"), this);
 
     auto *panel = new SettingsPanel(kPanelPadding, this);
     auto *grid = new QGridLayout();
@@ -59,7 +60,7 @@ KeyboardTab::KeyboardTab(QWidget *parent)
     panelRow->addLayout(grid);
     panelRow->addStretch();
 
-    auto *tip = new QLabel(QStringLiteral("Tip: Press Tab to move to the next key input faster."), this);
+    auto *tip = new QLabel(tr("Tip: Press Tab to move to the next key input faster."), this);
     tip->setObjectName(QStringLiteral("KeyboardTip"));
     m_tipIcon->setFixedSize(kTipIcon, kTipIcon);
     auto *tipRow = new QHBoxLayout();
@@ -68,8 +69,8 @@ KeyboardTab::KeyboardTab(QWidget *parent)
     tipRow->addWidget(m_tipIcon);
     tipRow->addWidget(tip, 1);
 
-    auto *card = new SettingCard(QStringLiteral("palette"), QStringLiteral("Custom Keyboard"),
-                                 QStringLiteral("Use custom keyboard mapping instead of default layout"),
+    auto *card = new SettingCard(QStringLiteral("palette"), tr("Custom Keyboard"),
+                                 tr("Use custom keyboard mapping instead of default layout"),
                                  m_customKeyboard, SettingCard::Variant::Normal, this);
     card->attachShadows(shadows);
 

@@ -2,6 +2,7 @@
 
 #include <QVBoxLayout>
 
+#include "core/translator.hpp"
 #include "core/string_utils.hpp"
 #include "ui/settings_window/shortcut_edit.hpp"
 #include "ui/settings_window/shortcut_row.hpp"
@@ -22,8 +23,8 @@ constexpr qreal kFieldRadius = 8;
 ShortcutsTab::ShortcutsTab(QWidget *parent) : QWidget(parent)
 {
     auto *header = new TabHeader(QStringLiteral("lightning"), [] { return currentTheme().settings.navIconLightning; },
-                                 QStringLiteral("Keyboard Shortcuts"),
-                                 QStringLiteral("Configure global shortcuts for quick access to features"), this);
+                                 tr("Keyboard Shortcuts"),
+                                 tr("Configure global shortcuts for quick access to features"), this);
 
     struct RowSpec {
         const char *icon;
@@ -31,12 +32,12 @@ ShortcutsTab::ShortcutsTab(QWidget *parent) : QWidget(parent)
         int field;
     };
     constexpr std::array<RowSpec, 6> kRows = {{
-        {"skip-backward", "Previous Song", 0},
-        {"play-circle", "Play Current Song", 1},
-        {"skip-forward", "Next Song", 2},
-        {"eye", "Show/Hide App", -1},
-        {"speedometer2", "Increase Speed", 3},
-        {"speedometer", "Decrease Speed", 4},
+        {"skip-backward", trNoop("Previous Song"), 0},
+        {"play-circle", trNoop("Play Current Song"), 1},
+        {"skip-forward", trNoop("Next Song"), 2},
+        {"eye", trNoop("Show/Hide App"), -1},
+        {"speedometer2", trNoop("Increase Speed"), 3},
+        {"speedometer", trNoop("Decrease Speed"), 4},
     }};
 
     auto *column = new QVBoxLayout(this);
@@ -46,7 +47,7 @@ ShortcutsTab::ShortcutsTab(QWidget *parent) : QWidget(parent)
     column->addSpacing(kHeaderGap);
     for (std::size_t i = 0; i < kRows.size(); ++i) {
         const RowSpec &spec = kRows[i];
-        auto *row = new ShortcutRow(QString::fromLatin1(spec.icon), QString::fromLatin1(spec.label), this);
+        auto *row = new ShortcutRow(QString::fromLatin1(spec.icon), tr(spec.label), this);
         ShortcutEdit *field = row->field();
         if (spec.field < 0) {
             field->setText(QStringLiteral("Alt+Tab"));

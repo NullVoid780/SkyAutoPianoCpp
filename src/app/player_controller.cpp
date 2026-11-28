@@ -6,6 +6,7 @@
 #include <cmath>
 #include <set>
 
+#include "core/translator.hpp"
 #include "services/settings/config_service.hpp"
 #include "services/library/library_service.hpp"
 #include "services/playback/playback_service.hpp"
@@ -93,7 +94,7 @@ void PlayerController::selectLocal(int index, bool trackRecentPlay, std::functio
             return;
         }
         if (!loaded) {
-            m_toasts.show(ToastType::Error, "Error loading song data.");
+            m_toasts.show(ToastType::Error, trUtf8("Error loading song data."));
             return;
         }
         const StoredSheet &payload = *loaded.value();

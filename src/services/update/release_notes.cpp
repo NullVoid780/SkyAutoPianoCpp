@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "core/translator.hpp"
 #include "core/string_utils.hpp"
 #include "services/update/version.hpp"
 
@@ -92,13 +93,14 @@ const VersionNotes *findVersionNotes(const std::vector<VersionNotes> &changelog,
 
 std::string composeUpdateNotes(std::string_view latestNotes, const std::vector<VersionNotes> &missed)
 {
-    std::string markdown = "## What's new?\n\n";
+    std::string markdown = "## " + trUtf8("What's new?") + "\n\n";
     const std::string notes = trimmed(latestNotes);
-    markdown += notes.empty() ? std::string("No release notes for this version.") : notes;
+    markdown += notes.empty() ? trUtf8("No release notes for this version.") : notes;
     if (!missed.empty()) {
-        markdown += "\n\n---\n\n## Other updates you've missed\n";
+        markdown += "\n\n---\n\n## " + trUtf8("Other updates you've missed") + "\n";
         for (const VersionNotes &entry : missed) {
-            markdown += "\n### Version " + entry.version + "\n\n" + entry.markdown + "\n";
+            markdown += "\n### " + fromQString(tr("Version %1").arg(toQString(entry.version))) + "\n\n" +
+                        entry.markdown + "\n";
         }
     }
     return markdown;

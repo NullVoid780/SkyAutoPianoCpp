@@ -4,6 +4,7 @@
 #include <cmath>
 #include <string>
 
+#include "core/translator.hpp"
 #include "core/string_utils.hpp"
 #include "model/key_table.hpp"
 
@@ -79,12 +80,13 @@ Result<std::vector<SongNote>> normalizeSongNotes(const OrderedJson &songNotes, i
                                                  std::vector<SheetWarning> &warnings)
 {
     if (!songNotes.is_array() || songNotes.empty()) {
-        return sheetError(SheetErrorCode::NoNotes, "The sheet does not contain any playable notes.");
+        return sheetError(SheetErrorCode::NoNotes, trUtf8("The sheet does not contain any playable notes."));
     }
     if (songNotes.size() > kMaxSheetNoteCount) {
         return sheetError(SheetErrorCode::TooManyNotes,
-                          "The sheet contains " + std::to_string(songNotes.size()) +
-                              " notes; the limit is " + std::to_string(kMaxSheetNoteCount) + ".");
+                          fromQString(tr("The sheet contains %1 notes; the limit is %2.")
+                                          .arg(songNotes.size())
+                                          .arg(kMaxSheetNoteCount)));
     }
 
     std::vector<SongNote> notes;
@@ -96,21 +98,23 @@ Result<std::vector<SongNote>> normalizeSongNotes(const OrderedJson &songNotes, i
 
         const double time = jsMember(note, "time");
         if (!std::isfinite(time) || time < 0 || time > kMaxSheetDurationMs) {
-            return sheetError(SheetErrorCode::InvalidNoteTime, "Note " + position + " has an invalid time value.");
+            return sheetError(SheetErrorCode::InvalidNoteTime,
+                              fromQString(tr("Note %1 has an invalid time value.").arg(toQString(position))));
         }
 
         const std::string rawKey = noteKeyText(note);
         SongKeyParts parts;
         if (!parseSongKey(rawKey, parts)) {
             return sheetError(SheetErrorCode::InvalidNoteKey,
-                              "Note " + position + " uses unsupported key “" +
-                                  (rawKey.empty() ? std::string("(empty)") : rawKey) + "”.");
+                              fromQString(tr("Note %1 uses unsupported key “%2”.")
+                                              .arg(toQString(position),
+                                                   rawKey.empty() ? tr("(empty)") : toQString(rawKey))));
         }
         const double keyIndex = parts.index;
         if (std::trunc(keyIndex) != keyIndex || keyIndex < 0 || keyIndex >= bitsPerPage || keyIndex > 14) {
             return sheetError(SheetErrorCode::KeyOutOfRange,
-                              "Note " + position + " uses key " + formatJsNumber(keyIndex) +
-                                  ", but supported keys are 0–14.");
+                              fromQString(tr("Note %1 uses key %2, but supported keys are 0–14.")
+                                              .arg(toQString(position), toQString(formatJsNumber(keyIndex)))));
         }
         if (!parts.hasPagePrefix) {
             ++unprefixedCount;

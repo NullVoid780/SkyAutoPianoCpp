@@ -5,6 +5,7 @@
 #include <initializer_list>
 #include <set>
 
+#include "core/translator.hpp"
 #include "codec/key_map_builder.hpp"
 #include "codec/note_normalizer.hpp"
 #include "codec/playback_note_builder.hpp"
@@ -15,7 +16,7 @@ namespace sky {
 
 namespace {
 
-constexpr const char *kInvalidDownload = "The downloaded sheet is invalid.";
+constexpr const char *kInvalidDownload = trNoop("The downloaded sheet is invalid.");
 constexpr std::int64_t kMaxRemoteDurationMs = 15 * 60 * 1000;
 constexpr std::int64_t kMaxRemoteNoteCount = 20000;
 constexpr std::size_t kMaxTitleLength = 180;
@@ -70,12 +71,12 @@ bool isHex(char c)
 
 Error storeError(const char *message)
 {
-    return Error{"STORE_INVALID_RESPONSE", message, {}};
+    return Error{"STORE_INVALID_RESPONSE", trUtf8(message), {}};
 }
 
 Error invalidDownload()
 {
-    return Error{"STORE_INVALID_SHEET", kInvalidDownload, {}};
+    return Error{"STORE_INVALID_SHEET", trUtf8(kInvalidDownload), {}};
 }
 
 }  // namespace
@@ -121,7 +122,7 @@ Result<StoreItem> mapStoreSummary(const OrderedJson &item)
     StoreItem mapped;
     mapped.id = trimmedString(member(item, "id"));
     if (!isStoreSheetId(mapped.id)) {
-        return storeError("Sky Sheet Store returned an invalid sheet id.");
+        return storeError(trNoop("Sky Sheet Store returned an invalid sheet id."));
     }
     const auto numberOr = [&item](std::initializer_list<const char *> keys, std::int64_t min, std::int64_t max) {
         return clampInteger(firstTruthy(item, keys), min, max, 0);
@@ -184,7 +185,7 @@ Result<StorePage> mapStorePage(const OrderedJson &payload, std::int64_t limit, s
 {
     const OrderedJson &items = member(payload, "items");
     if (!items.is_array()) {
-        return storeError("Sky Sheet Store returned an invalid sheet list.");
+        return storeError(trNoop("Sky Sheet Store returned an invalid sheet list."));
     }
     StorePage page;
     for (const OrderedJson &item : items) {
@@ -208,12 +209,12 @@ Result<StorePlayerPayload> mapStorePlayerPayload(const OrderedJson &payload)
     const OrderedJson &viewer = member(payload, "viewer");
     if (!isObjectLike(sheet) || !isObjectLike(player) || !isObjectLike(runtime) ||
         !member(runtime, "notes").is_array()) {
-        return storeError("Sky Sheet Store returned an incomplete player payload.");
+        return storeError(trNoop("Sky Sheet Store returned an incomplete player payload."));
     }
     StorePlayerPayload mapped;
     mapped.id = trimmedString(member(sheet, "id"));
     if (!isStoreSheetId(mapped.id)) {
-        return storeError("Sky Sheet Store returned an invalid player sheet id.");
+        return storeError(trNoop("Sky Sheet Store returned an invalid player sheet id."));
     }
     mapped.title = orDefault(trimmedString(member(sheet, "title")), "Unknown");
     mapped.author = trimmedString(member(sheet, "author"));
@@ -256,16 +257,16 @@ StoreAvailability storeAvailability(const StoreItem &item)
         return {true, true, {}};
     }
     if (item.accessMode == "web_only") {
-        return {false, false, "Web only"};
+        return {false, false, trUtf8("Web only")};
     }
     if (!item.isDownloadable) {
-        return {false, false, "Not downloadable"};
+        return {false, false, trUtf8("Not downloadable")};
     }
     if (item.priceAmount > 0 || item.viewerActionState == "checkout") {
-        return {false, false, "Purchase required"};
+        return {false, false, trUtf8("Purchase required")};
     }
     if (item.viewerActionState == "login_to_open") {
-        return {false, false, "Login required"};
+        return {false, false, trUtf8("Login required")};
     }
     return {true, true, {}};
 }
@@ -351,11 +352,11 @@ Result<PreparedStoreSheet> prepareStoreSheet(const StorePlayerPayload &payload, 
     const int bits = resolveBitsPerPage(sheet["bitsPerPage"].get<double>());
     auto playbackNotes = buildPlaybackNotes(songNotes, bits);
     if (!playbackNotes) {
-        return Error{"STORE_INVALID_SHEET", "The sheet file is not valid, please try again with another file!", {}};
+        return Error{"STORE_INVALID_SHEET", trUtf8("The sheet file is not valid, please try again with another file!"), {}};
     }
     auto keyMap = buildKeyMap(playbackNotes.value());
     if (!keyMap) {
-        return Error{"STORE_INVALID_SHEET", "The sheet file is not valid, please try again with another file!", {}};
+        return Error{"STORE_INVALID_SHEET", trUtf8("The sheet file is not valid, please try again with another file!"), {}};
     }
     PreparedStoreSheet prepared;
     prepared.normalizedSheet = sheet;

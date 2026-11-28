@@ -11,6 +11,7 @@
 
 #include <algorithm>
 
+#include "core/translator.hpp"
 #include "core/string_utils.hpp"
 #include "services/library/library_service.hpp"
 #include "services/library/playlist_service.hpp"
@@ -52,7 +53,7 @@ PlaylistPicker::PlaylistPicker(PlaylistService &playlists, LibraryService &libra
     m_name->setMaxLength(static_cast<int>(kPlaylistNameMaxLength));
     m_submit->setObjectName(QStringLiteral("PrimaryButton"));
     m_submit->setCursor(Qt::PointingHandCursor);
-    m_close->setToolTip(QStringLiteral("Close"));
+    m_close->setToolTip(tr("Close"));
     m_scroll->setObjectName(QStringLiteral("PickerList"));
     m_scroll->setWidgetResizable(true);
     m_scroll->setFrameShape(QFrame::NoFrame);
@@ -149,14 +150,14 @@ void PlaylistPicker::openForSheet(int libraryIndex)
     }
     m_sheetIndex = libraryIndex;
     m_renameId.clear();
-    present(QStringLiteral("Add to Playlist"), QStringLiteral("Create"), {});
+    present(tr("Add to Playlist"), tr("Create"), {});
 }
 
 void PlaylistPicker::openForNew()
 {
     m_sheetIndex = -1;
     m_renameId.clear();
-    present(QStringLiteral("New Playlist"), QStringLiteral("Create"), {});
+    present(tr("New Playlist"), tr("Create"), {});
 }
 
 void PlaylistPicker::openForRename(const std::string &playlistId)
@@ -167,7 +168,7 @@ void PlaylistPicker::openForRename(const std::string &playlistId)
     }
     m_sheetIndex = -1;
     m_renameId = playlistId;
-    present(QStringLiteral("Rename Playlist"), QStringLiteral("Save"), toQString(playlist->name));
+    present(tr("Rename Playlist"), tr("Save"), toQString(playlist->name));
 }
 
 void PlaylistPicker::addTo(const std::string &playlistId)
@@ -181,7 +182,7 @@ void PlaylistPicker::addTo(const std::string &playlistId)
         return;
     }
     renderRows();
-    emit toastRequested(Toast{ToastType::Success, {}, "Added to playlist.", kDefaultToastMs});
+    emit toastRequested(Toast{ToastType::Success, {}, trUtf8("Added to playlist."), kDefaultToastMs});
 }
 
 void PlaylistPicker::submit()
@@ -222,7 +223,7 @@ void PlaylistPicker::renderRows()
     m_scroll->setVisible(sheet != nullptr);
     if (sheet) {
         if (m_playlists.playlists().empty()) {
-            auto *empty = new QLabel(QStringLiteral("Create a playlist to add %1.").arg(toQString(sheet->name())), m_rows);
+            auto *empty = new QLabel(tr("Create a playlist to add %1.").arg(toQString(sheet->name())), m_rows);
             empty->setObjectName(QStringLiteral("PickerEmpty"));
             empty->setWordWrap(true);
             m_rowsLayout->addWidget(empty);
@@ -236,7 +237,7 @@ void PlaylistPicker::renderRows()
             auto *layout = new QHBoxLayout(row);
             layout->setContentsMargins(0, 10, 0, 10);
             auto *name = new QLabel(toQString(playlist.name), row);
-            auto *action = new QPushButton(added ? QStringLiteral("Added") : QStringLiteral("Add"), row);
+            auto *action = new QPushButton(added ? tr("Added") : tr("Add"), row);
             action->setObjectName(QStringLiteral("PrimaryButton"));
             action->setEnabled(!added);
             action->setCursor(Qt::PointingHandCursor);

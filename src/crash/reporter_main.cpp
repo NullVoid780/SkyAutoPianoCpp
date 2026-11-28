@@ -130,7 +130,8 @@ int handleCrash(HANDLE process, DWORD processId, sky::CrashChannel &channel, con
     const std::wstring reason =
         widen(sky::exceptionCodeName(input.code)) + L" (" + widen(sky::hex(input.code, 8)) + L")";
     const sky::CrashDialogChoice choice =
-        sky::showCrashDialog({reason, shownFile.filename().wstring(), directory, widen(report.dump(2))});
+        sky::showCrashDialog({reason, shownFile.filename().wstring(), directory, widen(report.dump(2)),
+                              std::string(context.language, strnlen(context.language, sizeof(context.language)))});
     if (choice == sky::CrashDialogChoice::Restart) {
         WaitForSingleObject(process, 5000);
         restart(executable, id);

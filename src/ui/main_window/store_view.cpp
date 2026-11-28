@@ -12,6 +12,7 @@
 
 #include <cmath>
 
+#include "core/translator.hpp"
 #include "app/player_controller.hpp"
 #include "core/string_utils.hpp"
 #include "services/library/library_service.hpp"
@@ -37,25 +38,25 @@ QString metaLine(const StoreItem &item)
         parts << toQString(item.author);
     }
     if (item.transcribedBy != "Unknown") {
-        parts << QStringLiteral("Transcribed by %1").arg(toQString(item.transcribedBy));
+        parts << tr("Transcribed by %1").arg(toQString(item.transcribedBy));
     }
     if (item.creator && !item.creator->displayName.empty()) {
-        parts << QStringLiteral("Uploaded by %1").arg(toQString(item.creator->displayName));
+        parts << tr("Uploaded by %1").arg(toQString(item.creator->displayName));
     }
-    return parts.isEmpty() ? QStringLiteral("Unknown") : parts.join(QStringLiteral(" · "));
+    return parts.isEmpty() ? tr("Unknown") : parts.join(QStringLiteral(" · "));
 }
 
 QStringList badgesFor(const StoreItem &item)
 {
     QStringList badges;
-    badges << (item.difficulty.empty() ? QStringLiteral("Unknown") : toQString(item.difficulty));
-    badges << (item.bpm ? QStringLiteral("%1 BPM").arg(item.bpm) : QStringLiteral("Unknown BPM"));
-    badges << (item.noteCount ? QStringLiteral("%1 notes").arg(item.noteCount) : QStringLiteral("Unknown notes"));
+    badges << (item.difficulty.empty() ? tr("Unknown") : toQString(item.difficulty));
+    badges << (item.bpm ? tr("%1 BPM").arg(item.bpm) : tr("Unknown BPM"));
+    badges << (item.noteCount ? tr("%1 notes").arg(item.noteCount) : tr("Unknown notes"));
     if (item.accessMode == "web_only") {
-        badges << QStringLiteral("Web only");
+        badges << tr("Web only");
     }
     if (item.priceAmount > 0) {
-        badges << QStringLiteral("Paid");
+        badges << tr("Paid");
     }
     for (std::size_t i = 0; i < item.tags.size() && i < 3; ++i) {
         badges << toQString(item.tags[i]);
@@ -74,15 +75,15 @@ StoreView::StoreView(StoreService &store, LibraryService &library, PlayerControl
       m_delegate(new StoreCardDelegate(this)),
       m_list(new QListView(this)),
       m_state(new StateCard(this)),
-      m_retry(new QPushButton(QStringLiteral("Retry"), this)),
+      m_retry(new QPushButton(tr("Retry"), this)),
       m_pagination(new StorePagination(this)),
       m_debounce(new QTimer(this))
 {
-    auto *title = new QLabel(QStringLiteral("Sky Sheet Store"), this);
+    auto *title = new QLabel(tr("Sky Sheet Store"), this);
     title->setObjectName(QStringLiteral("LibraryHeading"));
-    auto *subtitle = new QLabel(QStringLiteral("Browse community sheets from skysheet.store"), this);
+    auto *subtitle = new QLabel(tr("Browse community sheets from skysheet.store"), this);
     subtitle->setObjectName(QStringLiteral("StoreSubtitle"));
-    auto *refresh = new QPushButton(QStringLiteral("Refresh"), this);
+    auto *refresh = new QPushButton(tr("Refresh"), this);
     refresh->setObjectName(QStringLiteral("NeutralButton"));
     refresh->setCursor(Qt::PointingHandCursor);
     m_retry->setObjectName(QStringLiteral("NeutralButton"));
@@ -209,7 +210,7 @@ void StoreView::fetch(int page, bool refresh)
         } else if (initial) {
             self->m_error = toQString(result.error().userMessage);
         } else {
-            const std::string message = result.error().userMessage.empty() ? "Unable to load this page. Please try again."
+            const std::string message = result.error().userMessage.empty() ? trUtf8("Unable to load this page. Please try again.")
                                                                              : result.error().userMessage;
             emit self->toastRequested(Toast{ToastType::Error, {}, message, kDefaultToastMs});
         }
@@ -228,11 +229,11 @@ void StoreView::render()
 {
     const bool empty = m_items.empty();
     if (m_loading && empty) {
-        m_state->setContent(QStringLiteral("Loading sheets..."), {});
+        m_state->setContent(tr("Loading sheets..."), {});
     } else if (!m_error.isEmpty() && empty) {
-        m_state->setContent(QStringLiteral("Unable to connect to Sky Sheet Store."), m_error);
+        m_state->setContent(tr("Unable to connect to Sky Sheet Store."), m_error);
     } else if (empty) {
-        m_state->setContent(QStringLiteral("No sheets found."), {});
+        m_state->setContent(tr("No sheets found."), {});
     }
     m_state->setVisible(empty);
     m_retry->setVisible(empty && !m_loading && !m_error.isEmpty());
@@ -252,8 +253,8 @@ void StoreView::render()
         row->setData(toQString(availability.message), StoreCardDelegate::StatusRole);
         row->setData(availability.canPlay && !playing, StoreCardDelegate::CanPlayRole);
         row->setData(availability.canSave && !saving, StoreCardDelegate::CanSaveRole);
-        row->setData(playing ? QStringLiteral("Preparing...") : QStringLiteral("Play"), StoreCardDelegate::PlayLabelRole);
-        row->setData(saving ? QStringLiteral("Saving...") : QStringLiteral("Save Sheet"), StoreCardDelegate::SaveLabelRole);
+        row->setData(playing ? tr("Preparing...") : tr("Play"), StoreCardDelegate::PlayLabelRole);
+        row->setData(saving ? tr("Saving...") : tr("Save Sheet"), StoreCardDelegate::SaveLabelRole);
         row->setData(toQString(item.id), StoreCardDelegate::IdRole);
         m_model->appendRow(row);
     }
@@ -294,7 +295,7 @@ void StoreView::play(const std::string &id)
     const StoreAvailability availability = storeAvailability(*item);
     if (!availability.canPlay) {
         emit toastRequested(Toast{ToastType::Error, {},
-                                  availability.message.empty() ? "This sheet is not available for playback." : availability.message,
+                                  availability.message.empty() ? trUtf8("This sheet is not available for playback.") : availability.message,
                                   kDefaultToastMs});
         return;
     }
@@ -316,7 +317,7 @@ void StoreView::play(const std::string &id)
             self->m_player.togglePlay();
             self->m_store.recordPlayerStart(snapshot.id, snapshot.sourceType.empty() ? "user" : snapshot.sourceType);
         } else {
-            const std::string message = prepared.error().userMessage.empty() ? "Unable to load this sheet. Please try again."
+            const std::string message = prepared.error().userMessage.empty() ? trUtf8("Unable to load this sheet. Please try again.")
                                                                                : prepared.error().userMessage;
             emit self->toastRequested(Toast{ToastType::Error, {}, message, kDefaultToastMs});
         }
@@ -334,7 +335,7 @@ void StoreView::save(const std::string &id)
     const StoreAvailability availability = storeAvailability(*item);
     if (!availability.canSave) {
         emit toastRequested(Toast{ToastType::Error, {},
-                                  availability.message.empty() ? "This sheet cannot be saved." : availability.message,
+                                  availability.message.empty() ? trUtf8("This sheet cannot be saved.") : availability.message,
                                   kDefaultToastMs});
         return;
     }
@@ -353,7 +354,7 @@ void StoreView::save(const std::string &id)
             }
         };
         if (!prepared) {
-            const std::string message = prepared.error().userMessage.empty() ? "Unable to load this sheet. Please try again."
+            const std::string message = prepared.error().userMessage.empty() ? trUtf8("Unable to load this sheet. Please try again.")
                                                                                : prepared.error().userMessage;
             emit self->toastRequested(Toast{ToastType::Error, {}, message, kDefaultToastMs});
             finish();
@@ -365,7 +366,7 @@ void StoreView::save(const std::string &id)
                 return;
             }
             if (saved) {
-                emit self->toastRequested(Toast{ToastType::Success, {}, "Saved to Library.", kDefaultToastMs});
+                emit self->toastRequested(Toast{ToastType::Success, {}, trUtf8("Saved to Library."), kDefaultToastMs});
                 self->m_store.recordDownload(snapshot.id, snapshot.sourceType.empty() ? "user" : snapshot.sourceType);
             } else {
                 emit self->toastRequested(Toast{ToastType::Error, {}, saved.error().userMessage, kDefaultToastMs});

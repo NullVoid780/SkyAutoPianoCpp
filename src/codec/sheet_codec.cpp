@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "core/translator.hpp"
 #include "codec/abc_sheet_parser.hpp"
 #include "codec/encrypted_notes.hpp"
 #include "codec/json_sheet_parser.hpp"
@@ -62,7 +63,7 @@ double normalizePitch(double pitch, std::vector<SheetWarning> &warnings)
 Result<ParsedSheet> prepare(const OrderedJson &raw, SheetFormat format, std::string_view fileName)
 {
     if (!raw.is_object()) {
-        return sheetError(SheetErrorCode::InvalidSheet, "The sheet must contain one song object.");
+        return sheetError(SheetErrorCode::InvalidSheet, trUtf8("The sheet must contain one song object."));
     }
 
     std::vector<SheetWarning> warnings;
@@ -192,7 +193,7 @@ Result<ParsedSheet> parseSheet(std::span<const std::byte> content, std::string_v
             normalized.remove_prefix(3);
         }
         if (normalized.empty()) {
-            return sheetError(SheetErrorCode::EmptyFile, "The selected sheet file is empty.");
+            return sheetError(SheetErrorCode::EmptyFile, trUtf8("The selected sheet file is empty."));
         }
         if (forced == SheetFormat::Abc || (!forced && looksLikeAbc(normalized))) {
             format = SheetFormat::Abc;
@@ -210,7 +211,7 @@ Result<ParsedSheet> parseSheet(std::span<const std::byte> content, std::string_v
         auto decoded = decodeEncryptedNotes(memberOrNull(sheet, "songNotes"));
         if (!decoded) {
             return sheetError(SheetErrorCode::DecryptFailed,
-                              "The sheet is encrypted but could not be decrypted. The file may be corrupted.",
+                              trUtf8("The sheet is encrypted but could not be decrypted. The file may be corrupted."),
                               decoded.error().userMessage);
         }
         sheet["songNotes"] = std::move(decoded).value();
@@ -222,7 +223,7 @@ Result<ParsedSheet> parseSheet(std::span<const std::byte> content, std::string_v
 Result<StoredSheet> loadStoredSheet(const OrderedJson &payload, std::optional<double> bitsPerPage)
 {
     if (!payload.is_object()) {
-        return sheetError(SheetErrorCode::InvalidStoredPayload, "The stored sheet payload is invalid.");
+        return sheetError(SheetErrorCode::InvalidStoredPayload, trUtf8("The stored sheet payload is invalid."));
     }
     const double requested = bitsPerPage.value_or(0.0);
     const bool useRequested = requested != 0.0 && !std::isnan(requested);

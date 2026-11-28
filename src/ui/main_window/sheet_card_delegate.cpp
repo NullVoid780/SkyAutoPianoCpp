@@ -3,6 +3,7 @@
 #include <QFontMetricsF>
 #include <QPainter>
 
+#include "core/translator.hpp"
 #include "ui/main_window/library_model.hpp"
 #include "ui/render/font_loader.hpp"
 #include "ui/render/icon_cache.hpp"
@@ -142,7 +143,7 @@ void SheetCardDelegate::paint(QPainter *p, const QStyleOptionViewItem &option, c
     const bool hold = index.data(LibraryModel::HoldRole).toBool();
     painter.setFont(titleFont());
     const QFontMetricsF titleMetrics(titleFont());
-    const QString badgeText = QStringLiteral("Hold");
+    const QString badgeText = tr("Hold");
     const qreal badgeWidth = QFontMetricsF(badgeFont()).horizontalAdvance(badgeText) + kBadgePadding * 2;
     const qreal titleSpace = right - left - (hold ? badgeWidth + 8 : 0);
     const QString title = titleMetrics.elidedText(name, Qt::ElideRight, std::max<qreal>(0, titleSpace));
@@ -161,13 +162,13 @@ void SheetCardDelegate::paint(QPainter *p, const QStyleOptionViewItem &option, c
 
     painter.setOpacity(0.95);
     const qreal infoWidth = card.right() - kPaddingX - left;
-    paintInfoRow(painter, left, top, infoWidth, QStringLiteral("person"), theme.authorIcon, QStringLiteral("Author:"),
+    paintInfoRow(painter, left, top, infoWidth, QStringLiteral("person"), theme.authorIcon, tr("Author:"),
                  index.data(LibraryModel::AuthorRole).toString());
     top += kIconSize + kRowGap;
     paintInfoRow(painter, left, top, infoWidth, QStringLiteral("edit-note"), theme.transcriberIcon,
-                 QStringLiteral("Transcript by:"), index.data(LibraryModel::TranscriberRole).toString());
+                 tr("Transcript by:"), index.data(LibraryModel::TranscriberRole).toString());
     top += kIconSize + kRowGap;
-    paintInfoRow(painter, left, top, infoWidth, QStringLiteral("metronome"), theme.bpmIcon, QStringLiteral("BPM:"),
+    paintInfoRow(painter, left, top, infoWidth, QStringLiteral("metronome"), theme.bpmIcon, tr("BPM:"),
                  index.data(LibraryModel::BpmRole).toString());
     painter.setOpacity(1.0);
 

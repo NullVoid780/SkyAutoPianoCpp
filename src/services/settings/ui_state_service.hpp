@@ -49,6 +49,10 @@ public:
     bool editorSoundMuted() const;
     void setEditorSoundMuted(bool muted);
 
+    std::string language() const;
+    void setLanguage(const std::string &code);
+    static std::string readLanguage(const std::filesystem::path &dataDirectory);
+
     const std::filesystem::path &filePath() const { return m_path; }
 
 signals:

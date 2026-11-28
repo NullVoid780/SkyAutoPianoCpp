@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 
+#include "core/translator.hpp"
 #include "core/string_utils.hpp"
 
 namespace sky {
@@ -68,7 +69,8 @@ std::optional<std::string> keyNameForToken(const std::string &lowered)
 
 Error invalidShortcut(std::string_view accelerator)
 {
-    return Error{"SHORTCUT_INVALID", "Unable to register the shortcut " + std::string(accelerator) + ".", {}};
+    return Error{"SHORTCUT_INVALID",
+                 fromQString(tr("Unable to register the shortcut %1.").arg(toQString(std::string(accelerator)))), {}};
 }
 
 std::vector<std::string> splitTokens(std::string_view accelerator)

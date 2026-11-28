@@ -14,6 +14,7 @@
 
 #include <algorithm>
 
+#include "core/translator.hpp"
 #include "app/paths.hpp"
 #include "app/version.hpp"
 #include "core/string_utils.hpp"
@@ -98,19 +99,19 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
       m_save(new SaveButton(this)),
       m_shadows(new ElevationLayer(this)),
       m_blockDialog(new ConfirmDialog(
-          this, {QStringLiteral("exclamation-triangle"), QStringLiteral("Block Automatic Updates?"),
-                 QStringLiteral("Are you sure you want to block automatic updates?\n"
+          this, {QStringLiteral("exclamation-triangle"), tr("Block Automatic Updates?"),
+                 tr("Are you sure you want to block automatic updates?\n"
                                 "You can still check for updates manually anytime."),
-                 QStringLiteral("Cancel"), QString(), QStringLiteral("Yes, Block Updates"),
+                 tr("Cancel"), QString(), tr("Yes, Block Updates"),
                  QStringLiteral("shield-check"), ActionButton::Kind::Amber})),
       m_unsavedDialog(new ConfirmDialog(
-          this, {QStringLiteral("save"), QStringLiteral("Save your changes?"),
-                 QStringLiteral("You changed some settings but didn't save them."), QStringLiteral("Cancel"),
-                 QString(), QStringLiteral("Save"), QStringLiteral("save"), ActionButton::Kind::Primary})),
+          this, {QStringLiteral("save"), tr("Save your changes?"),
+                 tr("You changed some settings but didn't save them."), tr("Cancel"),
+                 QString(), tr("Save"), QStringLiteral("save"), ActionButton::Kind::Primary})),
       m_clearCrashesDialog(new ConfirmDialog(
-          this, {QStringLiteral("trash3"), QStringLiteral("Delete all crash reports?"),
-                 QStringLiteral("They can't be brought back. Save any report you still want to send first."),
-                 QStringLiteral("Cancel"), QString(), QStringLiteral("Delete all"), QStringLiteral("trash3"),
+          this, {QStringLiteral("trash3"), tr("Delete all crash reports?"),
+                 tr("They can't be brought back. Save any report you still want to send first."),
+                 tr("Cancel"), QString(), tr("Delete all"), QStringLiteral("trash3"),
                  ActionButton::Kind::Amber})),
       m_whatsNew(new ChangelogPanel(this)),
       m_toasts(new ToastHost(this)),
@@ -119,7 +120,7 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
     setObjectName(QStringLiteral("SettingsWindow"));
     setAttribute(Qt::WA_StyledBackground);
     setAttribute(Qt::WA_DeleteOnClose);
-    setWindowTitle(QStringLiteral("Settings"));
+    setWindowTitle(tr("Settings"));
     setWindowIcon(QIcon(QStringLiteral(":/icon/Icon9.ico")));
     resize(kWidth, kHeight);
     setMinimumSize(kMinWidth, kMinHeight);
@@ -148,14 +149,14 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
     row->addWidget(m_sidebar);
     row->addWidget(m_scroll, 1);
 
-    m_sidebar->addItem(QStringLiteral("sliders"), QStringLiteral("General"));
-    m_sidebar->addItem(QStringLiteral("keyboard"), QStringLiteral("Keyboard"));
-    m_sidebar->addItem(QStringLiteral("lightning"), QStringLiteral("Shortcuts"));
-    m_sidebar->addItem(QStringLiteral("palette"), QStringLiteral("Themes"));
-    m_updatesNav = m_sidebar->addItem(QStringLiteral("update"), QStringLiteral("Updates"));
-    m_sidebar->addItem(QStringLiteral("bug"), QStringLiteral("Reports"));
+    m_sidebar->addItem(QStringLiteral("sliders"), tr("General"));
+    m_sidebar->addItem(QStringLiteral("keyboard"), tr("Keyboard"));
+    m_sidebar->addItem(QStringLiteral("lightning"), tr("Shortcuts"));
+    m_sidebar->addItem(QStringLiteral("palette"), tr("Themes"));
+    m_updatesNav = m_sidebar->addItem(QStringLiteral("update"), tr("Updates"));
+    m_sidebar->addItem(QStringLiteral("bug"), tr("Reports"));
     m_sidebar->addSeparator();
-    m_sidebar->addItem(QStringLiteral("info-circle"), QStringLiteral("About"));
+    m_sidebar->addItem(QStringLiteral("info-circle"), tr("About"));
 
     m_shadows->setFloating(true);
     m_shadows->track(m_sidebar, 0, [] { return std::vector<ShadowSpec>{currentTheme().settings.sidebarShadow}; });
@@ -183,6 +184,8 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
     connect(m_general, &GeneralTab::importRequested, this, &SettingsWindow::importSettings);
     connect(m_general, &GeneralTab::importPreviousRequested, this, &SettingsWindow::importPreviousRequested);
     connect(m_general, &GeneralTab::quickStartRequested, this, &SettingsWindow::quickStartRequested);
+    connect(m_general, &GeneralTab::languageChosen, this, &SettingsWindow::languageChosen);
+    connect(m_general, &GeneralTab::restartRequested, this, &SettingsWindow::restartRequested);
     connect(m_reports, &ReportsTab::recordIssueRequested, this, &SettingsWindow::recordIssueRequested);
     connect(m_reports, &ReportsTab::saveCrashReportRequested, this, &SettingsWindow::saveCrashReportRequested);
     connect(m_reports, &ReportsTab::crashFolderRequested, this, &SettingsWindow::crashFolderRequested);
@@ -212,12 +215,12 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
             [] { openExternalUrl(QUrl(QString::fromLatin1(kSourceCodeUrl))); });
     connect(m_about, &AboutTab::dataFolderRequested, this, [this] {
         if (!openLocalFolder(Paths::dataDirectory())) {
-            showToast(Toast{ToastType::Warning, {}, "The data folder could not be opened.", kDefaultToastMs});
+            showToast(Toast{ToastType::Warning, {}, trUtf8("The data folder could not be opened."), kDefaultToastMs});
         }
     });
     connect(m_about, &AboutTab::licensesRequested, this, [this] {
         if (!openLocalFolder(Paths::appDirectory() / "licenses")) {
-            showToast(Toast{ToastType::Warning, {}, "The licenses folder is only included in the installed app.",
+            showToast(Toast{ToastType::Warning, {}, trUtf8("The licenses folder is only included in the installed app."),
                             kDefaultToastMs});
         }
     });
@@ -319,6 +322,11 @@ void SettingsWindow::openPage(int index)
     m_sidebar->setCurrent(index);
 }
 
+void SettingsWindow::setLanguage(const QString &preference)
+{
+    m_general->setLanguage(preference);
+}
+
 void SettingsWindow::reloadForm()
 {
     loadForm(m_services.config.value());
@@ -342,11 +350,11 @@ bool SettingsWindow::save()
         return false;
     }
     if (auto saved = m_services.config.replace(mergedJson(form)); !saved) {
-        notify(ToastType::Error, "Can't save the settings!");
+        notify(ToastType::Error, trUtf8("Can't save the settings!"));
         return false;
     }
     loadForm(m_services.config.value());
-    notify(ToastType::Success, "Settings saved and applied.");
+    notify(ToastType::Success, trUtf8("Settings saved and applied."));
     return true;
 }
 
@@ -377,7 +385,7 @@ void SettingsWindow::exportSettings()
         [this](Result<void> written) {
             m_busy = false;
             if (written) {
-                notify(ToastType::Success, "Settings exported successfully.");
+                notify(ToastType::Success, trUtf8("Settings exported successfully."));
             } else {
                 notify(ToastType::Error, written.error().userMessage);
             }
@@ -405,7 +413,7 @@ void SettingsWindow::importSettings()
 void SettingsWindow::applyImported(Result<OrderedJson> imported)
 {
     if (!imported) {
-        notify(ToastType::Error, "The selected settings file is invalid.");
+        notify(ToastType::Error, trUtf8("The selected settings file is invalid."));
         return;
     }
     auto normalized = ConfigService::normalizeImported(m_services.config.raw(), imported.value());
@@ -419,11 +427,11 @@ void SettingsWindow::applyImported(Result<OrderedJson> imported)
         return;
     }
     if (auto saved = m_services.config.replace(normalized.value()); !saved) {
-        notify(ToastType::Error, "Can't save the settings!");
+        notify(ToastType::Error, trUtf8("Can't save the settings!"));
         return;
     }
     loadForm(m_services.config.value());
-    notify(ToastType::Success, "Settings imported and applied.");
+    notify(ToastType::Success, trUtf8("Settings imported and applied."));
     const auto theme = imported.value().find("appTheme");
     if (theme != imported.value().end() && (*theme == "light" || *theme == "dark")) {
         emit themeImported(*theme == "dark" ? AppTheme::Dark : AppTheme::Light);
@@ -480,7 +488,7 @@ void SettingsWindow::showWhatsNew()
                     }
                 }
             }
-            self->notify(ToastType::Warning, "Couldn't load the release notes. Check your internet connection and try again.");
+            self->notify(ToastType::Warning, trUtf8("Couldn't load the release notes. Check your internet connection and try again."));
         });
     });
 }

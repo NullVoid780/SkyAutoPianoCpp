@@ -197,6 +197,13 @@ bool CrashHandler::install(const Options &options)
     return g_context != nullptr;
 }
 
+void CrashHandler::setLanguage(const char *code) noexcept
+{
+    if (g_context) {
+        copyBounded(g_context->language, sizeof(g_context->language), code);
+    }
+}
+
 void CrashHandler::startReporter() noexcept
 {
     if (g_context && !g_reporter) {

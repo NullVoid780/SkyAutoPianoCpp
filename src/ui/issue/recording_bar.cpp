@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QScreen>
 
+#include "core/translator.hpp"
 #include "ui/render/paint_utils.hpp"
 #include "ui/settings_window/action_button.hpp"
 #include "ui/theme_manager.hpp"
@@ -47,20 +48,20 @@ RecordingBar::RecordingBar()
     : QWidget(nullptr, Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::NoDropShadowWindowHint),
       m_time(new QLabel(clockText(0), this)),
       m_steps(new QLabel(this)),
-      m_stop(new ActionButton(ActionButton::Kind::Primary, QStringLiteral("check-lg"), QStringLiteral("Stop and save"), this)),
-      m_discard(new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("trash3"), QStringLiteral("Discard"), this))
+      m_stop(new ActionButton(ActionButton::Kind::Primary, QStringLiteral("check-lg"), tr("Stop and save"), this)),
+      m_discard(new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("trash3"), tr("Discard"), this))
 {
     setAttribute(Qt::WA_TranslucentBackground);
     setAttribute(Qt::WA_ShowWithoutActivating);
-    setWindowTitle(QStringLiteral("Recording an issue"));
+    setWindowTitle(tr("Recording an issue"));
     setCursor(Qt::SizeAllCursor);
 
-    auto *title = new QLabel(QStringLiteral("Recording"), this);
+    auto *title = new QLabel(tr("Recording"), this);
     title->setObjectName(QStringLiteral("RecordingTitle"));
     m_time->setObjectName(QStringLiteral("RecordingTime"));
     m_steps->setObjectName(QStringLiteral("SettingsRowDescription"));
-    m_stop->setToolTip(QStringLiteral("Stop recording and save the report"));
-    m_discard->setToolTip(QStringLiteral("Throw away this recording"));
+    m_stop->setToolTip(tr("Stop recording and save the report"));
+    m_discard->setToolTip(tr("Throw away this recording"));
     for (QWidget *button : std::initializer_list<QWidget *>{m_stop, m_discard}) {
         button->setCursor(Qt::PointingHandCursor);
     }
@@ -89,7 +90,7 @@ void RecordingBar::setElapsed(qint64 milliseconds)
 
 void RecordingBar::setSteps(int steps)
 {
-    m_steps->setText(steps == 1 ? QStringLiteral("1 step") : QStringLiteral("%1 steps").arg(steps));
+    m_steps->setText(steps == 1 ? tr("1 step") : tr("%1 steps").arg(steps));
 }
 
 void RecordingBar::placeNear(QWidget *window)

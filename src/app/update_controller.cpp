@@ -7,6 +7,7 @@
 #include <array>
 #include <chrono>
 
+#include "core/translator.hpp"
 #include "core/logger.hpp"
 #include "core/string_utils.hpp"
 #include "platform/shell_open.hpp"
@@ -188,8 +189,8 @@ void UpdateController::onReady()
             prompt->showReady();
         }
     }
-    m_tray.show(QStringLiteral("A new update is ready to install"),
-                QStringLiteral("SkyAutoPianoCpp %1 has been downloaded and will be installed automatically when you "
+    m_tray.show(tr("A new update is ready to install"),
+                tr("SkyAutoPianoCpp %1 has been downloaded and will be installed automatically when you "
                                "close the app.")
                     .arg(toQString(m_check.latestVersion)));
 }
@@ -204,7 +205,7 @@ void UpdateController::onFailed(const QString &message)
         }
     }
     if (!shown) {
-        m_toasts.showTitled(ToastType::Error, "Update Failed", fromQString(message), kStickyToast);
+        m_toasts.showTitled(ToastType::Error, trUtf8("Update Failed"), fromQString(message), kStickyToast);
     }
 }
 

@@ -7,6 +7,7 @@
 #include <QPropertyAnimation>
 #include <QVBoxLayout>
 
+#include "core/translator.hpp"
 #include "ui/core/easing.hpp"
 #include "ui/main_window/nav_tab.hpp"
 #include "ui/render/paint_utils.hpp"
@@ -43,14 +44,14 @@ NavDrawer::NavDrawer(QWidget *window)
     list->setContentsMargins(kPadSide + kListPadding, kPadTop + kListPadding, kPadSide + kListPadding, kPadSide + kListPadding);
     list->setSpacing(kItemGap);
     const std::pair<LibraryTab, std::pair<const char *, const char *>> items[] = {
-        {LibraryTab::AllSongs, {"music-note-list", "All Songs"}},
-        {LibraryTab::Favorite, {"heart", "Favorite"}},
-        {LibraryTab::Playlists, {"folder2", "Playlists"}},
-        {LibraryTab::RecentPlay, {"clock", "Recent Play"}},
-        {LibraryTab::Store, {"shop", "Store"}},
+        {LibraryTab::AllSongs, {"music-note-list", trNoop("All Songs")}},
+        {LibraryTab::Favorite, {"heart", trNoop("Favorite")}},
+        {LibraryTab::Playlists, {"folder2", trNoop("Playlists")}},
+        {LibraryTab::RecentPlay, {"clock", trNoop("Recent Play")}},
+        {LibraryTab::Store, {"shop", trNoop("Store")}},
     };
     for (const auto &[tab, labels] : items) {
-        auto *button = new NavTab(QString::fromLatin1(labels.first), QString::fromLatin1(labels.second), m_panel);
+        auto *button = new NavTab(QString::fromLatin1(labels.first), tr(labels.second), m_panel);
         const LibraryTab chosen = tab;
         connect(button, &QAbstractButton::clicked, this, [this, chosen] {
             emit tabChosen(chosen);

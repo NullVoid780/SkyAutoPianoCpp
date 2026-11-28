@@ -6,6 +6,7 @@
 #include <set>
 #include <string>
 
+#include "core/translator.hpp"
 #include "codec/sheet_error.hpp"
 #include "core/string_utils.hpp"
 #include "model/key_table.hpp"
@@ -24,7 +25,7 @@ Result<KeyMap> buildKeyMap(const std::vector<PlaybackNote> &playbackNotes)
         maxSongTime = std::max(maxSongTime, note.time + note.hold);
     }
     if (byTime.empty()) {
-        return sheetError(SheetErrorCode::NoNotes, "The sheet does not contain any playable notes.");
+        return sheetError(SheetErrorCode::NoNotes, trUtf8("The sheet does not contain any playable notes."));
     }
     const std::int64_t lastTimestamp = byTime.rbegin()->first;
     byTime.try_emplace(0);
@@ -42,7 +43,7 @@ Result<KeyMap> buildKeyMap(const std::vector<PlaybackNote> &playbackNotes)
 Result<KeyMap> normalizeStoredKeyMap(const OrderedJson &rawKeyMap)
 {
     if (!rawKeyMap.is_object()) {
-        return sheetError(SheetErrorCode::InvalidKeyMap, "The stored sheet keymap is invalid.");
+        return sheetError(SheetErrorCode::InvalidKeyMap, trUtf8("The stored sheet keymap is invalid."));
     }
     std::set<double> times;
     for (const auto &item : rawKeyMap.items()) {

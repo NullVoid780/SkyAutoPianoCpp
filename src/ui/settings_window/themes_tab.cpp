@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "core/translator.hpp"
 #include "app/theme_controller.hpp"
 #include "core/string_utils.hpp"
 #include "platform/file_dialog.hpp"
@@ -112,23 +113,23 @@ ThemesTab::ThemesTab(ThemeController &themes, QWidget *parent)
       m_gallery(new QWidget(this)),
       m_builtIn(new ThemeGrid(m_gallery)),
       m_custom(new ThemeGrid(m_gallery)),
-      m_emptyHint(new QLabel(QStringLiteral("Themes you create or import show up here. Press New Theme to start "
+      m_emptyHint(new QLabel(tr("Themes you create or import show up here. Press New Theme to start "
                                             "from the current look, or the pencil on any theme to customize a copy."),
                              m_gallery)),
       m_modeChoice(new SelectBox(m_gallery)),
       m_builder(new ThemeBuilder(themes, this))
 {
     auto *header = new TabHeader(QStringLiteral("palette"), [] { return currentTheme().hoverColor; },
-                                 QStringLiteral("Themes"), QStringLiteral("Pick a look for the app, or build your own."),
+                                 tr("Themes"), tr("Pick a look for the app, or build your own."),
                                  m_gallery);
-    auto *importButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("upload"), QStringLiteral("Import"));
-    auto *newButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("plus"), QStringLiteral("New Theme"));
+    auto *importButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("upload"), tr("Import"));
+    auto *newButton = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("plus"), tr("New Theme"));
     header->addAction(importButton);
     header->addAction(newButton);
 
-    auto *builtInTitle = new QLabel(QStringLiteral("Built-in Themes"), m_gallery);
+    auto *builtInTitle = new QLabel(tr("Built-in Themes"), m_gallery);
     builtInTitle->setObjectName(QStringLiteral("ThemeGroupTitle"));
-    auto *customTitle = new QLabel(QStringLiteral("Your Themes"), m_gallery);
+    auto *customTitle = new QLabel(tr("Your Themes"), m_gallery);
     customTitle->setObjectName(QStringLiteral("ThemeGroupTitle"));
     m_emptyHint->setObjectName(QStringLiteral("SettingsRowDescription"));
     m_emptyHint->setWordWrap(true);
@@ -136,12 +137,12 @@ ThemesTab::ThemesTab(ThemeController &themes, QWidget *parent)
     auto *galleryColumn = new QVBoxLayout(m_gallery);
     galleryColumn->setContentsMargins(0, 0, 0, 0);
     galleryColumn->setSpacing(0);
-    m_modeChoice->addOption(QStringLiteral("Follow Windows"), QStringLiteral("Matches the light or dark mode of Windows"));
-    m_modeChoice->addOption(QStringLiteral("Always light"), QStringLiteral("Uses the light version of your theme"));
-    m_modeChoice->addOption(QStringLiteral("Always dark"), QStringLiteral("Uses the dark version of your theme"));
-    m_modeChoice->setAccessibleName(QStringLiteral("Light or Dark"));
-    auto *modeRow = new SettingsRow(QStringLiteral("sun"), QStringLiteral("Light or Dark"),
-                                    QStringLiteral("Follow Windows, or always use one. The sun and moon button also "
+    m_modeChoice->addOption(tr("Follow Windows"), tr("Matches the light or dark mode of Windows"));
+    m_modeChoice->addOption(tr("Always light"), tr("Uses the light version of your theme"));
+    m_modeChoice->addOption(tr("Always dark"), tr("Uses the dark version of your theme"));
+    m_modeChoice->setAccessibleName(tr("Light or Dark"));
+    auto *modeRow = new SettingsRow(QStringLiteral("sun"), tr("Light or Dark"),
+                                    tr("Follow Windows, or always use one. The sun and moon button also "
                                                    "switches it."),
                                     m_modeChoice, m_gallery);
 
@@ -255,7 +256,7 @@ void ThemesTab::createTheme()
     ThemeDefinition draft = active ? *active : *findBuiltInTheme(defaultThemeId());
     draft.id.clear();
     draft.builtIn = false;
-    draft.name = m_themes.suggestName(QStringLiteral("My Theme"));
+    draft.name = m_themes.suggestName(tr("My Theme"));
     openBuilder(draft, true);
 }
 
@@ -273,7 +274,7 @@ void ThemesTab::onCardAction(const QString &id, ThemeCard::Action action)
         ThemeDefinition draft = *found;
         draft.id.clear();
         draft.builtIn = false;
-        draft.name = m_themes.suggestName(found->name + QStringLiteral(" Copy"));
+        draft.name = m_themes.suggestName(tr("%1 Copy").arg(found->name));
         openBuilder(draft, true);
         break;
     }
@@ -298,7 +299,7 @@ void ThemesTab::importTheme()
         return;
     }
     m_themes.select(imported.value());
-    notify(ToastType::Success, "Theme imported and applied.");
+    notify(ToastType::Success, trUtf8("Theme imported and applied."));
 }
 
 void ThemesTab::exportTheme(const QString &id)
@@ -315,20 +316,20 @@ void ThemesTab::exportTheme(const QString &id)
         notify(ToastType::Error, written.error().userMessage);
         return;
     }
-    notify(ToastType::Success, "Theme exported successfully.");
+    notify(ToastType::Success, trUtf8("Theme exported successfully."));
 }
 
 void ThemesTab::deleteTheme(const QString &id)
 {
     QPointer<ThemesTab> self(this);
-    confirm()->ask(QStringLiteral("Delete this theme? This cannot be undone."), [self, id] {
+    confirm()->ask(tr("Delete this theme? This cannot be undone."), [self, id] {
         if (!self) {
             return;
         }
         if (self->m_themes.remove(id)) {
-            self->notify(ToastType::Success, "Theme deleted.");
+            self->notify(ToastType::Success, trUtf8("Theme deleted."));
         } else {
-            self->notify(ToastType::Error, "The theme could not be deleted.");
+            self->notify(ToastType::Error, trUtf8("The theme could not be deleted."));
         }
     });
 }

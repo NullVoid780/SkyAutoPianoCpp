@@ -5,6 +5,7 @@
 #include <QSignalBlocker>
 #include <QVariantAnimation>
 
+#include "core/translator.hpp"
 #include "ui/core/easing.hpp"
 #include "ui/render/paint_utils.hpp"
 #include "ui/render/shadow_painter.hpp"
@@ -119,12 +120,12 @@ void InlineSwitch::paintEvent(QPaintEvent *)
     offColor.setAlphaF(1.0 - m_position);
     painter.setPen(offColor);
     painter.drawText(stateRect.translated(0, -kTrackHeight * m_position), Qt::AlignVCenter | Qt::AlignLeft,
-                     QStringLiteral("Off"));
+                     tr("Off"));
     QColor onColor = theme.hoverColor;
     onColor.setAlphaF(m_position);
     painter.setPen(onColor);
     painter.drawText(stateRect.translated(0, kTrackHeight * (1.0 - m_position)), Qt::AlignVCenter | Qt::AlignLeft,
-                     QStringLiteral("On"));
+                     tr("On"));
     painter.restore();
 
     if (hasFocus()) {

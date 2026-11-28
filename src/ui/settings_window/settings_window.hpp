@@ -48,6 +48,7 @@ public:
 
     void showToast(const Toast &toast);
     void reloadForm();
+    void setLanguage(const QString &preference);
     int currentPage() const;
     void openPage(int index);
     void setCrashReports(const std::vector<CrashListEntry> &crashes);
@@ -56,6 +57,8 @@ signals:
     void themeImported(sky::AppTheme theme);
     void importPreviousRequested();
     void quickStartRequested();
+    void languageChosen(const QString &preference);
+    void restartRequested();
     void recordIssueRequested();
     void saveCrashReportRequested(const QString &id);
     void crashFolderRequested();

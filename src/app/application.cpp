@@ -869,7 +869,7 @@ void Application::importLegacy(const LegacyImportPlan &plan, bool manual)
                                     }
                                     if (!verified) {
                                         message += QLatin1Char(' ') +
-                                                   tr("Some items need attention - you can retry the import from Settings.");
+                                                   tr("Some items need attention - you can retry the import from Quick Start.");
                                     }
                                     const std::string text = fromQString(message);
                                     self->notifyLegacy(manual, Toast{verified ? ToastType::Success : ToastType::Warning,
@@ -1041,7 +1041,6 @@ void Application::openSettings()
     m_settings = new SettingsWindow(SettingsServices{*m_config, *m_updates, *m_themes}, m_mainWindow.get());
     connect(m_settings, &QObject::destroyed, this, [this] { m_shortcuts->resume(); });
     connect(m_settings, &SettingsWindow::themeImported, this, &Application::applyTheme);
-    connect(m_settings, &SettingsWindow::importPreviousRequested, this, [this] { detectLegacyLibrary(true); });
     connect(m_settings, &SettingsWindow::legacyRemovalRequested, this, &Application::onLegacyRemovalClicked);
     connect(m_settings, &SettingsWindow::legacyCleanupShown, this, [this] {
         m_autoVerifyArmed = true;
@@ -1281,8 +1280,13 @@ void Application::updateLegacyCleanupUi()
             }
         }
     }
-    const bool present = detection.status != LegacyDetectionStatus::NotFound || m_removalEvidence.has_value() ||
-                         m_uiState->legacyRemoved() || m_uiState->legacyMigrationStatus() != "not_detected";
+    // Once the old version has been removed and nothing of it is detected
+    // any more, the cleanup UI retires itself instead of staying on screen
+    // forever; if the old version is ever detected again it comes back.
+    const bool removedAndGone = detection.status == LegacyDetectionStatus::NotFound && m_uiState->legacyRemoved();
+    const bool present = !removedAndGone &&
+                         (detection.status != LegacyDetectionStatus::NotFound || m_removalEvidence.has_value() ||
+                          m_uiState->legacyRemoved() || m_uiState->legacyMigrationStatus() != "not_detected");
     const QString title = legacyCleanupTitle();
     if (m_settings) {
         m_settings->setLegacyCleanup(title, description, removeEnabled, busy, present);
@@ -1375,7 +1379,7 @@ void Application::startLegacyVerification()
                 self->tell(Toast{verified ? ToastType::Success : ToastType::Warning, {},
                                  verified ? trUtf8("Your data from the old version is verified in this library.")
                                           : trUtf8("Some data from the old version could not be verified. "
-                                                   "Import it again from Settings."),
+                                                   "Import it again from Quick Start."),
                                  kDefaultToastMs});
                 self->updateLegacyCleanupUi();
             },

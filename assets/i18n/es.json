@@ -364,7 +364,7 @@
   "Import them": "Importarlas",
   "Songs, playlists, favorites, settings": "Canciones, listas, favoritos, ajustes",
   "Not now": "Ahora no",
-  "Import later in Settings → General": "Importa más tarde en Ajustes → General",
+  "Import later by running Quick Start again": "Importa más tarde volviendo a ejecutar Inicio rápido",
   "Choose folder": "Elegir carpeta",
   "Nothing in the previous version is changed. Your songs are copied.": "La versión anterior no cambia. Tus canciones se copian.",
   "How should songs play?": "¿Cómo deben sonar las canciones?",
@@ -456,7 +456,6 @@
   "Use the same language as Windows": "Usar el mismo idioma que Windows",
   "Language": "Idioma",
   "Choose the language of the app. It restarts to switch.": "Elige el idioma de la aplicación. Se reinicia para cambiarlo.",
-  "Import Previous Songs": "Importar canciones anteriores",
   "Run again": "Volver a ejecutar",
   "Quick Start": "Inicio rápido",
   "Go through the first-time setup again.": "Vuelve a hacer la configuración inicial.",
@@ -741,7 +740,7 @@
   "Select All": "Seleccionar todo",
   "Copy &Link Location": "Copiar la &dirección del enlace",
   "%1 song(s) share a name with a different song already in your library and were skipped.": "%1 canción(es) comparten nombre con otra canción distinta que ya está en tu biblioteca y se omitieron.",
-  "Some items need attention - you can retry the import from Settings.": "Algunos elementos necesitan atención: puedes reintentar la importación desde Ajustes.",
+  "Some items need attention - you can retry the import from Quick Start.": "Algunos elementos necesitan atención: puedes reintentar la importación desde Inicio rápido.",
   "Verifying that everything from the old version is complete in this library...": "Verificando que todo lo de la versión antigua esté completo en esta biblioteca...",
   "More than one old installation is registered, so automatic removal is off. You can remove the old version in Windows Settings > Apps.": "Hay más de una instalación antigua registrada, por lo que la eliminación automática está desactivada. Puedes eliminar la versión antigua en Windows Settings > Apps.",
   "The old version's uninstaller could not be validated, so automatic removal is off. You can remove the old version in Windows Settings > Apps.": "No se pudo validar el desinstalador de la versión antigua, por lo que la eliminación automática está desactivada. Puedes eliminar la versión antigua en Windows Settings > Apps.",
@@ -756,7 +755,7 @@
   "Maybe later": "Quizás más tarde",
   "Remove old version": "Eliminar la versión antigua",
   "Your data from the old version is verified in this library.": "Tus datos de la versión antigua están verificados en esta biblioteca.",
-  "Some data from the old version could not be verified. Import it again from Settings.": "Algunos datos de la versión antigua no se pudieron verificar. Impórtalos de nuevo desde Ajustes.",
+  "Some data from the old version could not be verified. Import it again from Quick Start.": "Algunos datos de la versión antigua no se pudieron verificar. Impórtalos de nuevo desde Inicio rápido.",
   "The old version cannot be removed yet. See the explanation in Settings.": "La versión antigua aún no se puede eliminar. Consulta la explicación en Ajustes.",
   "The old version's uninstaller is open. Follow its steps to finish.": "El desinstalador de la versión antigua está abierto. Sigue sus pasos para terminar.",
   "The old version's uninstaller could not be started.": "No se pudo iniciar el desinstalador de la versión antigua.",
@@ -778,6 +777,5 @@
   "Version %1 is still running. Close it, then try again.": "La versión %1 sigue en ejecución. Ciérrala e inténtalo de nuevo.",
   "The old version is still running. Close it, then try again.": "La versión antigua sigue en ejecución. Ciérrala e inténtalo de nuevo.",
   "Version %1 was removed. Your library here is unchanged.": "Se eliminó la versión %1. Tu biblioteca aquí no ha cambiado.",
-  "The old version was removed. Your library here is unchanged.": "Se eliminó la versión antigua. Tu biblioteca aquí no ha cambiado.",
-  "Copy all songs from the old version of Sky Auto Piano into this library.": "Copia todas las canciones de la versión antigua de Sky Auto Piano a esta biblioteca."
+  "The old version was removed. Your library here is unchanged.": "Se eliminó la versión antigua. Tu biblioteca aquí no ha cambiado."
 }

@@ -364,7 +364,7 @@
   "Import them": "Nhập chúng",
   "Songs, playlists, favorites, settings": "Bài hát, danh sách phát, yêu thích, cài đặt",
   "Not now": "Để sau",
-  "Import later in Settings → General": "Nhập sau trong Cài đặt → Chung",
+  "Import later by running Quick Start again": "Nhập sau bằng cách chạy lại Khởi động nhanh",
   "Choose folder": "Chọn thư mục",
   "Nothing in the previous version is changed. Your songs are copied.": "Phiên bản trước không bị thay đổi gì. Bài hát của bạn được sao chép sang.",
   "How should songs play?": "Bài hát nên được phát thế nào?",
@@ -456,7 +456,6 @@
   "Use the same language as Windows": "Dùng cùng ngôn ngữ với Windows",
   "Language": "Ngôn ngữ",
   "Choose the language of the app. It restarts to switch.": "Chọn ngôn ngữ của ứng dụng. Ứng dụng sẽ khởi động lại để chuyển ngôn ngữ.",
-  "Import Previous Songs": "Nhập bài hát cũ",
   "Run again": "Chạy lại",
   "Quick Start": "Khởi động nhanh",
   "Go through the first-time setup again.": "Thực hiện lại phần thiết lập lần đầu.",
@@ -741,7 +740,7 @@
   "Select All": "Chọn tất cả",
   "Copy &Link Location": "Sao chép &địa chỉ liên kết",
   "%1 song(s) share a name with a different song already in your library and were skipped.": "%1 bài hát trùng tên với một bài hát khác đã có trong thư viện của bạn và đã bị bỏ qua.",
-  "Some items need attention - you can retry the import from Settings.": "Một số mục cần chú ý - bạn có thể thử nhập lại từ Cài đặt.",
+  "Some items need attention - you can retry the import from Quick Start.": "Một số mục cần chú ý - bạn có thể thử nhập lại từ Khởi động nhanh.",
   "Verifying that everything from the old version is complete in this library...": "Đang xác minh mọi thứ từ phiên bản cũ đã đầy đủ trong thư viện này...",
   "More than one old installation is registered, so automatic removal is off. You can remove the old version in Windows Settings > Apps.": "Có nhiều hơn một bản cài đặt cũ được đăng ký, nên tính năng gỡ tự động đã tắt. Bạn có thể gỡ phiên bản cũ trong Windows Settings > Apps.",
   "The old version's uninstaller could not be validated, so automatic removal is off. You can remove the old version in Windows Settings > Apps.": "Không thể xác thực trình gỡ cài đặt của phiên bản cũ, nên tính năng gỡ tự động đã tắt. Bạn có thể gỡ phiên bản cũ trong Windows Settings > Apps.",
@@ -756,7 +755,7 @@
   "Maybe later": "Để sau",
   "Remove old version": "Gỡ phiên bản cũ",
   "Your data from the old version is verified in this library.": "Dữ liệu từ phiên bản cũ của bạn đã được xác minh trong thư viện này.",
-  "Some data from the old version could not be verified. Import it again from Settings.": "Một số dữ liệu từ phiên bản cũ không thể xác minh. Hãy nhập lại từ Cài đặt.",
+  "Some data from the old version could not be verified. Import it again from Quick Start.": "Một số dữ liệu từ phiên bản cũ không thể xác minh. Hãy nhập lại từ Khởi động nhanh.",
   "The old version cannot be removed yet. See the explanation in Settings.": "Chưa thể gỡ phiên bản cũ. Xem giải thích trong Cài đặt.",
   "The old version's uninstaller is open. Follow its steps to finish.": "Trình gỡ cài đặt của phiên bản cũ đang mở. Hãy làm theo các bước của nó để hoàn tất.",
   "The old version's uninstaller could not be started.": "Không thể khởi động trình gỡ cài đặt của phiên bản cũ.",
@@ -778,6 +777,5 @@
   "Version %1 is still running. Close it, then try again.": "Phiên bản %1 vẫn đang chạy. Hãy đóng nó rồi thử lại.",
   "The old version is still running. Close it, then try again.": "Phiên bản cũ vẫn đang chạy. Hãy đóng nó rồi thử lại.",
   "Version %1 was removed. Your library here is unchanged.": "Đã gỡ phiên bản %1. Thư viện của bạn ở đây không thay đổi.",
-  "The old version was removed. Your library here is unchanged.": "Đã gỡ phiên bản cũ. Thư viện của bạn ở đây không thay đổi.",
-  "Copy all songs from the old version of Sky Auto Piano into this library.": "Sao chép tất cả bài hát từ phiên bản cũ của Sky Auto Piano vào thư viện này."
+  "The old version was removed. Your library here is unchanged.": "Đã gỡ phiên bản cũ. Thư viện của bạn ở đây không thay đổi."
 }

@@ -271,6 +271,7 @@ add_custom_target(deploy
     COMMAND ${SKY_QT_BIN}/windeployqt.exe --no-translations --no-compiler-runtime --no-system-d3d-compiler
             --no-system-dxc-compiler --no-opengl-sw --verbose 0 ${SKY_STAGING}/SkyAutoPiano.exe
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/packaging/licenses ${SKY_STAGING}/licenses
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/LICENSE ${SKY_STAGING}/licenses/LICENSE
     DEPENDS skyautopiano crashreport
     COMMENT "Staging a deployable copy in ${SKY_STAGING}"
     COMMAND_EXPAND_LISTS

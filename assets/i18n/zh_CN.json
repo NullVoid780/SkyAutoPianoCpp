@@ -364,7 +364,7 @@
   "Import them": "导入它们",
   "Songs, playlists, favorites, settings": "歌曲、播放列表、收藏、设置",
   "Not now": "以后再说",
-  "Import later in Settings → General": "之后可在“设置 → 常规”中导入",
+  "Import later by running Quick Start again": "稍后重新运行快速启动来导入",
   "Choose folder": "选择文件夹",
   "Nothing in the previous version is changed. Your songs are copied.": "旧版不会有任何改动。你的歌曲会被复制过来。",
   "How should songs play?": "歌曲要怎么演奏？",
@@ -456,7 +456,6 @@
   "Use the same language as Windows": "使用与 Windows 相同的语言",
   "Language": "语言",
   "Choose the language of the app. It restarts to switch.": "选择应用的语言。切换时应用会重新启动。",
-  "Import Previous Songs": "导入旧版歌曲",
   "Run again": "重新运行",
   "Quick Start": "快速入门",
   "Go through the first-time setup again.": "重新进行首次设置。",
@@ -741,7 +740,7 @@
   "Select All": "全选",
   "Copy &Link Location": "复制链接地址(&L)",
   "%1 song(s) share a name with a different song already in your library and were skipped.": "%1首歌曲与曲库中已有的另一首歌曲同名，已跳过。",
-  "Some items need attention - you can retry the import from Settings.": "有些项目需要注意 - 你可以从设置中重试导入。",
+  "Some items need attention - you can retry the import from Quick Start.": "某些项目需要留意 - 您可以从快速启动中重新尝试导入。",
   "Verifying that everything from the old version is complete in this library...": "正在验证旧版的所有内容是否完整存在于此曲库中...",
   "More than one old installation is registered, so automatic removal is off. You can remove the old version in Windows Settings > Apps.": "检测到多个旧版安装记录，因此自动删除已关闭。你可以在 Windows Settings > Apps 中删除旧版。",
   "The old version's uninstaller could not be validated, so automatic removal is off. You can remove the old version in Windows Settings > Apps.": "无法验证旧版的卸载程序，因此自动删除已关闭。你可以在 Windows Settings > Apps 中删除旧版。",
@@ -756,7 +755,7 @@
   "Maybe later": "稍后再说",
   "Remove old version": "删除旧版",
   "Your data from the old version is verified in this library.": "你从旧版导入的数据已在此曲库中验证。",
-  "Some data from the old version could not be verified. Import it again from Settings.": "旧版的部分数据无法验证。请从设置中重新导入。",
+  "Some data from the old version could not be verified. Import it again from Quick Start.": "旧版本的部分数据无法验证。请从快速启动中重新导入。",
   "The old version cannot be removed yet. See the explanation in Settings.": "暂时无法删除旧版。请查看设置中的说明。",
   "The old version's uninstaller is open. Follow its steps to finish.": "旧版的卸载程序已打开。请按照其步骤完成操作。",
   "The old version's uninstaller could not be started.": "无法启动旧版的卸载程序。",
@@ -778,6 +777,5 @@
   "Version %1 is still running. Close it, then try again.": "版本 %1 仍在运行。请先关闭它，然后重试。",
   "The old version is still running. Close it, then try again.": "旧版本仍在运行。请先关闭它，然后重试。",
   "Version %1 was removed. Your library here is unchanged.": "版本 %1 已删除。你在这里的曲库没有变化。",
-  "The old version was removed. Your library here is unchanged.": "旧版本已删除。你在这里的曲库没有变化。",
-  "Copy all songs from the old version of Sky Auto Piano into this library.": "将旧版 Sky Auto Piano 中的所有歌曲复制到此曲库。"
+  "The old version was removed. Your library here is unchanged.": "旧版本已删除。你在这里的曲库没有变化。"
 }

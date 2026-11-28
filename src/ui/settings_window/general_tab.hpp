@@ -33,7 +33,6 @@ public:
 signals:
     void importRequested();
     void exportRequested();
-    void importPreviousRequested();
     void legacyRemovalRequested();
     void quickStartRequested();
     void languageChosen(const QString &preference);

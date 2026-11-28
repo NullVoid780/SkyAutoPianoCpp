@@ -78,10 +78,6 @@ GeneralTab::GeneralTab(QWidget *parent)
     auto *languageRow = new SettingsRow(QStringLiteral("translate"), tr("Language"),
                                         tr("Choose the language of the app. It restarts to switch."), m_language,
                                         this);
-    auto *importPrevious = new ActionButton(ActionButton::Kind::Subtle, QStringLiteral("download"), tr("Import"));
-    auto *previous = new SettingsRow(QStringLiteral("music-note-list"), tr("Import Previous Songs"),
-                                     tr("Copy all songs from the old version of Sky Auto Piano into this library."),
-                                     importPrevious, this);
 
     m_legacyRemove = new ActionButton(ActionButton::Kind::Amber, QStringLiteral("trash3"), tr("Remove"));
     m_legacyCleanup = new SettingsRow(QStringLiteral("eraser"), tr("Uninstall the old version"),
@@ -98,7 +94,7 @@ GeneralTab::GeneralTab(QWidget *parent)
     column->addWidget(header);
     column->addSpacing(kHeaderGap);
     for (SettingsRow *row :
-         {languageRow, autoSave, minimize, pause, mode, previous, m_legacyCleanup, quickStart}) {
+         {languageRow, autoSave, minimize, pause, mode, m_legacyCleanup, quickStart}) {
         column->addWidget(row);
         if (row != quickStart) {
             column->addSpacing(kRowGap);
@@ -108,7 +104,6 @@ GeneralTab::GeneralTab(QWidget *parent)
 
     connect(importButton, &QAbstractButton::clicked, this, &GeneralTab::importRequested);
     connect(exportButton, &QAbstractButton::clicked, this, &GeneralTab::exportRequested);
-    connect(importPrevious, &QAbstractButton::clicked, this, &GeneralTab::importPreviousRequested);
     connect(m_legacyRemove, &QAbstractButton::clicked, this, &GeneralTab::legacyRemovalRequested);
     connect(quickStartButton, &QAbstractButton::clicked, this, &GeneralTab::quickStartRequested);
     connect(m_language, &SelectBox::currentIndexChanged, this, &GeneralTab::onLanguageChanged);

@@ -411,7 +411,7 @@ QWidget *QuickStart::buildLegacy()
     m_importTile = new ChoiceTile(QStringLiteral("download"), tr("Import them"),
                                   tr("Songs, playlists, favorites, settings"), m_legacyChoices);
     auto *skip = new ChoiceTile(QStringLiteral("x-lg"), tr("Not now"),
-                                tr("Import later in Settings → General"), m_legacyChoices);
+                                tr("Import later by running Quick Start again"), m_legacyChoices);
     m_importTile->setChecked(true);
     choices->addWidget(m_importTile, 1);
     choices->addWidget(skip, 1);

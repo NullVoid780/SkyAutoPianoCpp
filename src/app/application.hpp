@@ -1,6 +1,8 @@
 #pragma once
 
+#include <map>
 #include <memory>
+#include <string>
 
 #include <QObject>
 #include <QPointer>
@@ -9,12 +11,16 @@
 
 #include "model/config.hpp"
 #include "services/library/legacy_import.hpp"
+#include "services/library/legacy_removal.hpp"
 #include "services/library/library_service.hpp"
 #include "services/notifications/toast_service.hpp"
+
+class QTimer;
 
 namespace sky {
 
 class ChangelogPanel;
+class ConfirmDialog;
 class IssueRecorder;
 class SkyWindowWatcher;
 class IssueReportWindow;
@@ -70,6 +76,13 @@ private:
     void onLegacyDetected(std::optional<LegacyImportPlan> plan, bool manual);
     void pickLegacyFolder();
     void importLegacy(const LegacyImportPlan &plan, bool manual);
+    void refreshLegacyCleanup();
+    void updateLegacyCleanupUi();
+    LegacyImportEvidence legacyRemovalEvidence(const LegacyInstallInfo &install) const;
+    void onLegacyRemovalClicked();
+    void onLegacyVerifyClicked();
+    void startLegacyRemoval();
+    void pollLegacyRemoval();
     void notifyLegacy(bool manual, const Toast &toast);
     void showQuickStart();
     void startIssueRecording();
@@ -79,7 +92,25 @@ private:
     OrderedJson diagnostics() const;
     void applyStartupLayout();
     void tell(const Toast &toast);
-    std::string applyLegacyExtras(const LegacyImportPlan &plan, const LegacyImportSummary &summary);
+    // Per-category outcome of applying the non-sheet legacy extras, so the
+    // import can build an honest LegacyImportResult instead of a bare count.
+    struct LegacyExtrasOutcome {
+        std::string text;
+        int playlistsCreated = 0;
+        int playlistsMerged = 0;
+        int playlistReferencesRemapped = 0;
+        int playlistMissingReferences = 0;
+        int favoritesImported = 0;
+        int favoritesAlreadyPresent = 0;
+        bool recentImported = false;
+        bool recentSkipped = false;
+        bool settingsApplied = false;
+        bool settingsRejected = false;
+        bool themeApplied = false;
+        bool themeSkipped = false;
+    };
+    LegacyExtrasOutcome applyLegacyExtras(const LegacyImportPlan &plan, const LegacyImportSummary &summary);
+    std::map<std::string, std::string> legacyExistingPayloads() const;
 
     std::unique_ptr<ConfigService> m_config;
     std::unique_ptr<UiStateService> m_uiState;
@@ -111,6 +142,12 @@ private:
     QPointer<IssueReportWindow> m_reportWindow;
     std::optional<LegacyImportPlan> m_quickStartLegacy;
     bool m_legacyForQuickStart = false;
+    std::unique_ptr<LegacyRemovalService> m_removal;
+    std::optional<LegacyDetection> m_removalDetection;
+    std::optional<LegacyImportEvidence> m_removalEvidence;
+    QTimer *m_removalTimer = nullptr;
+    QPointer<ConfirmDialog> m_removalDialog;
+    bool m_removalVerifying = false;
 };
 
 }  // namespace sky

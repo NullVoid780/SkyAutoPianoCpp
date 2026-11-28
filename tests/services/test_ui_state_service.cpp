@@ -105,3 +105,40 @@ TEST_CASE("the chosen language persists and follows Windows when cleared")
     }
     CHECK(UiStateService::readLanguage(dir.path()).empty());
 }
+
+TEST_CASE("an interrupted legacy import resumes as needs_review, never as success")
+{
+    ensureCoreApp();
+    TempDir dir;
+    {
+        UiStateService state(dir.path());
+        state.load();
+        state.setLegacyMigration("importing", "1.3.13:4:99", OrderedJson::object());
+    }
+    {
+        UiStateService state(dir.path());
+        state.load();
+        CHECK(state.legacyMigrationStatus() == "needs_review");
+    }
+}
+
+TEST_CASE("legacy migration state persists its source identity and result")
+{
+    ensureCoreApp();
+    TempDir dir;
+    {
+        UiStateService state(dir.path());
+        state.load();
+        CHECK(state.legacyMigrationStatus() == "not_detected");
+        OrderedJson result = OrderedJson::object();
+        result["sheets"] = OrderedJson{{"copied", 3}};
+        state.setLegacyMigration("verified", "1.3.13:4:99", result);
+    }
+    {
+        UiStateService state(dir.path());
+        state.load();
+        CHECK(state.legacyMigrationStatus() == "verified");
+        CHECK(state.legacyMigration().value("sourceFingerprint", std::string()) == "1.3.13:4:99");
+        CHECK(state.legacyMigration()["result"]["sheets"]["copied"] == 3);
+    }
+}

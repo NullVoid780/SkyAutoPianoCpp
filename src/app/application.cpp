@@ -1,5 +1,8 @@
 #include "app/application.hpp"
 
+#include <algorithm>
+#include <utility>
+
 #include <QApplication>
 #include <QDateTime>
 #include <QDir>
@@ -7,6 +10,7 @@
 #include <QCloseEvent>
 #include <QPointer>
 #include <QThreadPool>
+#include <QTimer>
 
 #include "app/paths.hpp"
 #include "core/text_file.hpp"
@@ -14,6 +18,7 @@
 #include "app/player_controller.hpp"
 #include "app/update_controller.hpp"
 #include "app/version.hpp"
+#include "core/json.hpp"
 #include "core/logger.hpp"
 #include "core/translator.hpp"
 #include "core/string_utils.hpp"
@@ -21,6 +26,7 @@
 #include "services/library/chromium_local_storage.hpp"
 #include "services/settings/config_service.hpp"
 #include "services/library/favorites_service.hpp"
+#include "services/library/legacy_removal.hpp"
 #include "services/library/library_service.hpp"
 #include "services/playback/playback_service.hpp"
 #include "services/library/playlist_service.hpp"
@@ -34,6 +40,7 @@
 #include "platform/tray_notification.hpp"
 #include "ui/editor_window/editor_window.hpp"
 #include "ui/main_window/changelog_panel.hpp"
+#include "ui/settings_window/confirm_dialog.hpp"
 #include "ui/settings_window/settings_window.hpp"
 #include "app/theme_controller.hpp"
 #include "app/issue_recorder.hpp"
@@ -101,6 +108,18 @@ Application::Application()
     m_themeLibrary->load();
     m_themes->applyStartup();
     m_player = std::make_unique<PlayerController>(*m_library, *m_playback, *m_recent, *m_config, *m_toasts);
+    m_removal = std::make_unique<LegacyRemovalService>(
+        makeWin32LegacyRemovalSystem(), Paths::appDirectory(), Paths::dataDirectory(), [] {
+            const auto list = readTextFile(Paths::dataDirectory() / "listSheet.json");
+            if (!list) {
+                return false;
+            }
+            const auto parsed = parseJson<OrderedJson>(list.value());
+            return parsed && parsed.value().is_array();
+        });
+    m_removalTimer = new QTimer(this);
+    m_removalTimer->setInterval(1500);
+    connect(m_removalTimer, &QTimer::timeout, this, &Application::pollLegacyRemoval);
     m_recorder = new IssueRecorder(*m_config, *m_themes, *m_library, *m_playback, this);
     IssueRecorder::setDiagnosticsProvider([this] { return diagnostics(); });
     m_mainWindow = std::make_unique<MainWindow>(
@@ -616,6 +635,15 @@ void Application::notifyLegacy(bool manual, const Toast &toast)
     }
 }
 
+std::map<std::string, std::string> Application::legacyExistingPayloads() const
+{
+    std::map<std::string, std::string> payloads;
+    for (const SheetEntry &entry : m_library->entries()) {
+        payloads.emplace(legacySongKey(entry.json()), entry.payloadFile());
+    }
+    return payloads;
+}
+
 void Application::detectLegacyLibrary(bool manual)
 {
     if (m_legacyBusy) {
@@ -623,12 +651,13 @@ void Application::detectLegacyLibrary(bool manual)
     }
     m_legacyBusy = true;
     const std::set<std::string> keys = m_library->legacySongKeys();
+    const std::map<std::string, std::string> existingPayloads = legacyExistingPayloads();
     const std::filesystem::path own = Paths::dataDirectory();
     QPointer<Application> self(this);
-    QThreadPool::globalInstance()->start([self, keys, own, manual] {
+    QThreadPool::globalInstance()->start([self, keys, existingPayloads, own, manual] {
         std::optional<LegacyImportPlan> best;
         for (const LegacyInstall &install : findLegacyInstalls(own, defaultLegacySearchRoots())) {
-            auto plan = planLegacyImport(install, keys, electronLocalStorageDirectory());
+            auto plan = planLegacyImport(install, keys, electronLocalStorageDirectory(), own, existingPayloads);
             if (plan && (!best || plan.value().rows.size() > best->rows.size())) {
                 best = plan.value();
             }
@@ -680,6 +709,7 @@ void Application::onLegacyDetected(std::optional<LegacyImportPlan> plan, bool ma
         }
         return;
     }
+    m_uiState->setLegacyMigration("available", legacySourceFingerprint(plan->install), {});
     if (manual) {
         importLegacy(*plan, true);
         return;
@@ -710,11 +740,13 @@ void Application::pickLegacyFolder()
     }
     m_legacyBusy = true;
     const std::set<std::string> keys = m_library->legacySongKeys();
+    const std::map<std::string, std::string> existingPayloads = legacyExistingPayloads();
+    const std::filesystem::path own = Paths::dataDirectory();
     QPointer<Application> self(this);
-    QThreadPool::globalInstance()->start([self, keys, folder = *folder] {
+    QThreadPool::globalInstance()->start([self, keys, existingPayloads, own, folder = *folder] {
         std::optional<LegacyImportPlan> plan;
         if (const auto install = inspectLegacyFolder(folder)) {
-            if (auto planned = planLegacyImport(*install, keys, electronLocalStorageDirectory())) {
+            if (auto planned = planLegacyImport(*install, keys, electronLocalStorageDirectory(), own, existingPayloads)) {
                 plan = planned.value();
             }
         }
@@ -747,23 +779,101 @@ void Application::pickLegacyFolder()
 void Application::importLegacy(const LegacyImportPlan &plan, bool manual)
 {
     m_legacyBusy = true;
+    const std::string fingerprint = legacySourceFingerprint(plan.install);
+    m_uiState->setLegacyMigration("importing", fingerprint, {});
+    // Snapshot the pre-existing destination files before anything mutates
+    // them, so a partial merge stays recoverable. The legacy source itself
+    // is only ever read.
+    (void)snapshotDestinationFiles(Paths::dataDirectory(), Paths::configDirectory(), fingerprint);
     QPointer<Application> self(this);
     m_library->importLegacyRows(plan.install.dataDirectory, plan.rows, plan.alreadyPresent,
-                                [self, manual, plan](LegacyImportSummary summary) {
+                                [self, manual, plan, fingerprint](LegacyImportSummary summary) {
                                     if (!self) {
                                         return;
                                     }
                                     self->m_legacyBusy = false;
-                                    QString message = tr("Imported %1 from the previous version.")
-                                                          .arg(toQString(self->applyLegacyExtras(plan, summary)));
+                                    const LegacyExtrasOutcome outcome = self->applyLegacyExtras(plan, summary);
+
+                                    LegacyImportResult result;
+                                    result.sourceFingerprint = fingerprint;
+                                    result.sheets.planned = static_cast<int>(plan.rows.size()) +
+                                                            summary.alreadyPresent +
+                                                            static_cast<int>(plan.conflicts.size());
+                                    result.sheets.copied = summary.imported;
+                                    result.sheets.alreadyPresent = summary.alreadyPresent;
+                                    result.sheets.conflicts = static_cast<int>(plan.conflicts.size());
+                                    result.sheets.failed = summary.failed + plan.missingPayloads;
+                                    result.playlists.created = outcome.playlistsCreated;
+                                    result.playlists.merged = outcome.playlistsMerged;
+                                    result.playlists.referencesRemapped = outcome.playlistReferencesRemapped;
+                                    result.playlists.missingReferences = outcome.playlistMissingReferences;
+                                    result.config.applied = outcome.settingsApplied;
+                                    result.config.rejected = outcome.settingsRejected;
+                                    result.extras.favoritesImported = outcome.favoritesImported;
+                                    result.extras.favoritesAlreadyPresent = outcome.favoritesAlreadyPresent;
+                                    result.extras.recentImported = outcome.recentImported;
+                                    result.extras.recentSkipped = outcome.recentSkipped;
+                                    result.extras.themeApplied = outcome.themeApplied;
+                                    result.extras.themeSkipped = outcome.themeSkipped;
+
+                                    std::vector<std::pair<std::string, std::string>> expected;
+                                    std::vector<std::string> referenced;
+                                    for (const auto &[sourceFile, destFile] : summary.payloadMap) {
+                                        expected.emplace_back(sourceFile, destFile);
+                                        referenced.push_back(destFile);
+                                    }
+                                    const LegacyVerification payloadsCheck = verifyImportedSheets(
+                                        plan.install.dataDirectory, Paths::dataDirectory(), expected, {});
+                                    const LegacyVerification referencesCheck = verifyImportedSheets(
+                                        plan.install.dataDirectory, Paths::dataDirectory(), {}, referenced);
+                                    result.sheets.validated =
+                                        std::max(0, static_cast<int>(expected.size()) - payloadsCheck.failed);
+                                    result.verificationChecked = payloadsCheck.checked + referencesCheck.checked;
+                                    result.verificationFailed = payloadsCheck.failed + referencesCheck.failed;
+                                    for (const std::string &failure : payloadsCheck.failures) {
+                                        result.warnings.push_back(failure);
+                                    }
+                                    for (const std::string &failure : referencesCheck.failures) {
+                                        result.warnings.push_back(failure);
+                                    }
+                                    if (result.sheets.conflicts > 0) {
+                                        result.warnings.push_back("sheets skipped as conflicts: " +
+                                                                  std::to_string(result.sheets.conflicts));
+                                    }
+                                    const bool verified = payloadsCheck.verified && referencesCheck.verified &&
+                                                          summary.failed == 0 && plan.missingPayloads == 0 &&
+                                                          plan.conflicts.empty() &&
+                                                          outcome.playlistMissingReferences == 0 &&
+                                                          !outcome.settingsRejected;
+                                    result.verificationStatus = verified ? "verified" : "needs_review";
+                                    self->m_uiState->setLegacyMigration(result.verificationStatus, fingerprint,
+                                                                        result.toJson());
+                                    Logger::info("app", "legacy import result status=" + result.verificationStatus +
+                                                            " copied=" + std::to_string(result.sheets.copied) +
+                                                            " conflicts=" + std::to_string(result.sheets.conflicts) +
+                                                            " failed=" + std::to_string(result.sheets.failed) +
+                                                            " validated=" + std::to_string(result.sheets.validated));
+
+                                    QString message = tr("Imported %1 from the previous version.").arg(toQString(outcome.text));
                                     if (summary.failed > 0) {
                                         message += QLatin1Char(' ') + (summary.failed == 1
                                                                            ? tr("1 song could not be copied.")
                                                                            : tr("%1 songs could not be copied.")
                                                                                  .arg(summary.failed));
                                     }
+                                    if (!plan.conflicts.empty()) {
+                                        message += QLatin1Char(' ') +
+                                                   tr("%1 song(s) share a name with a different song already in "
+                                                      "your library and were skipped.")
+                                                       .arg(static_cast<int>(plan.conflicts.size()));
+                                    }
+                                    if (!verified) {
+                                        message += QLatin1Char(' ') +
+                                                   tr("Some items need attention - you can retry the import from Settings.");
+                                    }
                                     const std::string text = fromQString(message);
-                                    self->notifyLegacy(manual, Toast{ToastType::Success, {}, text, kDefaultToastMs});
+                                    self->notifyLegacy(manual, Toast{verified ? ToastType::Success : ToastType::Warning,
+                                                                     {}, text, kDefaultToastMs});
                                     if (self->m_quickStart &&
                                         self->m_quickStart->legacyState() == QuickStart::LegacyState::Importing) {
                                         self->m_quickStart->setLegacyState(QuickStart::LegacyState::Imported, 0, 0,
@@ -775,8 +885,10 @@ void Application::importLegacy(const LegacyImportPlan &plan, bool manual)
                                 });
 }
 
-std::string Application::applyLegacyExtras(const LegacyImportPlan &plan, const LegacyImportSummary &summary)
+Application::LegacyExtrasOutcome Application::applyLegacyExtras(const LegacyImportPlan &plan,
+                                                                const LegacyImportSummary &summary)
 {
+    LegacyExtrasOutcome outcome;
     const LegacyExtras &extras = plan.extras;
     std::map<std::string, std::string> nativeByKey;
     for (const SheetEntry &entry : m_library->entries()) {
@@ -798,15 +910,19 @@ std::string Application::applyLegacyExtras(const LegacyImportPlan &plan, const L
             continue;
         }
         std::vector<std::string> keys;
+        int legacyKeys = 0;
         if (legacy.contains("sheetKeys") && legacy["sheetKeys"].is_array()) {
             for (const OrderedJson &key : legacy["sheetKeys"]) {
                 if (key.is_string()) {
+                    ++legacyKeys;
                     if (const auto mapped = payloadFor.find(key.get<std::string>()); mapped != payloadFor.end()) {
                         keys.push_back(mapped->second);
                     }
                 }
             }
         }
+        outcome.playlistReferencesRemapped += static_cast<int>(keys.size());
+        outcome.playlistMissingReferences += legacyKeys - static_cast<int>(keys.size());
         const std::string name = PlaylistService::normalizeName(legacy["name"].get<std::string>());
         std::string id;
         for (const Playlist &existing : m_playlists->playlists()) {
@@ -820,6 +936,9 @@ std::string Application::applyLegacyExtras(const LegacyImportPlan &plan, const L
                 continue;
             }
             id = created.value().id;
+            ++outcome.playlistsCreated;
+        } else {
+            ++outcome.playlistsMerged;
         }
         if (!keys.empty()) {
             (void)m_playlists->addSheets(id, keys);
@@ -827,44 +946,58 @@ std::string Application::applyLegacyExtras(const LegacyImportPlan &plan, const L
         ++playlists;
     }
 
-    int favorites = 0;
     for (const std::string &name : extras.favorites) {
         if (!m_favorites->isFavorite(name)) {
             m_favorites->toggle(name);
-            ++favorites;
+            ++outcome.favoritesImported;
+        } else {
+            ++outcome.favoritesAlreadyPresent;
         }
     }
-    if (m_recent->names().empty()) {
-        for (auto it = extras.recentPlays.rbegin(); it != extras.recentPlays.rend(); ++it) {
-            m_recent->add(*it);
+    if (!extras.recentPlays.empty()) {
+        if (m_recent->names().empty()) {
+            for (auto it = extras.recentPlays.rbegin(); it != extras.recentPlays.rend(); ++it) {
+                m_recent->add(*it);
+            }
+            outcome.recentImported = true;
+        } else {
+            outcome.recentSkipped = true;
         }
     }
 
-    bool settings = false;
     if (extras.config) {
+        outcome.settingsRejected = true;
         if (auto merged = ConfigService::normalizeImported(m_config->raw(), *extras.config)) {
             if (ConfigService::validateShortcuts(ConfigService::fromJson(merged.value()).shortcut) &&
                 m_config->replace(merged.value())) {
-                settings = true;
+                outcome.settingsApplied = true;
+                outcome.settingsRejected = false;
                 m_shortcuts->registerAll();
             }
         }
     }
-    if (extras.theme && !m_themes->followsSystem()) {
-        applyTheme(*extras.theme == "dark" ? AppTheme::Dark : AppTheme::Light);
+    if (extras.theme) {
+        if (!m_themes->followsSystem()) {
+            applyTheme(*extras.theme == "dark" ? AppTheme::Dark : AppTheme::Light);
+            outcome.themeApplied = true;
+        } else {
+            outcome.themeSkipped = true;
+        }
     }
 
     QStringList parts = {songCount(static_cast<std::size_t>(summary.imported))};
     if (playlists > 0) {
         parts << playlistCount(static_cast<std::size_t>(playlists));
     }
-    if (favorites > 0) {
-        parts << (favorites == 1 ? tr("1 favorite") : tr("%1 favorites").arg(favorites));
+    if (outcome.favoritesImported > 0) {
+        parts << (outcome.favoritesImported == 1 ? tr("1 favorite")
+                                                 : tr("%1 favorites").arg(outcome.favoritesImported));
     }
-    if (settings) {
+    if (outcome.settingsApplied) {
         parts << tr("your settings");
     }
-    return fromQString(joinList(parts));
+    outcome.text = fromQString(joinList(parts));
+    return outcome;
 }
 
 void Application::toggleTheme()
@@ -899,6 +1032,7 @@ void Application::openSettings()
         }
         m_settings->raise();
         m_settings->activateWindow();
+        refreshLegacyCleanup();
         return;
     }
     m_toasts->show(ToastType::Warning, trUtf8(kSettingsWarning));
@@ -907,6 +1041,8 @@ void Application::openSettings()
     connect(m_settings, &QObject::destroyed, this, [this] { m_shortcuts->resume(); });
     connect(m_settings, &SettingsWindow::themeImported, this, &Application::applyTheme);
     connect(m_settings, &SettingsWindow::importPreviousRequested, this, [this] { detectLegacyLibrary(true); });
+    connect(m_settings, &SettingsWindow::legacyRemovalRequested, this, &Application::onLegacyRemovalClicked);
+    connect(m_settings, &SettingsWindow::legacyVerifyRequested, this, &Application::onLegacyVerifyClicked);
     connect(m_settings, &SettingsWindow::recordIssueRequested, this, &Application::startIssueRecording);
     connect(m_settings, &SettingsWindow::saveCrashReportRequested, this, &Application::saveCrashReport);
     connect(m_settings, &SettingsWindow::clearCrashReportsRequested, this, [this] {
@@ -927,6 +1063,7 @@ void Application::openSettings()
         }
     });
     refreshCrashList();
+    refreshLegacyCleanup();
     m_settings->setLanguage(toQString(m_uiState->language()));
     connect(m_settings, &SettingsWindow::languageChosen, this,
             [this](const QString &preference) { m_uiState->setLanguage(fromQString(preference)); });
@@ -994,6 +1131,246 @@ void Application::showQuickStart()
         m_legacyForQuickStart = true;
         detectLegacyLibrary(false);
     }
+}
+
+LegacyImportEvidence Application::legacyRemovalEvidence(const LegacyInstallInfo &install) const
+{
+    LegacyImportEvidence evidence;
+    evidence.migrationStatus = m_uiState->legacyMigrationStatus();
+    evidence.sourceFingerprint = m_uiState->legacyMigration().value("sourceFingerprint", std::string());
+    evidence.legacyRemoved = m_uiState->legacyRemoved();
+    const OrderedJson result = m_uiState->legacyMigration().value("result", OrderedJson::object());
+    const OrderedJson sheets = result.value("sheets", OrderedJson::object());
+    const OrderedJson playlists = result.value("playlists", OrderedJson::object());
+    const OrderedJson config = result.value("config", OrderedJson::object());
+    const OrderedJson verification = result.value("verification", OrderedJson::object());
+    evidence.hasSeriousFailures = sheets.value("failed", 0) > 0 || sheets.value("conflicts", 0) > 0 ||
+                                  playlists.value("missingReferences", 0) > 0 || config.value("rejected", false) ||
+                                  verification.value("failed", 0) > 0;
+    // A reconciliation result earned earlier in this session stays valid for
+    // the same source; a different source always has to earn its own.
+    if (m_removalEvidence && m_removalEvidence->sourceFingerprint == install.sourceFingerprint) {
+        evidence.reVerified = m_removalEvidence->reVerified;
+        evidence.reVerificationFailed = m_removalEvidence->reVerificationFailed;
+    }
+    return evidence;
+}
+
+void Application::refreshLegacyCleanup()
+{
+    if (!m_removal) {
+        return;
+    }
+    m_removalDetection = m_removal->detectLegacyInstall();
+    if (m_removalDetection->install) {
+        m_removalEvidence = legacyRemovalEvidence(*m_removalDetection->install);
+    } else {
+        m_removalEvidence.reset();
+    }
+    updateLegacyCleanupUi();
+}
+
+void Application::updateLegacyCleanupUi()
+{
+    if (!m_settings || !m_removalDetection) {
+        return;
+    }
+    const LegacyDetection &detection = *m_removalDetection;
+    const bool uninstalling = m_removal->removalInProgress();
+    const bool busy = uninstalling || m_removalVerifying;
+    QString description;
+    bool removeEnabled = false;
+    bool verifyVisible = false;
+    if (m_removalVerifying) {
+        description = tr("Verifying that everything from the old version is complete in this library...");
+    } else if (detection.status == LegacyDetectionStatus::NotFound) {
+        description = tr("No old Electron version was found on this PC.");
+    } else if (detection.status == LegacyDetectionStatus::Ambiguous) {
+        description = tr("More than one old installation is registered, so automatic removal is off. You can "
+                         "remove the old version in Windows Settings > Apps.");
+    } else if (detection.status == LegacyDetectionStatus::Invalid) {
+        description = tr("The old version's uninstaller could not be validated, so automatic removal is off. "
+                         "You can remove the old version in Windows Settings > Apps.");
+    } else if (uninstalling) {
+        description = tr("Uninstalling the old Electron version...");
+    } else if (m_removalEvidence) {
+        const RemovalGate gate = m_removal->canOfferRemoval(*m_removalEvidence, detection);
+        removeEnabled = gate.allowed;
+        if (gate.allowed) {
+            description = tr("Your data from the old version is verified in this library. This library is "
+                             "independent and does not sync back to the old version.");
+        } else {
+            switch (gate.blockers.front()) {
+                case RemovalBlocker::AlreadyRemoved:
+                    description = tr("The old Electron version has already been removed.");
+                    break;
+                case RemovalBlocker::ImportNotVerified:
+                    description = tr("Removal unlocks after your data from the old version has been imported "
+                                     "and verified.");
+                    break;
+                case RemovalBlocker::SourceMismatch:
+                    description = tr("The verified import came from a different copy of the old version, so "
+                                     "removal is off.");
+                    break;
+                case RemovalBlocker::SeriousImportIssues:
+                    description = tr("The last import had problems that need review, so removal is off.");
+                    break;
+                case RemovalBlocker::ReverificationRequired:
+                    description = tr("Your imported data needs a fresh verification before removal.");
+                    break;
+                case RemovalBlocker::PathOverlap:
+                    description = tr("The old and new versions share folders, so removal is off for safety.");
+                    break;
+                case RemovalBlocker::LegacyRunning:
+                    description = tr("The old Electron version is still running. Close it, then try again.");
+                    break;
+                default:
+                    description = tr("The old version could not be validated for removal.");
+                    break;
+            }
+            verifyVisible =
+                m_removalEvidence->migrationStatus == "verified" &&
+                std::find(gate.blockers.begin(), gate.blockers.end(), RemovalBlocker::ReverificationRequired) !=
+                    gate.blockers.end();
+        }
+    }
+    m_settings->setLegacyCleanup(description, removeEnabled, verifyVisible, busy);
+}
+
+void Application::onLegacyVerifyClicked()
+{
+    if (!m_removalDetection || !m_removalDetection->install || m_removalVerifying || m_legacyBusy) {
+        return;
+    }
+    const LegacyInstallInfo install = *m_removalDetection->install;
+    const std::set<std::string> keys = m_library->legacySongKeys();
+    const std::map<std::string, std::string> existingPayloads = legacyExistingPayloads();
+    const std::filesystem::path own = Paths::dataDirectory();
+    const std::filesystem::path localStorage = electronLocalStorageDirectory();
+    m_removalVerifying = true;
+    updateLegacyCleanupUi();
+    QPointer<Application> self(this);
+    QThreadPool::globalInstance()->start([self, install, keys, existingPayloads, own, localStorage] {
+        bool verified = false;
+        int failed = 0;
+        auto plan = planLegacyImport(install.legacy, keys, localStorage, own, existingPayloads);
+        if (plan && plan.value().conflicts.empty() && plan.value().missingPayloads == 0 &&
+            plan.value().rows.empty()) {
+            std::vector<std::pair<std::string, std::string>> expected;
+            std::vector<std::string> referenced;
+            bool complete = true;
+            for (const OrderedJson &row : plan.value().allRows) {
+                const auto found = existingPayloads.find(legacySongKey(row));
+                if (found == existingPayloads.end()) {
+                    complete = false;
+                    break;
+                }
+                expected.emplace_back(row.value("keyMap", std::string()), found->second);
+                referenced.push_back(found->second);
+            }
+            if (complete) {
+                const LegacyVerification check =
+                    verifyImportedSheets(install.legacy.dataDirectory, own, expected, referenced);
+                verified = check.verified;
+                failed = check.failed;
+            }
+        }
+        QMetaObject::invokeMethod(
+            self.data(),
+            [self, verified, failed] {
+                if (!self) {
+                    return;
+                }
+                self->m_removalVerifying = false;
+                if (self->m_removalEvidence) {
+                    self->m_removalEvidence->reVerified = verified;
+                    self->m_removalEvidence->reVerificationFailed = failed;
+                }
+                self->tell(Toast{verified ? ToastType::Success : ToastType::Warning, {},
+                                 verified ? trUtf8("Your data from the old version is verified in this library.")
+                                          : trUtf8("Some data from the old version could not be verified. "
+                                                   "Import it again from Settings."),
+                                 kDefaultToastMs});
+                self->updateLegacyCleanupUi();
+            },
+            Qt::QueuedConnection);
+    });
+}
+
+void Application::onLegacyRemovalClicked()
+{
+    refreshLegacyCleanup();
+    if (!m_removalDetection || !m_removalDetection->install || !m_removalEvidence) {
+        return;
+    }
+    const RemovalGate gate = m_removal->canOfferRemoval(*m_removalEvidence, *m_removalDetection);
+    if (!gate.allowed) {
+        tell(Toast{ToastType::Warning, {},
+                   trUtf8("The old version cannot be removed yet. See the explanation in Settings."),
+                   kDefaultToastMs});
+        return;
+    }
+    QWidget *window = m_settings ? static_cast<QWidget *>(m_settings) : static_cast<QWidget *>(m_mainWindow.get());
+    if (!m_removalDialog) {
+        m_removalDialog = new ConfirmDialog(
+            window,
+            {QStringLiteral("trash3"), tr("Remove the old Electron version?"),
+             tr("The old version's own uninstaller will open and remove it. Your songs and settings in this "
+                "version stay untouched - this library is independent and does not sync back. Leftover data "
+                "files of the old version are not deleted, but its .myp file association will go away."),
+             tr("Maybe later"), QString(), tr("Remove old version"), QStringLiteral("trash3"),
+             ActionButton::Kind::Amber});
+    }
+    QPointer<Application> self(this);
+    m_removalDialog->ask([self](ConfirmDialog::Choice choice) {
+        if (self && choice == ConfirmDialog::Choice::Primary) {
+            self->startLegacyRemoval();
+        }
+    });
+}
+
+void Application::startLegacyRemoval()
+{
+    if (!m_removalDetection || !m_removalDetection->install || !m_removalEvidence) {
+        return;
+    }
+    const RemovalOutcome outcome = m_removal->requestLegacyRemoval(*m_removalDetection->install, *m_removalEvidence);
+    if (outcome.status == RemovalStatus::Launched) {
+        tell(Toast{ToastType::Info, {},
+                   trUtf8("The old version's uninstaller is open. Follow its steps to finish."), kDefaultToastMs});
+        m_removalTimer->start();
+    } else if (outcome.status == RemovalStatus::LaunchFailed) {
+        tell(Toast{ToastType::Error, {}, trUtf8("The old version's uninstaller could not be started."),
+                   kDefaultToastMs});
+    } else if (outcome.status == RemovalStatus::Blocked) {
+        tell(Toast{ToastType::Warning, {},
+                   trUtf8("The old version cannot be removed yet. See the explanation in Settings."),
+                   kDefaultToastMs});
+    }
+    refreshLegacyCleanup();
+}
+
+void Application::pollLegacyRemoval()
+{
+    const std::optional<RemovalOutcome> outcome = m_removal->pollRemoval();
+    if (!outcome) {
+        return;
+    }
+    m_removalTimer->stop();
+    if (outcome->status == RemovalStatus::Completed) {
+        m_uiState->setLegacyRemoved();
+        tell(Toast{ToastType::Success, {},
+                   trUtf8("The old Electron version was removed. Your library here is unchanged."),
+                   kDefaultToastMs});
+    } else if (outcome->status == RemovalStatus::Incomplete) {
+        tell(Toast{ToastType::Warning, {},
+                   trUtf8("The old version is still installed. You can try removing it again."), kDefaultToastMs});
+    } else {
+        tell(Toast{ToastType::Error, {},
+                   trUtf8("The old version was removed, but this library did not pass its check afterwards."),
+                   kDefaultToastMs});
+    }
+    refreshLegacyCleanup();
 }
 
 void Application::activate()

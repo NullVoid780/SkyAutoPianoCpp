@@ -5,8 +5,11 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
+#include <functional>
 #include <system_error>
 
+#include "core/file_system.hpp"
 #include "core/translator.hpp"
 #include "core/string_utils.hpp"
 #include "core/text_file.hpp"
@@ -99,6 +102,13 @@ void collectRegistryHints(std::vector<std::filesystem::path> &folders)
         }
         RegCloseKey(key);
     }
+}
+
+bool sameFileBytes(const std::filesystem::path &a, const std::filesystem::path &b)
+{
+    const auto bytesA = readFileBytes(a);
+    const auto bytesB = readFileBytes(b);
+    return bytesA && bytesB && bytesA.value() == bytesB.value();
 }
 
 void scanFolder(const std::filesystem::path &folder, int depth, std::vector<std::filesystem::path> &candidates)
@@ -235,7 +245,9 @@ LegacyExtras readLegacyExtras(const LegacyInstall &install, const std::filesyste
 }
 
 Result<LegacyImportPlan> planLegacyImport(const LegacyInstall &install, const std::set<std::string> &existingKeys,
-                                          const std::filesystem::path &localStorageDirectory)
+                                          const std::filesystem::path &localStorageDirectory,
+                                          const std::filesystem::path &destDataDirectory,
+                                          const std::map<std::string, std::string> &existingPayloads)
 {
     const auto list = readJson(install.dataDirectory / "listSheet.json");
     if (!list || !list->is_array()) {
@@ -246,11 +258,37 @@ Result<LegacyImportPlan> planLegacyImport(const LegacyInstall &install, const st
     std::set<std::string> planned;
     for (const OrderedJson &row : *list) {
         if (!row.is_object() || !row.contains("keyMap") || !row["keyMap"].is_string()) {
+            ++plan.invalidRows;
             continue;
         }
         plan.allRows.push_back(row);
         const std::string key = legacySongKey(row);
-        if (existingKeys.contains(key) || !planned.insert(key).second) {
+        if (!planned.insert(key).second) {
+            ++plan.alreadyPresent;
+            continue;
+        }
+        if (existingKeys.contains(key)) {
+            const auto existing = existingPayloads.find(key);
+            if (!destDataDirectory.empty() && existing != existingPayloads.end()) {
+                // Decide "already present" by payload bytes, not by title: a
+                // same-key row with different bytes is a different arrangement
+                // and must surface as a conflict instead of a silent skip.
+                const std::string sourceFile = row["keyMap"].get<std::string>();
+                const std::filesystem::path sourcePath = install.dataDirectory / toWide(sourceFile);
+                std::error_code error;
+                if (sourceFile.find_first_of("/\\") != std::string::npos ||
+                    !std::filesystem::is_regular_file(sourcePath, error)) {
+                    ++plan.missingPayloads;
+                    continue;
+                }
+                const std::filesystem::path destPath = destDataDirectory / toWide(existing->second);
+                if (std::filesystem::is_regular_file(destPath, error) && sameFileBytes(sourcePath, destPath)) {
+                    ++plan.alreadyPresent;
+                } else {
+                    plan.conflicts.push_back(LegacySheetConflict{row, sourceFile, existing->second});
+                }
+                continue;
+            }
             ++plan.alreadyPresent;
             continue;
         }
@@ -258,6 +296,131 @@ Result<LegacyImportPlan> planLegacyImport(const LegacyInstall &install, const st
     }
     plan.extras = readLegacyExtras(install, localStorageDirectory);
     return plan;
+}
+
+OrderedJson LegacyImportResult::toJson() const
+{
+    OrderedJson json = OrderedJson::object();
+    json["version"] = 1;
+    json["sourceFingerprint"] = sourceFingerprint;
+    json["sourceAccess"] = sourceAccess;
+    json["sheets"] = OrderedJson{{"planned", sheets.planned}, {"copied", sheets.copied},
+                                 {"alreadyPresent", sheets.alreadyPresent}, {"conflicts", sheets.conflicts},
+                                 {"failed", sheets.failed}, {"validated", sheets.validated}};
+    json["playlists"] = OrderedJson{{"created", playlists.created}, {"merged", playlists.merged},
+                                    {"referencesRemapped", playlists.referencesRemapped},
+                                    {"missingReferences", playlists.missingReferences}};
+    json["config"] = OrderedJson{{"applied", config.applied}, {"rejected", config.rejected}};
+    json["extras"] = OrderedJson{{"favoritesImported", extras.favoritesImported},
+                                 {"favoritesAlreadyPresent", extras.favoritesAlreadyPresent},
+                                 {"recentImported", extras.recentImported}, {"recentSkipped", extras.recentSkipped},
+                                 {"themeApplied", extras.themeApplied}, {"themeSkipped", extras.themeSkipped}};
+    json["verification"] = OrderedJson{{"status", verificationStatus},
+                                       {"checked", verificationChecked},
+                                       {"failed", verificationFailed}};
+    OrderedJson warningsJson = OrderedJson::array();
+    for (const std::string &warning : warnings) {
+        warningsJson.push_back(warning);
+    }
+    json["warnings"] = std::move(warningsJson);
+    return json;
+}
+
+std::string legacySourceFingerprint(const LegacyInstall &install)
+{
+    const std::size_t hash = std::hash<std::string>{}(normalized(install.dataDirectory));
+    return install.version + ":" + std::to_string(install.songCount) + ":" + std::to_string(hash);
+}
+
+LegacyVerification verifyImportedSheets(const std::filesystem::path &sourceData, const std::filesystem::path &destData,
+                                        const std::vector<std::pair<std::string, std::string>> &expectedPayloads,
+                                        const std::vector<std::string> &referencedPayloads)
+{
+    LegacyVerification verification;
+    std::error_code error;
+    for (const auto &[sourceFile, destFile] : expectedPayloads) {
+        ++verification.checked;
+        const std::filesystem::path destPath = destData / toWide(destFile);
+        if (destFile.find_first_of("/\\") != std::string::npos ||
+            !std::filesystem::is_regular_file(destPath, error)) {
+            ++verification.failed;
+            verification.failures.push_back("missing destination payload: " + destFile);
+            continue;
+        }
+        if (!sourceFile.empty() && !sameFileBytes(sourceData / toWide(sourceFile), destPath)) {
+            ++verification.failed;
+            verification.failures.push_back("payload content mismatch: " + destFile);
+        }
+    }
+    for (const std::string &referenced : referencedPayloads) {
+        ++verification.checked;
+        const std::filesystem::path destPath = destData / toWide(referenced);
+        if (referenced.find_first_of("/\\") != std::string::npos ||
+            !std::filesystem::is_regular_file(destPath, error) || !readFileBytes(destPath)) {
+            ++verification.failed;
+            verification.failures.push_back("unresolved payload reference: " + referenced);
+        }
+    }
+    verification.verified = verification.failed == 0;
+    return verification;
+}
+
+std::filesystem::path snapshotDestinationFiles(const std::filesystem::path &dataDirectory,
+                                               const std::filesystem::path &configDirectory,
+                                               const std::string &sourceFingerprint)
+{
+    const std::filesystem::path snapshotDir = dataDirectory / "migration-backup" / "pre-import";
+    std::error_code error;
+    const std::filesystem::path manifestPath = snapshotDir / "manifest.json";
+    if (std::filesystem::is_regular_file(manifestPath, error)) {
+        if (const auto manifest = readJson(manifestPath);
+            manifest && manifest->value("sourceFingerprint", std::string()) == sourceFingerprint) {
+            return snapshotDir;
+        }
+    }
+    const std::array<std::pair<std::filesystem::path, const char *>, 4> files = {{
+        {configDirectory / "config.json", "config.json"},
+        {dataDirectory / "listSheet.json", "listSheet.json"},
+        {dataDirectory / "playlists.json", "playlists.json"},
+        {dataDirectory / "ui-state.json", "ui-state.json"},
+    }};
+    bool any = false;
+    for (const auto &[source, name] : files) {
+        if (std::filesystem::is_regular_file(source, error)) {
+            any = true;
+            break;
+        }
+    }
+    if (!any) {
+        return {};
+    }
+    std::filesystem::remove_all(snapshotDir, error);
+    if (!ensureDir(snapshotDir)) {
+        return {};
+    }
+    OrderedJson manifest = OrderedJson::object();
+    manifest["version"] = 1;
+    manifest["sourceFingerprint"] = sourceFingerprint;
+    manifest["takenAt"] = static_cast<std::int64_t>(
+        std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count());
+    OrderedJson copied = OrderedJson::array();
+    for (const auto &[source, name] : files) {
+        if (!std::filesystem::is_regular_file(source, error)) {
+            continue;
+        }
+        if (std::filesystem::copy_file(source, snapshotDir / name,
+                                       std::filesystem::copy_options::overwrite_existing, error)) {
+            copied.push_back(name);
+        }
+    }
+    if (copied.empty()) {
+        return {};
+    }
+    manifest["files"] = std::move(copied);
+    if (!atomicWrite(manifestPath, dumpJson(manifest, 4))) {
+        return {};
+    }
+    return snapshotDir;
 }
 
 }  // namespace sky

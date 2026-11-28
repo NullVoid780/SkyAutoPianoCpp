@@ -52,10 +52,13 @@ public:
     int currentPage() const;
     void openPage(int index);
     void setCrashReports(const std::vector<CrashListEntry> &crashes);
+    void setLegacyCleanup(const QString &description, bool removeEnabled, bool verifyVisible, bool busy);
 
 signals:
     void themeImported(sky::AppTheme theme);
     void importPreviousRequested();
+    void legacyRemovalRequested();
+    void legacyVerifyRequested();
     void quickStartRequested();
     void languageChosen(const QString &preference);
     void restartRequested();

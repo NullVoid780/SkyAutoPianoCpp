@@ -183,6 +183,8 @@ SettingsWindow::SettingsWindow(SettingsServices services, QWidget *owner)
     connect(m_general, &GeneralTab::exportRequested, this, &SettingsWindow::exportSettings);
     connect(m_general, &GeneralTab::importRequested, this, &SettingsWindow::importSettings);
     connect(m_general, &GeneralTab::importPreviousRequested, this, &SettingsWindow::importPreviousRequested);
+    connect(m_general, &GeneralTab::legacyRemovalRequested, this, &SettingsWindow::legacyRemovalRequested);
+    connect(m_general, &GeneralTab::legacyVerifyRequested, this, &SettingsWindow::legacyVerifyRequested);
     connect(m_general, &GeneralTab::quickStartRequested, this, &SettingsWindow::quickStartRequested);
     connect(m_general, &GeneralTab::languageChosen, this, &SettingsWindow::languageChosen);
     connect(m_general, &GeneralTab::restartRequested, this, &SettingsWindow::restartRequested);
@@ -325,6 +327,12 @@ void SettingsWindow::openPage(int index)
 void SettingsWindow::setLanguage(const QString &preference)
 {
     m_general->setLanguage(preference);
+}
+
+void SettingsWindow::setLegacyCleanup(const QString &description, bool removeEnabled, bool verifyVisible,
+                                      bool busy)
+{
+    m_general->setLegacyCleanup(description, removeEnabled, verifyVisible, busy);
 }
 
 void SettingsWindow::reloadForm()

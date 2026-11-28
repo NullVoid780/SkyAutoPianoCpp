@@ -15,6 +15,7 @@ add_executable(skyautopiano_tests
     services/test_chromium_local_storage.cpp
     services/test_config_service.cpp
     services/test_legacy_import.cpp
+    services/test_legacy_removal.cpp
     services/test_library_service.cpp
     services/test_note_synth.cpp
     services/test_sample_bank.cpp
